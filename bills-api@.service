@@ -19,6 +19,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 
 [X-Fleet]                                                                                                                                                                            
+MachineMetadata=networking=private
 X-Conflicts=%p@*.service                                                                                                                                                             
 Conflicts=%p@*.service
 X-Conflicts=docker-discover.service

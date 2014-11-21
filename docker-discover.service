@@ -10,3 +10,6 @@ ExecStartPre=-/usr/bin/docker rm docker-discover
 ExecStartPre=/usr/bin/docker pull jwilder/docker-discover
 ExecStart=/usr/bin/docker run --net host --name docker-discover -e ETCD_HOST=${COREOS_PUBLIC_IPV4}:4001 -p 127.0.0.1:1936:1936 -t jwilder/docker-discover
 Restart=on-failure
+
+[X-Fleet]
+MachineMetadata=networking=public
