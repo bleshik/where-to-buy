@@ -1,0 +1,25 @@
+[Unit]
+Description=Bills REST API HTTP Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+KillMode=none
+TimeoutStartSec=0
+TimeoutStopSec=360
+EnvironmentFile=/etc/environment
+Environment=INSTANCE=%i
+ExecStartPre=-/usr/bin/docker stop bills-api-%i
+ExecStartPre=-/usr/bin/docker rm bills-api-%i
+ExecStartPre=/usr/bin/docker pull bleshik/bills:latest
+ExecStart=/usr/bin/docker run --name bills-api-%i -p 8080:8080 bleshik/bills:latest
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]                                                                                                                                                                            
+X-Conflicts=%p@*.service                                                                                                                                                             
+Conflicts=%p@*.service
+X-Conflicts=docker-discover.service
+Conflicts=docker-discover.service

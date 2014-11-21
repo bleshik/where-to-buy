@@ -1,0 +1,28 @@
+#cloud-config
+
+coreos:
+  etcd:
+    discovery: https://discovery.etcd.io/008b8d370ee47839ae06d20bae73d51e
+    addr: $public_ipv4:4001
+    peer-addr: $public_ipv4:7001
+  fleet:
+    public-ip: $public_ipv4
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start
+    - name: docker-register.service
+      command: start
+ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD1UU3jGKcD54o1QiIP0mC7rxRbhGQrVKMzZxxwc0vBfOCmhGu9Ud9N6SBgpqmglfpW4waKieIxXxfAJ/xRi2n2A+pXtCH77SELHdkcffoeQ18RHsWewOGYl2x2Nw8IY9cfMawsO9DNxvbA3AO5hwlY5uDVf5ck34FTtBrtik2Dc19V6rZn+b8jvN0xLQFqJRV6aU1BHAQn/CS11y7pfO69aOnbPOOH735nYZQ8IYoSqBbgVJHzJGWinRuRXxOj3FMSCSRanpdPF5qd6BWTnTla82DpNHWNSRSpOFNpZh8iDaIavNtlicrtKPcM+/9b72zLHnJIO9be48CAD8sXsTXD bleshik@Alexeys-MacBook-Pro.local
+write_files:
+    - path: /home/root/.dockercfg
+      permissions: 0644
+      content: |
+        {
+          "https://index.docker.io/v1/": {
+            "auth": "xxxx",
+            "email": "bleshik@gmail.com"
+          }
+        }
