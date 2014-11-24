@@ -24,6 +24,8 @@ libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.
 
 libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.4.3"
 
+libraryDependencies += "net.nikore.etcd" %% "scala-etcd" % "0.7"
+
 libraryDependencies ++= {
   val akkaV = "2.3.6"
   val sprayV = "1.3.1"
