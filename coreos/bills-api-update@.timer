@@ -2,6 +2,7 @@
 Description=Updating Unit Timer
 
 [Timer]
+OnBootSec=1min
 OnCalendar=*:0/1
 Unit=bills-api-update@%i.service
 
