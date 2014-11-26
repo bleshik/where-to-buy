@@ -15,4 +15,4 @@ Restart=on-failure
 
 [X-Fleet]
 Global=true
-MachineMetadata=networking=private
+MachineMetadata=access=private
