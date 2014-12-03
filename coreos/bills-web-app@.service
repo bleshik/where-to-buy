@@ -1,0 +1,27 @@
+[Unit]
+Description=Bills Web App
+After=docker.service
+Requires=docker.service
+
+[Service]
+KillMode=none
+TimeoutStartSec=0
+TimeoutStopSec=360
+EnvironmentFile=/etc/environment
+Environment=INSTANCE=%i
+ExecStartPre=-/usr/bin/docker stop bills-web-app-%i
+ExecStartPre=-/usr/bin/docker rm bills-web-app-%i
+ExecStartPre=/usr/bin/docker pull bleshik/bills-web-app:latest
+ExecStart=/usr/bin/docker run -e "ETCD_ENDPOINT=http://$(ifconfig docker0 | awk '/\<inet\>/ { print $2}'):4001" --name bills-web-app-%i -p 8000:8000 bleshik/bills-web-app:latest
+ExecStop=/usr/bin/docker stop bills-web-app-%i
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]                                                                                                                                                                            
+MachineMetadata=access=private
+X-Conflicts=%p@*.service                                                                                                                                                             
+Conflicts=%p@*.service
+X-Conflicts=docker-discover.service
+Conflicts=docker-discover.service

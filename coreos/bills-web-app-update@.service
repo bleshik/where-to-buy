@@ -1,0 +1,14 @@
+[Unit]
+Description=Updating Unit
+Requires=docker.service
+Requires=fleet.service
+After=docker.service
+After=fleet.service
+
+[Service]
+Type=simple
+TimeoutStartSec=0
+ExecStart=/bin/sh -c 'if [ "`docker inspect --format {{.Id}} bleshik/bills-web-app`" != "`(docker pull bleshik/bills-web-app > /dev/null; docker inspect --format {{.Id}} bleshik/bills-web-app)`" ] ; then /usr/bin/fleetctl stop bills-web-app@%i.service && /usr/bin/fleetctl start bills-web-app@%i.service ; fi'
+
+[X-Fleet]
+MachineOf=bills-web-app@%i.service
