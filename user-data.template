@@ -26,3 +26,9 @@ write_files:
             "email": "bleshik@gmail.com"
           }
         }
+    - path: /etc/systemd/journald.conf
+      permissions: 0644
+      content: |
+        [Journal]
+        Storage=volatile
+        RuntimeMaxUse=10M
