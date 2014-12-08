@@ -1,4 +1,4 @@
-FROM bleshik/scala:2.11.2
+FROM bleshik/bills-api-base:latest
 MAINTAINER Alexey Balchunas <bleshik@gmail.com>
 ADD / /bills
 RUN cd /bills && sbt test
