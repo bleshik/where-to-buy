@@ -16,6 +16,8 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.3.2"
 
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.7"
 
+libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0-beta5"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
 libraryDependencies += "com.github.fakemongo" % "fongo" % "1.5.7" % "test"
