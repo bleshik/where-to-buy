@@ -1,4 +1,4 @@
-package bills.rest
+package wh.rest
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO

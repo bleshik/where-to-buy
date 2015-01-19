@@ -1,4 +1,4 @@
-package bills.rest
+package wh.rest
 
 import akka.actor.Actor
 import bills.port.adapter.persistence.InMemoryAccountRepository

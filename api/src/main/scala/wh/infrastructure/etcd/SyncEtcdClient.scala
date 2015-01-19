@@ -1,4 +1,4 @@
-package bills.infrastructure.etcd
+package wh.infrastructure.etcd
 
 import net.nikore.etcd.EtcdClient
 

@@ -1,6 +1,6 @@
-package bills.infrastructure.mongodb
+package wh.infrastructure.mongodb
 
-import bills.infrastructure.etcd.SyncEtcdClient
+import wh.infrastructure.etcd.SyncEtcdClient
 import com.mongodb.{MongoClient, MongoCredential, ServerAddress}
 import net.nikore.etcd.EtcdClient
 

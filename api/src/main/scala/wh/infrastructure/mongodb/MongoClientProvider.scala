@@ -1,4 +1,4 @@
-package bills.infrastructure.mongodb
+package wh.infrastructure.mongodb
 
 import com.mongodb.MongoClient
 
