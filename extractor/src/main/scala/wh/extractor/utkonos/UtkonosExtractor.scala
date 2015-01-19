@@ -1,20 +1,20 @@
 package wh.extractor.utkonos
 
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlDivision, HtmlInput, HtmlPage}
-import wh.extractor.{AbstractHtmlUnitExtractor, Category, Entry}
+import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class UtkonosExtractor extends AbstractHtmlUnitExtractor {
-  override def doExtract(page: HtmlPage): Iterator[Entry] = {
+  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     extractFromCategory(page, null)
   }
 
-  private def extractFromCategory(page: HtmlPage, category: Category): Iterator[Entry] = {
+  private def extractFromCategory(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
     page.getBody.getElementsByAttribute("div", "class", "goods_container goods_view_box").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { goods =>
       goods.getElementsByAttribute("div", "class", "goods_view").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].map { entry =>
-        Entry("Utkonos", cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
+        ExtractedEntry("Utkonos", cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
           (BigDecimal(entry.getOneHtmlElementByAttribute("input", "name", "price").asInstanceOf[HtmlInput].getValueAttribute) * 100).toLong,
           category)
       }.iterator ++ page.getBody.getElementsByAttribute("div", "class", "el_paginate").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { pagination =>

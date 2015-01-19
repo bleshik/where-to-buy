@@ -12,9 +12,9 @@ abstract class AbstractHtmlUnitExtractor extends Extractor{
   client.getOptions.setThrowExceptionOnFailingStatusCode(false)
   client.getCookieManager.setCookiesEnabled(false)
 
-  override def extract(url: URL): Iterator[Entry] = doExtract(client.getPage(url))
+  override def extract(url: URL): Iterator[ExtractedEntry] = doExtract(client.getPage(url))
 
-  def doExtract(page: HtmlPage): Iterator[Entry]
+  def doExtract(page: HtmlPage): Iterator[ExtractedEntry]
 
   protected def cleanUpName(str: String): String = {
     val noDotsStr = str.replace("…»", "").trim

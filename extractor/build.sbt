@@ -12,4 +12,10 @@ libraryDependencies += "net.sourceforge.htmlunit" % "htmlunit" % "2.15"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-Revolver.settings
+libraryDependencies ++= {
+  val akkaV = "2.3.8"
+  Seq(
+    "com.typesafe.akka" %% "akka-actor" % akkaV,
+    "com.typesafe.akka" %% "akka-remote" % akkaV
+  )
+}

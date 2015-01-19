@@ -6,14 +6,14 @@ import spray.can.Http
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
+import wh.application.extractor.EntryExtractingActor
 
 object Boot extends App {
-
   // we need an ActorSystem to host our application in
-  implicit val system = ActorSystem("on-spray-can")
+  implicit val system = ActorSystem("WhereToBuySystem")
 
-  // create and start our service actor
   val service = system.actorOf(Props[MyServiceActor], "bills")
+  val remote = system.actorOf(Props[EntryExtractingActor], "entry")
 
   implicit val timeout = Timeout(5.seconds)
 
