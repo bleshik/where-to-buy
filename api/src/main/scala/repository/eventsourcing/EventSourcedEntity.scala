@@ -2,24 +2,22 @@ package repository.eventsourcing
 
 import java.lang.reflect.{InvocationTargetException, Method}
 
-import eventstore.api.Event
+import eventstore.api.{InitialEvent, Event}
 
-abstract class EventSourcedEntity[T <: EventSourcedEntity[T]] extends Cloneable {
+abstract class EventSourcedEntity[T <: EventSourcedEntity[T]](val initialEvent: InitialEvent[T]) extends Cloneable {
   private val MUTATE_METHOD_NAME = "when"
-  private var initEvent: Event = null
   private var mutatingChanges: List[Event] = List()
   private var version: Long = 0
 
+  apply(initialEvent)
+
   def apply(event: Event): T = {
-    if (version == 0) {
-      initEvent = event
-    } else if (initEvent.getClass == event.getClass) {
+    if (version > 0 && initialEvent.getClass == event.getClass) {
       return this.asInstanceOf[T]
     }
     val mutatedEntity = mutate(event)
     mutatedEntity.mutatingChanges = this.mutatingChanges :+ event
     mutatedEntity.version = this.version + 1
-    mutatedEntity.initEvent = this.initEvent
     mutatedEntity
   }
 

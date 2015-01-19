@@ -4,7 +4,7 @@ import java.lang.Math.min
 import java.lang.reflect.{Constructor, ParameterizedType}
 import java.util.ConcurrentModificationException
 
-import eventstore.api.{Event, EventStore}
+import eventstore.api.{InitialEvent, Event, EventStore}
 import repository.{IdentifiedEntity, PersistenceOrientedRepository}
 
 abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K], K](val eventStore: EventStore) extends PersistenceOrientedRepository[T, K] {
@@ -35,7 +35,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
   protected def snapshot(id: K, before: Long): Option[T] = { None }
 
   private def init(initEvent: Event): T = {
-    constructor(initEvent.getClass).newInstance(initEvent)
+    initEvent.asInstanceOf[InitialEvent[T]].initializedObject()
   }
 
   private def getAndApply(id: K, after: Long, changes: List[Event]): Option[T] = {

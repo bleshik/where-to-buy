@@ -1,10 +1,8 @@
 package eventstore.impl
 
-import com.github.fakemongo.Fongo
-import com.mongodb.DB
 import eventstore.api.{Event, EventStore}
 
-class MongoDbEventStoreSpec extends AbstractEventStoreSpec {
+class MongoDbEventStoreSpec extends AbstractEventStoreSpec with MongoDbSpec {
   private def newEventStore: EventStore = new MongoDbEventStore(db().getCollection("events"))
   private val complexEvent: ComplexEvent = ComplexEvent(123, "Yeah")
 
@@ -24,10 +22,6 @@ class MongoDbEventStoreSpec extends AbstractEventStoreSpec {
     eventStore.append("eventStream1", 0, List(complexEvent))
     eventStore.size should be(2)
     eventStore.streamNames should be(Set("eventStream0", "eventStream1"))
-  }
-
-  private def db(dbName: String = "Bills"): DB = {
-    new Fongo(getClass.getCanonicalName).getDB(dbName)
   }
 }
 

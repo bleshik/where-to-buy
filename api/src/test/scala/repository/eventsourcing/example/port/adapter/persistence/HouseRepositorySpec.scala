@@ -1,18 +1,24 @@
 package repository.eventsourcing.example.port.adapter.persistence
 
-import eventstore.impl.InMemoryEventStore
+import eventstore.impl.{MongoDbSpec, InMemoryEventStore}
 import org.scalatest._
 import repository.eventsourcing.example.domain.{House, HouseRepository}
 
-class EventSourcedHouseRepositorySpec extends FlatSpec with Matchers {
-  val awesomeHouse = new House("100500 Awesome str., Chicago, USA", 100500, "Alexey Balchunas")
+class HouseRepositorySpec extends FlatSpec with Matchers with MongoDbSpec {
+  val awesomeHouse = House.build("100500 Awesome str., Chicago, USA", 100500, "Alexey Balchunas")
 
   "get" should "return previously put object" in {
-    successHouseScenario(new EventSourcedHouseRepository(new InMemoryEventStore))
+    List(
+      new EventSourcedHouseRepository(new InMemoryEventStore),
+      new MongoDbEventSourcedHouseRepository(db())
+    ).foreach(successHouseScenario)
   }
   
   "conflict" should "be handled properly" in {
-    failedHouseScenario(new EventSourcedHouseRepository(new InMemoryEventStore))
+    List(
+      new EventSourcedHouseRepository(new InMemoryEventStore),
+      new MongoDbEventSourcedHouseRepository(db())
+    ).foreach(failedHouseScenario)
   }
 
   private def successHouseScenario(houseRepository: HouseRepository): Unit = {

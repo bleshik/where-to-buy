@@ -1,4 +1,4 @@
-name := "Bills"
+name := "Where To Buy"
 
 version := "1.0"
 
