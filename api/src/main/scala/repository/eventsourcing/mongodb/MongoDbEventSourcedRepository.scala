@@ -1,12 +1,13 @@
 package repository.eventsourcing.mongodb
 
-import com.mongodb.{BasicDBObject, DBCollection}
+import com.mongodb.{BasicDBObject, DB}
 import eventstore.impl.{MongoDbEventStore, MongoDbSerializer}
 import repository.IdentifiedEntity
 import repository.eventsourcing.{EventSourcedEntity, EventSourcedRepository}
 
-class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K]: Manifest, K] (val events: DBCollection, val snapshots: DBCollection)
-  extends EventSourcedRepository[T, K](new MongoDbEventStore(events)) {
+class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K]: Manifest, K] (val db: DB)
+  extends EventSourcedRepository[T, K](new MongoDbEventStore(db.getCollection(manifest.runtimeClass.getSimpleName + "Events"))) {
+  private val snapshots = db.getCollection(manifest.runtimeClass.getSimpleName)
   private val serializer = new MongoDbSerializer[T]
 
   override protected def saveSnapshot(entity: T): Unit = {

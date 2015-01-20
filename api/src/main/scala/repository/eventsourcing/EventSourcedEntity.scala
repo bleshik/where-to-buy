@@ -9,13 +9,13 @@ abstract class EventSourcedEntity[T <: EventSourcedEntity[T]](val initialEvent: 
   private var mutatingChanges: List[Event] = List()
   private var version: Long = 0
 
-  apply(initialEvent)
+  apply(initialEvent, initial = true)
 
-  def apply(event: Event): T = {
-    if (version > 0 && initialEvent.getClass == event.getClass) {
+  def apply(event: Event, initial: Boolean = false): T = {
+    if (initial && version > 0) {
       return this.asInstanceOf[T]
     }
-    val mutatedEntity = mutate(event)
+    val mutatedEntity = if (!initial) mutate(event) else this.asInstanceOf[T]
     mutatedEntity.mutatingChanges = this.mutatingChanges :+ event
     mutatedEntity.version = this.version + 1
     mutatedEntity

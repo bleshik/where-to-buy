@@ -2,18 +2,18 @@ package wh.rest
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
-import spray.can.Http
 import akka.pattern.ask
 import akka.util.Timeout
+import com.google.inject.Guice
+import spray.can.Http
+import wh.application.ApiModule
+
 import scala.concurrent.duration._
-import wh.application.extractor.EntryExtractingActor
 
 object Boot extends App {
-  // we need an ActorSystem to host our application in
-  implicit val system = ActorSystem("WhereToBuySystem")
-
-  val service = system.actorOf(Props[MyServiceActor], "bills")
-  val remote = system.actorOf(Props[EntryExtractingActor], "entry")
+  val injector = Guice.createInjector(new ApiModule)
+  implicit val system = injector.getInstance(classOf[ActorSystem])
+  val service = system.actorOf(Props[MyServiceActor])
 
   implicit val timeout = Timeout(5.seconds)
 
