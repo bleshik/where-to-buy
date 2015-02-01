@@ -55,7 +55,7 @@ class CommodityMatcher(val split: Double = 1) {
   }
 
   def scores(one: Commodity, two: Commodity): List[Double] = {
-    List(kindScore(one, two), nameScore(one, two), attributesScore(one, two), priceScore(one, two))
+    List(kindScore(one, two), nameScore(one, two), priceScore(one, two)) ++ attributesScores(one, two)
   }
 
   private def priceScore(one: Commodity, two: Commodity): Double = {
@@ -69,10 +69,8 @@ class CommodityMatcher(val split: Double = 1) {
   }
 
   private def kindScore(one: Commodity, two: Commodity): Double = {
-    eachEntriesPair(one, two, {
-      (o, t) =>
-        if (sentencesDifference(kind(o.shopSpecificName, o.shop), kind(t.shopSpecificName, t.shop)) > 0.9) 1.0 else 0.0
-    })
+    eachEntriesPair(one, two, (o, t) =>
+        if (sentencesDifference(kind(o.shopSpecificName, o.shop), kind(t.shopSpecificName, t.shop)) > 0.9) 1.0 else 0.0)
   }
 
   private def quantityScore(one: Commodity, two: Commodity): Double = {
@@ -85,13 +83,20 @@ class CommodityMatcher(val split: Double = 1) {
       if (percent(o.shopSpecificName, o.shop).equals(percent(t.shopSpecificName, t.shop))) 1.0 else 0.0)
   }
 
-  private def attributesScore(one: Commodity, two: Commodity): Double = {
-    eachEntriesPair(one, two, { (o, t) =>
-      val attributesOne = attributes(o.shopSpecificName, o.shop)
-      val attributesTwo = attributes(t.shopSpecificName, t.shop, Some(name(o.shopSpecificName, o.shop)))
-      sentencesDifference(numbers(attributesOne), numbers(attributesTwo)) *
-        sentencesDifference(numbers(attributesOne, exclude = true), numbers(attributesTwo, exclude = true))
-    })
+  private def attributesScores(one: Commodity, two: Commodity): List[Double] = {
+    def score(exclude: Boolean): Double = {
+      eachEntriesPair(one, two, { (o, t) =>
+        val attributesOne = attributes(o.shopSpecificName, o.shop)
+        val attributesTwo = attributes(t.shopSpecificName, t.shop, Some(name(o.shopSpecificName, o.shop)))
+        if (exclude) {
+          sentencesDifference(numbers(attributesOne, exclude = true).split("\\s").filter(_.size > 3).mkString(" "),
+            numbers(attributesTwo, exclude = true).split("\\s").filter(_.size > 3).mkString(" "))
+        } else {
+          sentencesDifference(numbers(attributesOne), numbers(attributesTwo), exact = true)
+        }
+      })
+    }
+    List(score(exclude = true), score(exclude = false))
   }
 
   private def numbers(str: String, exclude: Boolean = false): String = {
@@ -109,9 +114,9 @@ class CommodityMatcher(val split: Double = 1) {
     }
   }
 
-  private def sentencesDifference(one: String, two: String): Double = {
-    val wordsOne = sanitizeName(one).split(" ").filter(_.nonEmpty).toList
-    val wordsTwo = sanitizeName(two).split(" ").filter(_.nonEmpty).toList
+  private def sentencesDifference(one: String, two: String, exact: Boolean = false): Double = {
+    val wordsOne = sanitizeName(one).split("\\s").filter(_.nonEmpty).toList
+    val wordsTwo = sanitizeName(two).split("\\s").filter(_.nonEmpty).toList
 
     def calculateScore (oneWords: List[String], twoWords: List[String]): List[Double] = {
       if (oneWords.isEmpty) {
@@ -120,7 +125,7 @@ class CommodityMatcher(val split: Double = 1) {
         List.fill(oneWords.size)(0.0)
       } else {
         val scores = oneWords.map { w0 =>
-          val localScores = twoWords.map(w1 => distance(w0, w1))
+          val localScores = twoWords.map(w1 => if (exact) if (w0.equals(w1)) 1.0 else 0.0 else distance(w0, w1))
           (localScores.max, localScores.indexOf(localScores.max))
         }
         val maxScoreIndex = scores.indexWhere(p => p._1 == scores.map(_._1).max)
@@ -234,12 +239,16 @@ class CommodityMatcher(val split: Double = 1) {
 
     var attributes: String = ""
     name = probableName.flatMap {t =>
-      val probableNameTokens = t.toLowerCase.split("\\s+")
-      if (probableNameTokens.forall(t => name.toLowerCase.contains(t))) {
-        attributes = name.toLowerCase
-        probableNameTokens.foreach(n => attributes = attributes.replaceAll(n, ""))
-        attributes = attributes.split("\\s+").mkString(" ")
-        Some(t)
+      if (t.trim.nonEmpty) {
+        val probableNameTokens = t.toLowerCase.split("\\s+")
+        if (probableNameTokens.forall(t => name.toLowerCase.contains(t))) {
+          attributes = name.toLowerCase
+          probableNameTokens.foreach(n => attributes = attributes.replaceAll(n, ""))
+          attributes = attributes.split("\\s+").mkString(" ")
+          Some(t)
+        } else {
+          None
+        }
       } else {
         None
       }

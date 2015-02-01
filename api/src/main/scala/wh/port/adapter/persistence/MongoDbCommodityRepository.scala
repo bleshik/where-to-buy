@@ -11,20 +11,24 @@ import scala.collection.JavaConverters._
 class MongoDbCommodityRepository(override val db: DB)
   extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository {
   snapshots.createIndex(new BasicDBObject("kind", 1))
-  snapshots.createIndex(new BasicDBObject("entries.shop", 1))
+  snapshots.createIndex(new BasicDBObject("entries.shop", 1).append("entries.shopSpecificName", 1))
 
   private val matcher = new CommodityMatcher
 
   override def findSimilar(commodity: Commodity): Option[Commodity] = {
     get(commodity.name).orElse {
-      commodity.entries.headOption.flatMap { e =>
+      commodity.entries.flatMap { e =>
+        Option(snapshots.findOne(new BasicDBObject("entries.shop", e.shop).append("entries.shopSpecificName", e.shopSpecificName)))
+      }.headOption.map(o => deserialize(o))
+    }.orElse {
+      commodity.entries.flatMap { e =>
         snapshots.find(
           new BasicDBObject("entries.shop", new BasicDBObject("$ne", e.shop))
             .append("kind", kind(e.shopSpecificName))
         ).asScala
         .map(r => deserialize(r))
         .find(r => matcher.matching(commodity, r))
-      }
+      }.headOption
     }
   }
 
