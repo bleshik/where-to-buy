@@ -14,12 +14,15 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
   private def extractFromCategory(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
     page.getBody.getElementsByAttribute("div", "class", "goods_container goods_view_box").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { goods =>
       goods.getElementsByAttribute("div", "class", "goods_view").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].map { entry =>
-        ExtractedEntry("Utkonos", cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
+        extractEntry(cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
           (BigDecimal(entry.getOneHtmlElementByAttribute("input", "name", "price").asInstanceOf[HtmlInput].getValueAttribute) * 100).toLong,
           category)
       }.iterator ++ page.getBody.getElementsByAttribute("div", "class", "el_paginate").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { pagination =>
         pagination.getElementsByTagName("a").asScala.lastOption.asInstanceOf[Option[HtmlAnchor]].map { lastLink =>
-          if (cleanUpName(lastLink.getTextContent).equals("Вперед")) extractFromCategory(lastLink.click(), category) else Iterator.empty
+          if (cleanUpName(lastLink.getTextContent).equals("Вперед"))
+            click(lastLink).map(extractFromCategory(_, category)).getOrElse(Iterator.empty)
+          else
+            Iterator.empty
         }.getOrElse(Iterator.empty)
       }.getOrElse(Iterator.empty)
     }.getOrElse(Iterator.empty) ++ page.getBody
@@ -27,7 +30,7 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
       .asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]]
       .iterator
       .flatMap { a =>
-        extractFromCategory(a.click(), Category(cleanUpName(a.getChildNodes.get(1).getTextContent), category))
+        click(a).map(extractFromCategory(_, Category(cleanUpName(a.getChildNodes.get(1).getTextContent), category))).getOrElse(Iterator.empty)
       }
   }
 }

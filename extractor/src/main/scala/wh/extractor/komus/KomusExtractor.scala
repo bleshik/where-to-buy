@@ -15,21 +15,21 @@ class KomusExtractor extends AbstractHtmlUnitExtractor {
       .asScala
       .headOption
       .asInstanceOf[Option[HtmlAnchor]]
-      .map(a => extractFromCategoryList(a.click().asInstanceOf[HtmlPage], parentCategory))
+      .map(a => click(a).map(extractFromCategoryList(_, parentCategory)).getOrElse(Iterator.empty))
       .getOrElse(
         extractFromProductList(page, parentCategory) ++
           page.getBody
             .getElementsByAttribute("a", "class", "pagination--item-page-link")
             .asScala
             .asInstanceOf[mutable.Buffer[HtmlAnchor]]
-            .flatMap(a => extractFromProductList(a.click(), parentCategory)) ++
+            .flatMap(a => click(a).map(extractFromProductList(_, parentCategory)).getOrElse(Iterator.empty)) ++
           page.getBody
           .getElementsByAttribute("a", "class","catalog--ag-head-link")
           .asInstanceOf[java.util.List[HtmlAnchor]]
           .asScala
           .iterator
           .flatMap { a =>
-              extractFromCategoryList(a.click(), Category(cleanUpName(a.getChildNodes.get(0).getTextContent), parentCategory))
+              click(a).map(extractFromCategoryList(_, Category(cleanUpName(a.getChildNodes.get(0).getTextContent), parentCategory))).getOrElse(Iterator.empty)
           }
       )
   }
@@ -41,7 +41,7 @@ class KomusExtractor extends AbstractHtmlUnitExtractor {
         val name = cleanUpName(entry.getOneHtmlElementByAttribute("a", "class", "goods-" + diff + "--name-link").asInstanceOf[HtmlAnchor].getChildNodes.get(0).getTextContent)
         val stringPrice = cleanUpName(entry.getOneHtmlElementByAttribute("span", "class", "goods-" + diff +  "--price-now-value").asInstanceOf[HtmlSpan].getChildNodes.get(0).getTextContent)
         val price = (BigDecimal(stringPrice.replace(',', '.').replace(" ", "")) * 100).toLong
-        ExtractedEntry("Komus", name, price, category)
+        extractEntry(name, price, category)
       }
     }.iterator
   }
