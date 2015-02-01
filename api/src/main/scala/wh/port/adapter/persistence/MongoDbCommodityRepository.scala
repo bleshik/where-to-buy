@@ -1,27 +1,38 @@
 package wh.port.adapter.persistence
 
+import com.mongodb
 import com.mongodb.{BasicDBObject, DB}
+import com.mongodb.casbah.Imports._
 import repository.eventsourcing.mongodb.MongoDbEventSourcedRepository
-import wh.domain.model.{CommodityRepository, Commodity}
+import wh.domain.model.{Commodity, CommodityRepository}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import com.mongodb.casbah.Imports._
 
 class MongoDbCommodityRepository(override val db: DB)
   extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository {
-  snapshots.createIndex(new BasicDBObject("name", "text"), new BasicDBObject("default_language", "ru"))
+  snapshots.createIndex(new BasicDBObject("kind", 1))
+  snapshots.createIndex(new BasicDBObject("entries.shop", 1))
 
-  override def get(shop: String, name: String, minScore: Double): Option[Commodity] = {
-    val sanitizedName: String = name.filter({c => c.isLetterOrDigit || c.isSpaceChar || c.isWhitespace})
-    snapshots.aggregate(List(
-      new BasicDBObject("$match", new BasicDBObject("$text", new BasicDBObject("$search", sanitizedName).append("$language", "ru"))
-        .append("entries.shop", new BasicDBObject("$ne", shop))),
-      new BasicDBObject("$project", new BasicDBObject("score", new BasicDBObject("$meta", "textScore")).append("doc", "$$ROOT")),
-      new BasicDBObject("$sort", new BasicDBObject("score", -1)),
-      new BasicDBObject("$match", new BasicDBObject("score", new BasicDBObject("$gte", minScore.asInstanceOf[java.lang.Double]))),
-      new BasicDBObject("$limit", 1)
-    )).results().asScala.headOption.map(r => serializer.deserialize(r.get("doc").asInstanceOf[DBObject]))
+  private val matcher = new CommodityMatcher
+
+  override def findSimilar(commodity: Commodity): Option[Commodity] = {
+    get(commodity.name).orElse {
+      commodity.entries.headOption.flatMap { e =>
+        snapshots.find(
+          new BasicDBObject("entries.shop", new BasicDBObject("$ne", e.shop))
+            .append("kind", kind(e.shopSpecificName))
+        ).asScala
+        .map(r => deserialize(r))
+        .find(r => matcher.matching(commodity, r))
+      }
+    }
   }
 
-  
+  private def kind(name: String): String = matcher.titleTokens(name, "").kind.toLowerCase
+
+  override protected def serialize(entity: Commodity): mongodb.DBObject = {
+    val dbObject = super.serialize(entity)
+    dbObject.put("kind", kind(dbObject.get("name").asInstanceOf[String]))
+    dbObject
+  }
 }

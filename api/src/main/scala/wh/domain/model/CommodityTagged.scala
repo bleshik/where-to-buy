@@ -1,5 +1,5 @@
 package wh.domain.model
 
-class CommodityTagged {
+import eventstore.api.Event
 
-}
+case class CommodityTagged(name: String, tag: String) extends Event

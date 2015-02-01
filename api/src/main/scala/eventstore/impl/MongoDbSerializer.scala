@@ -9,14 +9,13 @@ class MongoDbSerializer[T <: AnyRef: Manifest] {
 
     override val typeHintStrategy = StringTypeHintStrategy(when = TypeHintFrequency.Always,
       typeHint = "_typeHint")
-
   }
 
-  def deserialize(mongoObject: DBObject): T = {
+  def deserialize(mongoObject: com.mongodb.DBObject): T = {
     grater[T].asObject(mongoObject)
   }
 
-  def serialize(obj: T): DBObject = {
+  def serialize(obj: T): com.mongodb.DBObject = {
     grater[T].asDBObject(obj)
   }
 }

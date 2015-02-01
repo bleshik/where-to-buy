@@ -17,7 +17,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
   }
 
   private def getByStreamName(streamName: String, version: Long, snapshot: Option[T] = None): Option[T] = {
-    val stream = eventStore.streamSince(streamName, snapshot.map(e => e.unmutatedVersion).getOrElse(0))
+    val stream = eventStore.streamSince(streamName, snapshot.map(e => e.unmutatedVersion).getOrElse(-1))
     if (stream.events.isEmpty) {
       return snapshot
     }
@@ -60,6 +60,9 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
   }
 
   override def save(entity: T): Unit = {
+    if (entity.changes.isEmpty) {
+      return
+    }
     try {
       eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
     } catch {

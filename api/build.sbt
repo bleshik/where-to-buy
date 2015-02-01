@@ -24,13 +24,23 @@ libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0-beta5"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-libraryDependencies += "com.github.fakemongo" % "fongo" % "1.5.7" % "test"
+libraryDependencies += "com.github.fakemongo" % "fongo" % "1.5.10" % "test"
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.3"
 
 libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.4.3"
 
 libraryDependencies += "net.nikore.etcd" %% "scala-etcd" % "0.7"
+
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
+
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.10"
+
+libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-stable" % "3.6.12"
+
+libraryDependencies += "nz.ac.waikato.cms.weka" % "LibSVM" % "1.0.6" exclude("nz.ac.waikato.cms.weka", "weka-dev")
+
+libraryDependencies += "net.sf.supercsv" % "super-csv" % "2.2.1"
 
 libraryDependencies ++= {
   val akkaV = "2.3.8"

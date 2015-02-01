@@ -1,62 +1,40 @@
 package wh.application.akka
 
+import javax.inject.{Inject, Provider}
+
+import akka.actor._
+import com.google.inject.Injector
 import com.typesafe.config.ConfigFactory
 import net.codingwell.scalaguice.ScalaModule
-import akka.actor.{ActorRefFactory, ActorSystem}
-import javax.inject.{Provider, Singleton}
-import com.google.inject.{Provides, Injector}
-import scala.concurrent.ExecutionContext
+import wh.application.extractor.EntryExtractingActor
+import wh.rest.MyServiceActor
 
-/**
- * This module defines the bindings required to support Guice injectable Akka actors.
- * It is a core module required to bootstrap the spray router for rest support.
- *
- * This includes:
- *
- * - ActorSystem      - a singleton instance of the root actor system
- * - ActorRefFactory  - the same instance bound as a ActorRefFactory.  (Guice will
- *                      only inject exact type matches, so we must bind the
- *                      actor system to ActorRefFactory even though ActorSystem
- *                      extends ActorRefFactory).
- * - ExecutionContext - a singleton instance of the execution context provided
- *                      by the root actor system.
- */
+import scala.reflect.ClassTag
+
 class AkkaModule extends ScalaModule
 {
-  def configure {
-    // All of the bindings for this module are defined using the
-    // [[https://github.com/google/guice/wiki/ProvidesMethods provider methods]]
-    // below.
-  }
-
-  /**
-   * Provides the singleton root-actor-system to be injected whenever an ActorSystem
-   * is required.  This method also registers the GuiceAkkaExtension
-   * to be used for instantiating guice injected actors.
-   */
-  @Provides @Singleton
-  def provideActorSystem(injector: Injector) : ActorSystem = {
+  def configure: Unit = {
     val system = ActorSystem("WhereToBuySystem", ConfigFactory.load("api"))
-    // initialize and register extension to allow akka to create actors using Guice
-    GuiceAkkaExtension(system).initialize(injector)
-    system
+    bind[ActorSystem].toInstance(system)
+    actor[MyServiceActor]
+    actor[EntryExtractingActor]
   }
 
-  /**
-   * Provides a singleton factory to be injected whenever an ActorRefFactory
-   * is required.
-   */
-  @Provides @Singleton
-  def provideActorRefFactory(systemProvider: Provider[ActorSystem]): ActorRefFactory = {
-    systemProvider.get
+  private def actor[T <: Actor: Manifest]: Unit = {
+    bind[T]
+    bind[ActorRef].annotatedWithName(manifest.runtimeClass.getSimpleName).toProvider(new ActorProvider[T]).asEagerSingleton()
   }
+}
 
-  /**
-   * Provides a singleton execution context to be injected whenever an ExecutionContext
-   * is required.
-   */
-  @Provides @Singleton
-  def provideExecutionContext(systemProvider: Provider[ActorSystem]): ExecutionContext = {
-    systemProvider.get.dispatcher
+class ActorProvider[T <: Actor: ClassTag] extends Provider[ActorRef] {
+  @Inject()
+  var injector: Injector = null
+
+  @Inject()
+  var system: ActorSystem = null
+
+  def get = {
+    val actorClass = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
+    system.actorOf(Props[T]({injector.getInstance(actorClass)}), actorClass.getSimpleName)
   }
 }

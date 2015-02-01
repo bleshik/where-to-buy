@@ -3,7 +3,6 @@ package eventstore.impl
 import java.util.ConcurrentModificationException
 
 import com.mongodb._
-import com.mongodb.casbah.Imports._
 import eventstore.api.{Event, EventStore, EventStream}
 
 import scala.collection.JavaConverters._
@@ -54,7 +53,8 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
       })
       builder.execute()
     } catch {
-      case e: MongoException.DuplicateKey => throw new ConcurrentModificationException()
+      case e: BulkWriteException  => throw new ConcurrentModificationException()
+      case e: com.mongodb.MongoException.DuplicateKey  => throw new ConcurrentModificationException()
     }
   }
 

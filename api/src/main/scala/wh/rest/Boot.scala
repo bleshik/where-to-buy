@@ -1,10 +1,11 @@
 package wh.rest
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import com.google.inject.Guice
+import com.google.inject.name.Names
+import com.google.inject.{Guice, Key}
 import spray.can.Http
 import wh.application.ApiModule
 
@@ -13,7 +14,7 @@ import scala.concurrent.duration._
 object Boot extends App {
   val injector = Guice.createInjector(new ApiModule)
   implicit val system = injector.getInstance(classOf[ActorSystem])
-  val service = system.actorOf(Props[MyServiceActor])
+  val service = injector.getInstance(Key.get(classOf[ActorRef], Names.named("MyServiceActor")))
 
   implicit val timeout = Timeout(5.seconds)
 
