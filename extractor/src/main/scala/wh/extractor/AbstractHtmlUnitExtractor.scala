@@ -1,14 +1,16 @@
 package wh.extractor
 
+import java.io.ByteArrayOutputStream
 import java.net.URL
+import javax.imageio.ImageIO
 
+import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlElement, HtmlImage, HtmlPage}
 import com.gargoylesoftware.htmlunit.{Page, WebClient}
-import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlPage}
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.{Failure, Success, Try}
 
-abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
+abstract class AbstractHtmlUnitExtractor(val downloadImages: Boolean) extends Extractor with LazyLogging {
   protected val client = new WebClient()
   client.getOptions.setJavaScriptEnabled(false)
   client.getOptions.setCssEnabled(false)
@@ -19,8 +21,21 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
 
   def doExtract(page: HtmlPage): Iterator[ExtractedEntry]
 
-  protected def extractEntry(name: String, price: Long, category: Category): ExtractedEntry = {
-    ExtractedEntry(this.getClass.getSimpleName.replace("Extractor", ""), name, price, category)
+  protected def extractEntry(name: String, price: Long, category: Category, image: Option[Array[Byte]]): ExtractedEntry = {
+    ExtractedEntry(this.getClass.getSimpleName.replace("Extractor", ""), name, price, category, image)
+  }
+
+  protected def download(img: HtmlElement): Option[Array[Byte]] = {
+    if (downloadImages) {
+      Try({
+        def out = new ByteArrayOutputStream()
+        def image = img.asInstanceOf[HtmlImage].getImageReader
+        ImageIO.write(image.read(0), image.getFormatName, out)
+        Some(out.toByteArray)
+      }).getOrElse(None)
+    } else {
+      None
+    }
   }
 
   protected def click(a: HtmlAnchor): Option[HtmlPage] = {
@@ -48,10 +63,9 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
   protected def handle(t: Try[Iterator[ExtractedEntry]]): Iterator[ExtractedEntry] = {
     t match {
       case Success(i) => i
-      case Failure(thrown) => {
+      case Failure(thrown) =>
         logger.error("Coudln't load entries", thrown)
         Iterator.empty
-      }
     }
   }
 }

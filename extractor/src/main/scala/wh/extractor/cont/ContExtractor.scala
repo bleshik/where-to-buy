@@ -1,13 +1,13 @@
 package wh.extractor.cont
 
-import com.gargoylesoftware.htmlunit.html.{HtmlElement, HtmlAnchor, HtmlDivision, HtmlPage}
+import com.gargoylesoftware.htmlunit.html._
 import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
-class ContExtractor extends AbstractHtmlUnitExtractor {
+class ContExtractor(override val downloadImages: Boolean = true) extends AbstractHtmlUnitExtractor(downloadImages) {
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     page.getBody
       .getOneHtmlElementByAttribute("ul", "id", "categories")
@@ -58,7 +58,8 @@ class ContExtractor extends AbstractHtmlUnitExtractor {
         extractEntry(
           cleanUpName(e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent),
           e.getOneHtmlElementByAttribute("div", "class", "currentprice").asInstanceOf[HtmlDivision].getTextContent.trim.toLong,
-          category
+          category,
+          e.getElementsByTagName("img").asScala.headOption.flatMap(download)
         )
       }
   }

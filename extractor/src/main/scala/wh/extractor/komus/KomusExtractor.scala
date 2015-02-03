@@ -6,7 +6,7 @@ import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class KomusExtractor extends AbstractHtmlUnitExtractor {
+class KomusExtractor(override val downloadImages: Boolean = true) extends AbstractHtmlUnitExtractor(downloadImages) {
 
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = extractFromCategoryList(page, null)
 
@@ -36,12 +36,13 @@ class KomusExtractor extends AbstractHtmlUnitExtractor {
 
   private def extractFromProductList(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
     List("full", "table").flatMap { diff =>
-      val entries = page.getBody.getElementsByAttribute("div", "class", "goods-" + diff + "--info").asInstanceOf[java.util.List[HtmlDivision]].asScala
+      val entries = page.getBody.getElementsByAttribute("div", "class", "goods-" + diff + "--inside").asInstanceOf[java.util.List[HtmlDivision]].asScala
       entries.map { entry =>
         val name = cleanUpName(entry.getOneHtmlElementByAttribute("a", "class", "goods-" + diff + "--name-link").asInstanceOf[HtmlAnchor].getChildNodes.get(0).getTextContent)
         val stringPrice = cleanUpName(entry.getOneHtmlElementByAttribute("span", "class", "goods-" + diff +  "--price-now-value").asInstanceOf[HtmlSpan].getChildNodes.get(0).getTextContent)
         val price = (BigDecimal(stringPrice.replace(',', '.').replace(" ", "")) * 100).toLong
-        extractEntry(name, price, category)
+        val image = entry.getHtmlElementsByTagName("img").asScala.headOption.flatMap(download)
+        extractEntry(name, price, category, image)
       }
     }.iterator
   }

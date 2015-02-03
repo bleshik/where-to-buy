@@ -8,7 +8,7 @@ class UtkonosExtractorSpec extends FlatSpec with Matchers {
   val firstCategory = Category("Молочные продукты, мороженое", rootCategory)
   val secondCategory = Category("Молоко, сливки, молочные коктейли", firstCategory)
   "Utkonos extractor" should "return right list of entries" in {
-    val extractor = new UtkonosExtractor()
+    val extractor = new UtkonosExtractor(downloadImages = false)
     extractor.extract(getClass.getClassLoader.getResource("utkonos/1.html")).toList should be (
       List(
         ExtractedEntry("Utkonos", "Йогурт Valio питьевой Черешня 0,4%, 0,33мл", 5250, rootCategory),

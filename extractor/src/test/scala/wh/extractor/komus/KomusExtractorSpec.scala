@@ -5,7 +5,7 @@ import wh.extractor.{Category, ExtractedEntry}
 
 class KomusExtractorSpec extends FlatSpec with Matchers {
   "Komus extractor" should "return right list of entries" in {
-    val extractor = new KomusExtractor()
+    val extractor = new KomusExtractor(downloadImages = false)
     val category = Category("Бумага туалетная бытовая",Category("Туалетная бумага",Category("Бумажная продукция и держатели",null)))
     extractor.extract(getClass.getClassLoader.getResource("komus/1.html")).toList should be (
       List(

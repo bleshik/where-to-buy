@@ -6,7 +6,7 @@ import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class UtkonosExtractor extends AbstractHtmlUnitExtractor {
+class UtkonosExtractor(override val downloadImages: Boolean = true) extends AbstractHtmlUnitExtractor(downloadImages) {
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     extractFromCategory(page, null)
   }
@@ -16,7 +16,8 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
       goods.getElementsByAttribute("div", "class", "goods_view").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].map { entry =>
         extractEntry(cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
           (BigDecimal(entry.getOneHtmlElementByAttribute("input", "name", "price").asInstanceOf[HtmlInput].getValueAttribute) * 100).toLong,
-          category)
+          category,
+          entry.getElementsByTagName("img").asScala.headOption.flatMap(download))
       }.iterator ++ page.getBody.getElementsByAttribute("div", "class", "el_paginate").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { pagination =>
         pagination.getElementsByTagName("a").asScala.lastOption.asInstanceOf[Option[HtmlAnchor]].map { lastLink =>
           if (cleanUpName(lastLink.getTextContent).equals("Вперед"))
