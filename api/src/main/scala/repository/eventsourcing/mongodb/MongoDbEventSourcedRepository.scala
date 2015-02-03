@@ -1,9 +1,11 @@
 package repository.eventsourcing.mongodb
 
-import com.mongodb.{DBObject, BasicDBObject, DB}
+import com.mongodb.{BasicDBObject, DB, DBObject}
 import eventstore.impl.{MongoDbEventStore, MongoDbSerializer}
 import repository.IdentifiedEntity
 import repository.eventsourcing.{EventSourcedEntity, EventSourcedRepository}
+
+import scala.collection.JavaConversions._
 
 class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K]: Manifest, K] (val db: DB)
   extends EventSourcedRepository[T, K](new MongoDbEventStore(db.getCollection(manifest.runtimeClass.getSimpleName + "Events"))) {
@@ -37,5 +39,13 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
     } else {
       None
     }
+  }
+
+  protected def find(query: DBObject): Iterator[T] = {
+    snapshots.find(query).iterator().map(deserialize)
+  }
+
+  protected def findOne(query: DBObject): Option[T] = {
+    Option(snapshots.findOne(query)).map(deserialize)
   }
 }

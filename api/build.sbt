@@ -10,7 +10,7 @@ lazy val extractor = RootProject(file("../extractor"))
 
 lazy val api = project.in(file(".")).dependsOn(extractor).aggregate(extractor)
 
-mainClass in Compile := Some("wh.rest.Boot")
+mainClass in Compile := Some("wh.application.Boot")
 
 libraryDependencies += "org.mongodb" %% "casbah" % "2.7.3"
 

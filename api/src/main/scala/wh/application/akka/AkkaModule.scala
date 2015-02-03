@@ -7,17 +7,17 @@ import com.google.inject.Injector
 import com.typesafe.config.ConfigFactory
 import net.codingwell.scalaguice.ScalaModule
 import wh.application.extractor.EntryExtractingActor
-import wh.rest.MyServiceActor
+import wh.application.rest.RestActor
 
 import scala.reflect.ClassTag
 
-class AkkaModule extends ScalaModule
-{
+class AkkaModule extends ScalaModule {
   def configure: Unit = {
     val system = ActorSystem("WhereToBuySystem", ConfigFactory.load("api"))
     bind[ActorSystem].toInstance(system)
-    actor[MyServiceActor]
+    bind[ActorRefFactory].toInstance(system)
     actor[EntryExtractingActor]
+    actor[RestActor]
   }
 
   private def actor[T <: Actor: Manifest]: Unit = {
