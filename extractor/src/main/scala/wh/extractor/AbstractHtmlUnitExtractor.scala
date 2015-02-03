@@ -1,8 +1,6 @@
 package wh.extractor
 
-import java.io.ByteArrayOutputStream
 import java.net.URL
-import javax.imageio.ImageIO
 
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlElement, HtmlImage, HtmlPage}
 import com.gargoylesoftware.htmlunit.{Page, WebClient}
@@ -10,7 +8,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.{Failure, Success, Try}
 
-abstract class AbstractHtmlUnitExtractor(val downloadImages: Boolean) extends Extractor with LazyLogging {
+abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
   protected val client = new WebClient()
   client.getOptions.setJavaScriptEnabled(false)
   client.getOptions.setCssEnabled(false)
@@ -21,21 +19,19 @@ abstract class AbstractHtmlUnitExtractor(val downloadImages: Boolean) extends Ex
 
   def doExtract(page: HtmlPage): Iterator[ExtractedEntry]
 
-  protected def extractEntry(name: String, price: Long, category: Category, image: Option[Array[Byte]]): ExtractedEntry = {
-    ExtractedEntry(this.getClass.getSimpleName.replace("Extractor", ""), name, price, category, image)
+  protected def extractEntry(name: String, price: Long, category: Category, image: HtmlElement): Option[ExtractedEntry] = {
+    src(image).map(src => ExtractedEntry(this.getClass.getSimpleName.replace("Extractor", ""), name, price, category, src))
   }
 
-  protected def download(img: HtmlElement): Option[Array[Byte]] = {
-    if (downloadImages) {
-      Try({
-        def out = new ByteArrayOutputStream()
-        def image = img.asInstanceOf[HtmlImage].getImageReader
-        ImageIO.write(image.read(0), image.getFormatName, out)
-        Some(out.toByteArray)
-      }).getOrElse(None)
-    } else {
-      None
-    }
+  protected def src(img: HtmlElement): Option[URL] = {
+    Try(img.asInstanceOf[HtmlImage].getSrcAttribute).map { src: String =>
+      if (src.startsWith("/")) {
+        img.getPage.getUrl.toURI.resolve(src.replaceAll("^/", "")).toURL
+      } else {
+        new URL(src)
+      }
+    }.map(Some(_))
+     .getOrElse(None)
   }
 
   protected def click(a: HtmlAnchor): Option[HtmlPage] = {

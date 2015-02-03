@@ -7,7 +7,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
-class ContExtractor(override val downloadImages: Boolean = true) extends AbstractHtmlUnitExtractor(downloadImages) {
+class ContExtractor extends AbstractHtmlUnitExtractor {
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     page.getBody
       .getOneHtmlElementByAttribute("ul", "id", "categories")
@@ -54,12 +54,12 @@ class ContExtractor(override val downloadImages: Boolean = true) extends Abstrac
       .asScala
       .iterator
       .asInstanceOf[Iterator[HtmlDivision]]
-      .map { e =>
+      .flatMap { e =>
         extractEntry(
           cleanUpName(e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent),
           e.getOneHtmlElementByAttribute("div", "class", "currentprice").asInstanceOf[HtmlDivision].getTextContent.trim.toLong,
           category,
-          e.getElementsByTagName("img").asScala.headOption.flatMap(download)
+          e.getElementsByTagName("img").get(0)
         )
       }
   }

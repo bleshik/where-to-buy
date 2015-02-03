@@ -6,18 +6,18 @@ import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class UtkonosExtractor(override val downloadImages: Boolean = true) extends AbstractHtmlUnitExtractor(downloadImages) {
+class UtkonosExtractor extends AbstractHtmlUnitExtractor {
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     extractFromCategory(page, null)
   }
 
   private def extractFromCategory(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
     page.getBody.getElementsByAttribute("div", "class", "goods_container goods_view_box").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { goods =>
-      goods.getElementsByAttribute("div", "class", "goods_view").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].map { entry =>
+      goods.getElementsByAttribute("div", "class", "goods_view").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].flatMap { entry =>
         extractEntry(cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
           (BigDecimal(entry.getOneHtmlElementByAttribute("input", "name", "price").asInstanceOf[HtmlInput].getValueAttribute) * 100).toLong,
           category,
-          entry.getElementsByTagName("img").asScala.headOption.flatMap(download))
+          entry.getElementsByTagName("img").get(0))
       }.iterator ++ page.getBody.getElementsByAttribute("div", "class", "el_paginate").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { pagination =>
         pagination.getElementsByTagName("a").asScala.lastOption.asInstanceOf[Option[HtmlAnchor]].map { lastLink =>
           if (cleanUpName(lastLink.getTextContent).equals("Вперед"))

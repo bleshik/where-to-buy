@@ -1,3 +1,5 @@
 package wh.extractor
 
-case class ExtractedEntry(source: String, name: String, price: Long, category: Category, image: Option[Array[Byte]] = None)
+import java.net.URL
+
+case class ExtractedEntry(source: String, name: String, price: Long, category: Category, image: URL = null)
