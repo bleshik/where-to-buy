@@ -23,14 +23,16 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
     src(image).map(src => ExtractedEntry(this.getClass.getSimpleName.replace("Extractor", ""), name, price, category, src))
   }
 
+  protected def filterImage(image: URL): Boolean = { true }
+
   protected def src(img: HtmlElement): Option[URL] = {
     Try(img.asInstanceOf[HtmlImage].getSrcAttribute).map { src: String =>
-      if (src.startsWith("/")) {
-        img.getPage.getUrl.toURI.resolve(src.replaceAll("^/", "")).toURL
+      if (!src.startsWith("http")) {
+        img.getPage.getUrl.toURI.resolve(src).toURL
       } else {
         new URL(src)
       }
-    }.map(Some(_))
+    }.map(src => if (filterImage(src)) Some(src) else None)
      .getOrElse(None)
   }
 

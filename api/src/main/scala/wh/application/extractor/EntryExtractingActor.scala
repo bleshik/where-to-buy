@@ -4,10 +4,12 @@ import javax.inject.Inject
 
 import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
-import wh.domain.model.{Commodity, CommodityRepository}
 import wh.extractor.{Category, ExtractedEntry}
+import wh.images.domain.model.{LazyImage, ImageRepository}
+import wh.inventory.domain.model.{CommodityRepository, Commodity}
 
-class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository) extends Actor with LazyLogging {
+class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, imageRepository: ImageRepository)
+  extends Actor with LazyLogging {
   override def receive: Receive = {
     case entry: ExtractedEntry =>
       logger.debug(s"Received entry $entry")
@@ -32,6 +34,11 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository) e
         }
       }.getOrElse(incomingCommodity)
       commodityRepository.save(c)
+
+      if (!imageRepository.contains(c.name)) {
+        imageRepository.save(LazyImage(c.name, entry.image.toString))
+      }
+
       logger.debug(s"Commodity amount ${commodityRepository.size}")
   }
 }

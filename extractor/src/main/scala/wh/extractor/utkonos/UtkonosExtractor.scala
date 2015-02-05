@@ -1,5 +1,7 @@
 package wh.extractor.utkonos
 
+import java.net.URL
+
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlDivision, HtmlInput, HtmlPage}
 import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 
@@ -34,4 +36,6 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
         click(a).map(extractFromCategory(_, Category(cleanUpName(a.getChildNodes.get(1).getTextContent), category))).getOrElse(Iterator.empty)
       }
   }
+
+  override def filterImage(image: URL): Boolean = !image.toString.contains("empty.gif")
 }

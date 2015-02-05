@@ -1,7 +1,8 @@
 package wh.application
 
 import org.scalatest.{Matchers, FlatSpec}
-import wh.domain.model.{Entry, Commodity}
+import wh.inventory.domain.model.Entry
+import wh.inventory.domain.model.{Entry, Commodity}
 
 class CommoditySpec extends FlatSpec with Matchers {
   "Commodity" should "be arrived to same shop only once" in {

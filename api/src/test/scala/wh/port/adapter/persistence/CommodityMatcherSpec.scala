@@ -1,7 +1,7 @@
 package wh.port.adapter.persistence
 
 import org.scalatest.{Matchers, FlatSpec}
-import wh.domain.model.Commodity
+import wh.inventory.domain.model.Commodity
 
 class CommodityMatcherSpec extends FlatSpec with Matchers {
   val matcher = new CommodityMatcher(0.5)

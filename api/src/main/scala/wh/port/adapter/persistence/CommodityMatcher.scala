@@ -11,7 +11,7 @@ import org.supercsv.prefs.CsvPreference
 import weka.classifiers.functions.MultilayerPerceptron
 import weka.core.converters.ConverterUtils.DataSource
 import weka.core.{Instance, Instances}
-import wh.domain.model.{Commodity, Entry}
+import wh.inventory.domain.model.{Commodity, Entry}
 
 class CommodityMatcher(val split: Double = 1) {
   private val kilos = List(("кг", "г"), ("kg", "г"), ("л", "мл"), ("", "гр"), ("", "%"), ("", "шт"), ("см", "мм"), ("м", "мм"))

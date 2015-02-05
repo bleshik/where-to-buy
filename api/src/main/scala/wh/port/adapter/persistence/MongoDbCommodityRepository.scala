@@ -4,7 +4,7 @@ import com.mongodb
 import com.mongodb.DB
 import com.mongodb.casbah.Imports._
 import repository.eventsourcing.mongodb.MongoDbEventSourcedRepository
-import wh.domain.model.{Commodity, CommodityRepository}
+import wh.inventory.domain.model.{CommodityRepository, Commodity}
 
 class MongoDbCommodityRepository(override val db: DB)
   extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository {
@@ -37,8 +37,8 @@ class MongoDbCommodityRepository(override val db: DB)
    */
   override def search(searchPattern: String): List[Commodity] = {
     find(MongoDBObject(
-      "name" -> MongoDBObject("$regex" -> searchPattern),
-      "entriesLength" -> MongoDBObject("$gt" -> 1)
+      "name" -> MongoDBObject("$regex" -> searchPattern)//,
+      //"entriesLength" -> MongoDBObject("$gt" -> 1)
     )).toList
   }
 

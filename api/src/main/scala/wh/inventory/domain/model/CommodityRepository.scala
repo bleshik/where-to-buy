@@ -1,4 +1,4 @@
-package wh.domain.model
+package wh.inventory.domain.model
 
 import repository.PersistenceOrientedRepository
 
