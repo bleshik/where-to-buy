@@ -37,6 +37,9 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
 
       if (!imageRepository.contains(c.name)) {
         imageRepository.save(LazyImage(c.name, entry.image.toString))
+      } else {
+        // this will download the image
+        imageRepository.get(c.name)
       }
 
       logger.debug(s"Commodity amount ${commodityRepository.size}")

@@ -10,10 +10,11 @@ import scala.collection.JavaConversions._
 class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K]: Manifest, K] (val db: DB)
   extends EventSourcedRepository[T, K](new MongoDbEventStore(db.getCollection(manifest.runtimeClass.getSimpleName + "Events"))) {
   protected val snapshots = db.getCollection(manifest.runtimeClass.getSimpleName)
+  snapshots.createIndex(new BasicDBObject("id", 1), new BasicDBObject("unique", true))
   private val serializer = new MongoDbSerializer[T]
 
   override protected def saveSnapshot(entity: T): Unit = {
-    snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion), null, null, false, serialize(entity), false, true)
+    snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, true)
   }
 
   protected def serialize(entity: T): DBObject = {
@@ -41,8 +42,8 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
     }
   }
 
-  protected def find(query: DBObject): Iterator[T] = {
-    snapshots.find(query).iterator().map(deserialize)
+  protected def find(query: DBObject, limit: Int = 100): Iterator[T] = {
+    snapshots.find(query).limit(limit).iterator().map(deserialize)
   }
 
   protected def findOne(query: DBObject): Option[T] = {

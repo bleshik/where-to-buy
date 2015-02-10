@@ -59,17 +59,19 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     }
   }
 
-  override def save(entity: T): Unit = {
+  override def save(entity: T): T = {
     if (entity.changes.isEmpty) {
-      return
+      entity
+    } else {
+      try {
+        eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
+      } catch {
+        case e: ConcurrentModificationException =>
+          save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
+      }
+      saveSnapshot(entity)
+      entity
     }
-    try {
-      eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
-    } catch {
-      case e: ConcurrentModificationException =>
-        save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
-    }
-    saveSnapshot(entity)
   }
 
   override def size: Long = {

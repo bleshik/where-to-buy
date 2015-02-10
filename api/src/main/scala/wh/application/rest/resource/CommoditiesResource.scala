@@ -13,6 +13,8 @@ import wh.images.domain.model.{Image, ImageRepository}
 import wh.inventory.domain.model.{Commodity, CommodityRepository}
 import spray.httpx.marshalling.BasicMarshallers._
 
+import scala.concurrent.Future
+
 class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactory,
                                     val commodityRepository: CommodityRepository,
                                     val imageRepository: ImageRepository)
@@ -26,10 +28,10 @@ class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactor
   override def doGetRoute: Route = pathPrefix("commodities") {
     get {
       path(Segment) { name: String =>
-        complete { commodityRepository.get(name) }
+        cacheImagesForDay { complete { Future { commodityRepository.get(name) } } }
       } ~
       parameter("q") { query: String =>
-        complete { commodityRepository.search(query) }
+        complete { Future { commodityRepository.search(query) } }
       }
     }
   }

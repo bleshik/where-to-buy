@@ -11,4 +11,12 @@ case class LazyImage(name: String, link: String) extends Image(LazyImageCreated(
     IOUtils.copy(new URL(link).openStream(), bytes)
     bytes.toByteArray
   }
+
+  def download: Image = {
+    apply(ImageDownloaded(name, link))
+  }
+
+  protected def when(imageDownloaded: ImageDownloaded): DownloadedImage = {
+    imageDownloaded.initializedObject()
+  }
 }

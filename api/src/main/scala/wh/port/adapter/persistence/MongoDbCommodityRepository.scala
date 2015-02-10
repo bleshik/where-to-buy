@@ -36,12 +36,20 @@ class MongoDbCommodityRepository(override val db: DB)
    * @return list of commodities.
    */
   override def search(searchPattern: String): List[Commodity] = {
-    find(MongoDBObject(
-      "name" -> MongoDBObject("$regex" -> searchPattern)//,
-      //"entriesLength" -> MongoDBObject("$gt" -> 1)
-    )).toList
+    if (searchPattern.isEmpty) {
+      List()
+    } else {
+        find(MongoDBObject(
+          "$or" -> List(
+            MongoDBObject("kind" -> MongoDBObject("$regex" -> searchPattern.toLowerCase)),
+            MongoDBObject("sanitizedName" -> MongoDBObject("$regex" -> searchPattern.toLowerCase))
+          ),
+          "entriesLength" -> MongoDBObject("$gt" -> 1)
+        ), 10).toList
+    }
   }
 
+  snapshots.createIndex(MongoDBObject("sanitizedName" -> 1))
   snapshots.createIndex(MongoDBObject("kind" -> 1))
   snapshots.createIndex(MongoDBObject("entries.shop" -> 1, "entries.shopSpecificName" -> 1))
 
@@ -49,6 +57,7 @@ class MongoDbCommodityRepository(override val db: DB)
 
   override protected def serialize(entity: Commodity): mongodb.DBObject = {
     val dbObject = super.serialize(entity)
+    dbObject.put("sanitizedName", matcher.sanitizeName(dbObject.get("name").asInstanceOf[String]))
     dbObject.put("kind", kind(dbObject.get("name").asInstanceOf[String]))
     dbObject.put("entriesLength", entity.entries.size)
     dbObject

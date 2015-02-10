@@ -8,7 +8,8 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import repository.eventsourcing.EventSourcedEntity
 import shapeless.HNil
-import spray.http.HttpHeaders.Accept
+import spray.http.CacheDirectives._
+import spray.http.HttpHeaders.{`Cache-Control`, Accept}
 import spray.http._
 import spray.http.MediaTypes._
 import spray.httpx.marshalling.Marshaller
@@ -35,6 +36,21 @@ abstract class AbstractRestComponent(val actorRefFactory: ActorRefFactory) exten
   protected def doGetRoute: Route
 
   override def route: Route = acceptHeaderAccordingToExtension { doGetRoute }
+
+  def cache(sec: Long): Directive0 =
+    respondWithHeader(`Cache-Control`(`public`, `max-age`(sec)))
+
+  def cacheForDay: Directive0 =
+    cache(24L * 60L * 60L)
+
+  def cacheImagesForDay: Directive0 =
+    accept(`image/jpeg`) & cacheForDay | pass
+
+  def accept(mr: MediaRange*): Directive0 =
+    extract(_.request.headers).flatMap[HNil] {
+      case headers if headers.contains(Accept(mr)) ⇒ pass
+      case _                                       ⇒ reject(MalformedHeaderRejection("Accept", s"Only the following media types are supported: ${mr.mkString(", ")}"))
+    } & cancelAllRejections(ofType[MalformedHeaderRejection])
 
   def acceptHeaderAccordingToExtension: Directive0 =
     mapRequestContext({ c =>
