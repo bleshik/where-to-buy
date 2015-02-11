@@ -14,7 +14,7 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
   private val serializer = new MongoDbSerializer[T]
 
   override protected def saveSnapshot(entity: T): Unit = {
-    snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, true)
+    snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, entity.mutatedVersion == 1)
   }
 
   protected def serialize(entity: T): DBObject = {
