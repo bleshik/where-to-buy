@@ -4,5 +4,5 @@ object Environment extends Enumeration {
   type Environment = Value
   val DEV, PROD = Value
 
-  def current = if (System.getProperty("env", "DEV") == "DEV") DEV else PROD
+  def current = if ("production".equals(System.getenv("ENVIRONMENT"))) PROD else DEV
 }
