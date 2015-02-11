@@ -3,22 +3,15 @@ package eventstore.impl
 import java.util.ConcurrentModificationException
 
 import com.mongodb._
-import com.mongodb.casbah.Imports._
-import com.novus.salat._
 import eventstore.api.{Event, EventStore, EventStream}
 
 import scala.collection.JavaConverters._
 
 class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
-  implicit val ctx = new Context {
-    val name = "When-Necessary-Context"
-
-    override val typeHintStrategy = StringTypeHintStrategy(when = TypeHintFrequency.Always,
-      typeHint = "_typeHint")
-
-  }
   // unique index on "idx" field is required for thread safety
   dbCollection.createIndex(new BasicDBObject("streamId", 1).append("idx", 1), new BasicDBObject("unique", true))
+
+  private val serializer = new MongoDbSerializer[Event]
 
   override def close(): Unit = {}
 
@@ -37,12 +30,12 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
     }
   }
 
-  private def deserialize(mongoObject: DBObject): Event = {
-    grater[Event].asObject(mongoObject)
+  def deserialize(mongoObject: DBObject): Event = {
+    serializer.deserialize(mongoObject)
   }
 
-  private def serialize(event: Event, streamName: String): DBObject = {
-    val dbObject = grater[Event].asDBObject(event)
+  def serialize(event: Event, streamName: String): DBObject = {
+    val dbObject = serializer.serialize(event)
     dbObject.put("occurredOn", System.nanoTime())
     dbObject.put("streamId", streamName)
     dbObject
@@ -60,7 +53,8 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
       })
       builder.execute()
     } catch {
-      case e: MongoException.DuplicateKey => throw new ConcurrentModificationException()
+      case e: BulkWriteException  => throw new ConcurrentModificationException()
+      case e: com.mongodb.MongoException.DuplicateKey  => throw new ConcurrentModificationException()
     }
   }
 

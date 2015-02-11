@@ -1,14 +1,9 @@
 package repository.eventsourcing.example.domain
 
-import repository.IdentifiedEntity
-import repository.eventsourcing.EventSourcedEntity
+import repository.eventsourcing.IdentifiedEventSourcedEntity
 
-case class House private (id: String, address: String, priceInCents: Long, owner: String, destroyed: Boolean) extends EventSourcedEntity[House] with IdentifiedEntity[String] {
-
-  def this(address: String, priceInCents: Long, owner: String) {
-    this(address, address, priceInCents, owner, false)
-    apply(HouseBuilt(address, priceInCents, owner))
-  }
+case class House private (id: String, address: String, priceInCents: Long, owner: String, destroyed: Boolean)
+  extends IdentifiedEventSourcedEntity[House, String](new HouseBuilt(address, priceInCents, owner)) {
 
   def buy(newOwner: String): House = {
     apply(HouseBought(newOwner))
@@ -16,10 +11,6 @@ case class House private (id: String, address: String, priceInCents: Long, owner
 
   def destroy(): House = {
     apply(HouseDestroyed())
-  }
-
-  protected def this(event: HouseBuilt) {
-    this(event.address, event.priceInCents, event.owner)
   }
 
   protected def when(event: HouseBought): House = {
@@ -32,4 +23,9 @@ case class House private (id: String, address: String, priceInCents: Long, owner
   protected def when(event: HouseDestroyed): House = {
     copy(destroyed = true)
   }
+}
+
+object House {
+  def build(address: String, priceInCents: Long, owner: String): House =
+    new House(address, address, priceInCents, owner, false)
 }

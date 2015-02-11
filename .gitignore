@@ -6,10 +6,14 @@
 .project
 .settings/
 .DS_Store
+.RData
+.Rhistory
 
 .gradle/
 build/
 target/
 
-bower_components/
+third-party/
 node_modules/
+
+*.log

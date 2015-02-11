@@ -2,24 +2,19 @@ package repository.eventsourcing
 
 import java.lang.reflect.{InvocationTargetException, Method}
 
-import eventstore.api.Event
+import eventstore.api.{InitialEvent, Event}
 
-abstract class EventSourcedEntity[T <: EventSourcedEntity[T]] extends Cloneable {
+abstract class EventSourcedEntity[T <: EventSourcedEntity[T]](val initialEvent: InitialEvent[T]) extends Cloneable {
   private val MUTATE_METHOD_NAME = "when"
-  private var initEvent: Event = null
   private var mutatingChanges: List[Event] = List()
-  private var version: Long = 0
+  private var version: Long = 1
+  private var committedVersion: Long = 0
 
   def apply(event: Event): T = {
-    if (version == 0) {
-      initEvent = event
-    } else if (initEvent.getClass == event.getClass) {
-      return this.asInstanceOf[T]
-    }
     val mutatedEntity = mutate(event)
     mutatedEntity.mutatingChanges = this.mutatingChanges :+ event
     mutatedEntity.version = this.version + 1
-    mutatedEntity.initEvent = this.initEvent
+    mutatedEntity.committedVersion = this.committedVersion
     mutatedEntity
   }
 
@@ -43,17 +38,22 @@ abstract class EventSourcedEntity[T <: EventSourcedEntity[T]] extends Cloneable 
   }
 
   def unmutatedVersion: Long = {
-    version - mutatingChanges.length
+    version - changes.length
   }
 
   def changes: List[Event] = {
-    mutatingChanges
+    if ((version - mutatingChanges.length == 1) && committedVersion == 0) {
+      initialEvent :: mutatingChanges
+    } else {
+      mutatingChanges
+    }
   }
 
   def commitChanges(): T = {
     val entity: T = this.clone().asInstanceOf[T]
     entity.mutatingChanges = List()
     entity.version = this.version
+    entity.committedVersion = this.version
     entity
   }
 

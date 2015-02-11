@@ -4,7 +4,7 @@ import java.lang.Math.min
 import java.lang.reflect.{Constructor, ParameterizedType}
 import java.util.ConcurrentModificationException
 
-import eventstore.api.{Event, EventStore}
+import eventstore.api.{InitialEvent, Event, EventStore}
 import repository.{IdentifiedEntity, PersistenceOrientedRepository}
 
 abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K], K](val eventStore: EventStore) extends PersistenceOrientedRepository[T, K] {
@@ -13,16 +13,16 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
   }
 
   private def get(id: K, version: Long): Option[T] = {
-    getByStreamName(streamName(id), version)
+    getByStreamName(streamName(id), version, snapshot(id, version))
   }
 
-  private def getByStreamName(streamName: String, version: Long): Option[T] = {
-    val stream = eventStore.stream(streamName)
+  private def getByStreamName(streamName: String, version: Long, snapshot: Option[T] = None): Option[T] = {
+    val stream = eventStore.streamSince(streamName, snapshot.map(e => e.unmutatedVersion).getOrElse(-1))
     if (stream.events.isEmpty) {
-      return None
+      return snapshot
     }
-    var entity = init(stream.events.head)
-    var eventsRemaining = stream.events.tail
+    var entity = snapshot.getOrElse(init(stream.events.head))
+    var eventsRemaining = if (snapshot.isEmpty)stream.events.tail else stream.events
     while(entity.unmutatedVersion != version && eventsRemaining.nonEmpty) {
       entity = entity.apply(eventsRemaining.head)
       eventsRemaining = eventsRemaining.tail
@@ -30,8 +30,12 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     Some(entity.commitChanges())
   }
 
+  protected def saveSnapshot(entity: T): Unit = {}
+
+  protected def snapshot(id: K, before: Long): Option[T] = { None }
+
   private def init(initEvent: Event): T = {
-    constructor(initEvent.getClass).newInstance(initEvent)
+    initEvent.asInstanceOf[InitialEvent[T]].initializedObject()
   }
 
   private def getAndApply(id: K, after: Long, changes: List[Event]): Option[T] = {
@@ -55,12 +59,18 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     }
   }
 
-  override def save(entity: T): Unit = {
-    try {
-      eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
-    } catch {
-      case e: ConcurrentModificationException =>
-        save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
+  override def save(entity: T): T = {
+    if (entity.changes.isEmpty) {
+      entity
+    } else {
+      try {
+        eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
+      } catch {
+        case e: ConcurrentModificationException =>
+          save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
+      }
+      saveSnapshot(entity)
+      entity
     }
   }
 
