@@ -19,6 +19,7 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
 
   protected def serialize(entity: T): DBObject = {
     val dbObject = serializer.serialize(entity)
+    dbObject.put("id", entity.id)
     dbObject.put("version", entity.mutatedVersion)
     dbObject
   }
