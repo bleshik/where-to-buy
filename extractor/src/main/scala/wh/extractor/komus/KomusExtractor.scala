@@ -42,7 +42,7 @@ class KomusExtractor extends AbstractHtmlUnitExtractor {
         val stringPrice = cleanUpName(entry.getOneHtmlElementByAttribute("span", "class", "goods-" + diff +  "--price-now-value").asInstanceOf[HtmlSpan].getChildNodes.get(0).getTextContent)
         val price = (BigDecimal(stringPrice.replace(',', '.').replace(" ", "")) * 100).toLong
         val image: HtmlElement = entry.getHtmlElementsByTagName("img").get(0)
-        extractEntry(name, price, category, image)
+        extractEntry("Komus", name, price, category, image)
       }
     }.iterator
   }

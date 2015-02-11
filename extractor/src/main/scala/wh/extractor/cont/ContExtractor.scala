@@ -56,6 +56,7 @@ class ContExtractor extends AbstractHtmlUnitExtractor {
       .asInstanceOf[Iterator[HtmlDivision]]
       .flatMap { e =>
         extractEntry(
+          "Седьмой Континент",
           cleanUpName(e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent),
           e.getOneHtmlElementByAttribute("div", "class", "currentprice").asInstanceOf[HtmlDivision].getTextContent.trim.toLong,
           category,

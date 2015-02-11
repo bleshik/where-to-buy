@@ -16,7 +16,9 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
   private def extractFromCategory(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
     page.getBody.getElementsByAttribute("div", "class", "goods_container goods_view_box").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { goods =>
       goods.getElementsByAttribute("div", "class", "goods_view").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].flatMap { entry =>
-        extractEntry(cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
+        extractEntry(
+          "Утконос",
+          cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
           (BigDecimal(entry.getOneHtmlElementByAttribute("input", "name", "price").asInstanceOf[HtmlInput].getValueAttribute) * 100).toLong,
           category,
           entry.getElementsByTagName("img").get(0))
