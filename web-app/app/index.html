@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="app.css">
   <script src="third-party/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js"></script>
 </head>
-<body>
+<body wh-background="background">
   <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
@@ -25,7 +25,7 @@
   <!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
   -->
-  <script src="third-party/jquery/dist/jquery.min.js"></script>
+  <script src="third-party/jquery/dist/jquery.js"></script>
   <script src="third-party/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="third-party/angular/angular.js"></script>
   <script src="third-party/angular-route/angular-route.js"></script>
@@ -35,6 +35,9 @@
 
   <script src="components/filter/EscapeFilter.js"></script>
   <script src="components/filter/CurrencyFilter.js"></script>
+  <script src="components/directive/WhBackground.js"></script>
+  <script src="components/directive/WhFocusDirective.js"></script>
+  <script src="components/directive/CommonDirectivesModule.js"></script>
   <script src="components/api/ResourceProvider.js"></script>
   
   <script src="search/SearchCtrl.js"></script>

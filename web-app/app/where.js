@@ -5,6 +5,7 @@ angular.module('where', [
   'where.search',
   'where.api',
   'where.filter',
+  'where.directive',
   'where.filter.currency'
 ]).
 config(['$routeProvider', function($routeProvider) {

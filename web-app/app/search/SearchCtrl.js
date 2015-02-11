@@ -1,9 +1,17 @@
-function SearchCtrl($scope, $timeout, $location, whereApi) {
+function SearchCtrl($rootScope, $scope, $timeout, $location, whereApi) {
+    this.$rootScope = $rootScope;
     this.$scope = $scope;
     this.$timeout = $timeout;
     this.$location = $location;
     this.whereApi = whereApi;
+
     this.$scope.query = this.$location.search().q;
+    this.$scope.landed = this.$scope.query != null;   
+    this.$rootScope.background = this.$scope.landed ? null : "/app/img/supermarket_" + Math.round(Math.random() * 1) + ".jpg";
+    
+    var prompts = ["Pepsi", "Coca-Cola", "Конфеты", "Шоколад", "Sprite"];
+    this.$scope.queryPrompt = prompts[Math.round(Math.random() * (prompts.length - 1))];
+
     this.search();
 }
 
@@ -14,9 +22,13 @@ SearchCtrl.prototype.search = function() {
         }
         var _this = this;
         this.timeout = this.$timeout(function() {
-            var commodities = _this.whereApi("commodities").query({query: _this.$scope.query}, function() {
-                _this.$scope.commodities = commodities;
-            });
+            if (_this.$scope.landed) {
+                var commodities = _this.whereApi("commodities").query({query: _this.$scope.query}, function() {
+                    _this.$scope.commodities = commodities;
+                });
+            } else {
+                _this.$location.search('q', _this.$scope.query);
+            }
         }, 100);
     }
 }
