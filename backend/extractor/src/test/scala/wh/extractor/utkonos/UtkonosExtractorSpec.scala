@@ -11,11 +11,6 @@ class UtkonosExtractorSpec extends FlatSpec with Matchers {
     val extractor = new UtkonosExtractor
     val page = getClass.getClassLoader.getResource("utkonos/1.html")
     val root = page.toURI
-    extractor.extract(page).toList.foreach(e =>
-      println("ExtractedEntry(\"" + e.source + "\", \"" + e.name + "\", " + e.price + ", \"" +
-        (if (e.category.equals(rootCategory)) rootCategory else if (e.category.equals(firstCategory)) firstCategory else secondCategory) +
-        "\", root.resolve(\"" + e.image.toString.replaceAll(".*/images", "/images") + "\").toURL),")
-    )
     extractor.extract(page).toList should be (
       List(
         ExtractedEntry("Утконос", "Шинка Рамфуд Деликатесная копчено-вареная, 0,2-0,5кг", 50300, rootCategory, root.resolve("/images/photo/2011/2011764B.jpg?1416315061").toURL),

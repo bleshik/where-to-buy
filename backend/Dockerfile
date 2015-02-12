@@ -1,6 +1,7 @@
 FROM bleshik/bills-api-base:latest
 MAINTAINER Alexey Balchunas <bleshik@gmail.com>
-ADD / /api
+ADD /api /api
+ADD /extractor /extractor
 RUN cd /api && sbt test
 WORKDIR /api
 EXPOSE 8080
