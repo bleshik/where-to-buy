@@ -16,6 +16,8 @@ libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
 
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.10"
 
+libraryDependencies += "com.github.philcali" %% "cronish" % "0.1.3"
+
 libraryDependencies ++= {
   val akkaV = "2.3.8"
   Seq(

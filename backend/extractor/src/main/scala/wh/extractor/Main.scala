@@ -6,13 +6,26 @@ import akka.actor.ActorSystem
 import wh.extractor.cont.ContExtractor
 import wh.extractor.komus.KomusExtractor
 import wh.extractor.utkonos.UtkonosExtractor
+import cronish.dsl._
 
 object Main {
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
       throw new IllegalArgumentException("You should specify the output: 'console' or 'akka'")
     }
-    upload(
+
+    (if (args.length > 1) args.tail.mkString(" ") else "now") match {
+      case "now" => upload(args.head)
+      case schedule: String => task {
+        upload(args.head)
+      } executes schedule
+    }
+
+
+  }
+
+  private def upload(output: String): Unit = {
+    doUpload(
       List(
         ("http://www.utkonos.ru/cat", new UtkonosExtractor),
         ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
@@ -20,11 +33,11 @@ object Main {
       ).iterator.flatMap { case (url, extractor) =>
         extractor.extract(new URL(url))
       },
-      args.head
+      output
     )
   }
 
-  private def upload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
+  private def doUpload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
     output match {
       case "console" => iterator.foreach(println)
       case "akka"    =>
