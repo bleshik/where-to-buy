@@ -279,7 +279,7 @@ class CommodityMatcher(val split: Double = 1) {
   private def percent(title: String, shop: String, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).percent
 
   private def readCommodities(resource: String): List[(Commodity, Commodity)] = {
-    val reader = new CsvListReader(new InputStreamReader(getClass.getClassLoader.getResourceAsStream(resource)), CsvPreference.STANDARD_PREFERENCE)
+    val reader = new CsvListReader(new InputStreamReader(getClass.getClassLoader.getResourceAsStream(resource), "UTF-8"), CsvPreference.STANDARD_PREFERENCE)
     def extractCommodities(reader: CsvListReader): Stream[Commodity] = {
       val row: java.util.List[String] = reader.read()
       if (row != null) {
