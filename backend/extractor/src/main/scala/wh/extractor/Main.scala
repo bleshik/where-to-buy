@@ -41,7 +41,8 @@ object Main {
     output match {
       case "console" => iterator.foreach(println)
       case "akka"    =>
-        val remote = ActorSystem("ExtractorSystem").actorSelection("akka.tcp://WhereToBuySystem@127.0.0.1:7000/user/EntryExtractingActor")
+        val remote = ActorSystem("ExtractorSystem")
+          .actorSelection(s"akka.tcp://WhereToBuySystem@${Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:7000")}/user/EntryExtractingActor")
         iterator.foreach(remote ! _)
     }
   }

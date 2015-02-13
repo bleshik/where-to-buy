@@ -5,6 +5,7 @@ ADD /extractor /extractor
 RUN cd /api && sbt test
 WORKDIR /api
 EXPOSE 8080
+EXPOSE 7000
 ENV JAVA_OPTS "-Xms256M -Xmx256M"
 ENV ENVIRONMENT "production"
 ENTRYPOINT [ "sbt" ]
