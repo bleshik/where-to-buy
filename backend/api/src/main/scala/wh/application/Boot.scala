@@ -6,12 +6,14 @@ import _root_.akka.util.Timeout
 import _root_.akka.pattern.ask
 import com.google.inject.name.Names
 import com.google.inject.{Guice, Key}
+import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
 
 import scala.concurrent.duration._
 
-object Boot extends App {
-  val injector = Guice.createInjector(new ApiModule)
+object Boot extends App with LazyLogging {
+  logger.debug(s"Starting Where To Buy app in ${Environment.current} environment")
+  val injector = Guice.createInjector(Environment.stage, new ApiModule)
   implicit val system = injector.getInstance(classOf[ActorSystem])
   val service = injector.getInstance(Key.get(classOf[ActorRef], Names.named("RestActor")))
 
