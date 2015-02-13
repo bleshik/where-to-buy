@@ -4,10 +4,10 @@ Description=Updating Unit Timer
 [Timer]
 OnBootSec=1min
 OnCalendar=*:0/1
-Unit=bills-api-update@%i.service
+Unit=wh-api-update@%i.service
 
 [Install]
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineOf=bills-api@%i.service
+MachineOf=wh-api@%i.service

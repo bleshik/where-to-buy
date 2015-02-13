@@ -1,5 +1,5 @@
 [Unit]
-Description=Bills REST API HTTP Service
+Description=Where To Buy REST API HTTP Service
 After=docker.service
 Requires=docker.service
 
@@ -9,11 +9,11 @@ TimeoutStartSec=0
 TimeoutStopSec=360
 EnvironmentFile=/etc/environment
 Environment=INSTANCE=%i
-ExecStartPre=-/usr/bin/docker stop bills-api-%i
-ExecStartPre=-/usr/bin/docker rm bills-api-%i
-ExecStartPre=/usr/bin/docker pull bleshik/bills-api:latest
-ExecStart=/usr/bin/docker run -e "ETCD_ENDPOINT=http://$(ifconfig docker0 | awk '/\<inet\>/ { print $2}'):4001" --name bills-api-%i -p 8080:8080 bleshik/bills-api:latest
-ExecStop=/usr/bin/docker stop bills-api-%i
+ExecStartPre=-/usr/bin/docker stop wh-api-%i
+ExecStartPre=-/usr/bin/docker rm wh-api-%i
+ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
+ExecStart=/usr/bin/docker run -e "ETCD_ENDPOINT=http://$(ifconfig docker0 | awk '/\<inet\>/ { print $2}'):4001" --name wh-api-%i -p 8080:8080 -p 7000:7000 bleshik/wh-api:latest
+ExecStop=/usr/bin/docker stop wh-api-%i
 Restart=on-failure
 
 [Install]

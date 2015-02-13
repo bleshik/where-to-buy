@@ -1,0 +1,22 @@
+[Unit]
+Description=Where To Buy Extractor
+After=docker.service
+Requires=docker.service
+
+[Service]
+KillMode=none
+TimeoutStartSec=0
+TimeoutStopSec=360
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker stop wh-extractor
+ExecStartPre=-/usr/bin/docker rm wh-extractor
+ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
+ExecStart=/usr/bin/docker run -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}:7000" --name wh-extractor bleshik/wh-extractor:latest
+ExecStop=/usr/bin/docker stop wh-extractor
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]                                                                                                                                                                            
+MachineOf=wh-api@*.service

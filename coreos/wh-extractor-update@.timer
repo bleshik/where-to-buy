@@ -4,10 +4,10 @@ Description=Updating Unit Timer
 [Timer]
 OnBootSec=1min
 OnCalendar=*:0/1
-Unit=bills-web-app-update@%i.service
+Unit=wh-extractor-update@.service
 
 [Install]
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineOf=bills-web-app@%i.service
+MachineOf=wh-extractor@.service
