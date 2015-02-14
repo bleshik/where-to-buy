@@ -4,10 +4,10 @@ Description=Updating Unit Timer
 [Timer]
 OnBootSec=1min
 OnCalendar=*:0/1
-Unit=wh-extractor-update@.service
+Unit=wh-extractor-update.service
 
 [Install]
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineOf=wh-extractor@.service
+MachineOf=wh-extractor.service

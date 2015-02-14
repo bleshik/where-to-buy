@@ -11,4 +11,4 @@ TimeoutStartSec=0
 ExecStart=/bin/sh -c 'if [ "`docker inspect --format {{.Id}} bleshik/wh-extractor`" != "`(docker pull bleshik/wh-extractor > /dev/null; docker inspect --format {{.Id}} bleshik/wh-extractor)`" ] ; then /usr/bin/fleetctl stop wh-extractor@.service && /usr/bin/fleetctl start wh-extractor@.service ; fi'
 
 [X-Fleet]
-MachineOf=wh-extractor@.service
+MachineOf=wh-extractor.service
