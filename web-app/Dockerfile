@@ -5,7 +5,6 @@ RUN cd /web-app && npm install
 RUN cd /web-app && bower --allow-root install
 RUN cd /web-app && npm run test-single-run
 WORKDIR /web-app
-ENV ENVIRONMENT "production"
 EXPOSE 8000
 ENTRYPOINT [ "npm" ]
 CMD [ "start" ]

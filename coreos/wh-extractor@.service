@@ -11,7 +11,7 @@ EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
-ExecStart=/usr/bin/docker run -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}:7000" --name wh-extractor bleshik/wh-extractor:latest
+ExecStart=/usr/bin/docker run -e "ENVIRONMENT=production" -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}:7000" --name wh-extractor bleshik/wh-extractor:latest
 ExecStop=/usr/bin/docker stop wh-extractor
 Restart=on-failure
 
