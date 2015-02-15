@@ -3,16 +3,19 @@ package wh.extractor
 import java.net.URL
 
 import akka.actor.ActorSystem
+import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.cont.ContExtractor
 import wh.extractor.komus.KomusExtractor
 import wh.extractor.utkonos.UtkonosExtractor
 import cronish.dsl._
 
-object Main {
+object Main extends LazyLogging {
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
       throw new IllegalArgumentException("You should specify the output: 'console' or 'akka'")
     }
+
+    logger.info("Started extractor with args: " + args.mkString(" "))
 
     (if (args.length > 1) args.tail.mkString(" ") else "now") match {
       case "now" => upload(args.head)
@@ -21,7 +24,7 @@ object Main {
       } executes schedule
     }
 
-
+    logger.info("Exiting...")
   }
 
   private def upload(output: String): Unit = {
@@ -38,11 +41,14 @@ object Main {
   }
 
   private def doUpload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
+    logger.info("Started uploading to " + output)
     output match {
       case "console" => iterator.foreach(println)
       case "akka"    =>
+        val akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:7000")
+        logger.info("Extractor will send extracted data to " + akkaEndpoint)
         val remote = ActorSystem("ExtractorSystem")
-          .actorSelection(s"akka.tcp://WhereToBuySystem@${Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:7000")}/user/EntryExtractingActor")
+          .actorSelection(s"akka.tcp://WhereToBuySystem@$akkaEndpoint/user/EntryExtractingActor")
         iterator.foreach(remote ! _)
     }
   }
