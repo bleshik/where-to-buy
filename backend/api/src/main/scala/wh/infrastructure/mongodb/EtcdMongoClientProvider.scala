@@ -12,7 +12,7 @@ class EtcdMongoClientProvider(val app: String) extends MongoClientProvider with 
   private val LOGIN_KEY = "/mongo/replica/" + app + "/login"
   private val DB_KEY = "/mongo/replica/" + app + "/db"
   private val PASSWORD_KEY = "/mongo/replica/" + app + "/pwd"
-  private val LOCALHOST = List(new ServerAddress())
+  private val DEFAULT = List(new ServerAddress(Option(System.getenv("PRIVATE_IP")).getOrElse("127.0.0.1"), 27017))
   private val etcdClient = new SyncEtcdClient(new EtcdClient(Option(System.getenv("ETCD_ENDPOINT")).getOrElse("http://172.17.42.1:4001")))
 
   var mongoClient: MongoClient = new MongoClient(addresses.asJava, List(credential).asJava)
@@ -20,12 +20,14 @@ class EtcdMongoClientProvider(val app: String) extends MongoClientProvider with 
   override def get: MongoClient = mongoClient
 
   private def addresses: List[ServerAddress] = {
-    val result = etcdClient.list(NODES_KEY, List("127.0.0.1")).map(n =>
-      new ServerAddress(
-        n.substring(n.lastIndexOf('/') + 1),
-        Integer.parseInt(etcdClient.get(n + "/port", "27017"))
-      )
-    )
+    val result = Option(etcdClient.list(NODES_KEY, null)).map(o =>
+      o.map {n =>
+        new ServerAddress(
+          n.substring(n.lastIndexOf('/') + 1),
+          Integer.parseInt(etcdClient.get(n + "/port", "27017"))
+        )
+      }
+    ).getOrElse(DEFAULT)
     logger.debug(s"Using mongodb addresses: $result")
     result
   }
