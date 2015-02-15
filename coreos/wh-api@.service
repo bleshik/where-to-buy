@@ -18,6 +18,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "ETCD_ENDPOINT=http://172.17.42.1:4001"\
         --name wh-api-%i\
+        --net=host\
         -p 8080:8080\
         -p 7000:7000\
         bleshik/wh-api:latest'

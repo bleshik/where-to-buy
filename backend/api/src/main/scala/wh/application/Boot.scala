@@ -8,6 +8,7 @@ import com.google.inject.name.Names
 import com.google.inject.{Guice, Key}
 import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
+import wh.infrastructure.Environment
 
 import scala.concurrent.duration._
 

@@ -5,6 +5,7 @@ import javax.inject.Singleton
 import com.mongodb.DB
 import net.codingwell.scalaguice.ScalaModule
 import wh.images.domain.model.ImageRepository
+import wh.infrastructure.Environment
 import wh.infrastructure.mongodb.{EtcdMongoClientProvider, LocalMongoClientProvider, MongoClientDbProvider, MongoClientProvider}
 import wh.inventory.domain.model.CommodityRepository
 import wh.port.adapter.persistence.{MongoDbImageRepository, MongoDbCommodityRepository}

@@ -1,6 +1,7 @@
 package wh.infrastructure.mongodb
 
 import com.typesafe.scalalogging.LazyLogging
+import wh.infrastructure.Environment
 import wh.infrastructure.etcd.SyncEtcdClient
 import com.mongodb.{MongoClient, MongoCredential, ServerAddress}
 import net.nikore.etcd.EtcdClient
@@ -12,8 +13,8 @@ class EtcdMongoClientProvider(val app: String) extends MongoClientProvider with 
   private val LOGIN_KEY = "/mongo/replica/" + app + "/login"
   private val DB_KEY = "/mongo/replica/" + app + "/db"
   private val PASSWORD_KEY = "/mongo/replica/" + app + "/pwd"
-  private val DEFAULT = List(new ServerAddress(Option(System.getenv("PRIVATE_IP")).getOrElse("127.0.0.1"), 27017))
-  private val etcdClient = new SyncEtcdClient(new EtcdClient(Option(System.getenv("ETCD_ENDPOINT")).getOrElse("http://172.17.42.1:4001")))
+  private val DEFAULT = List(new ServerAddress(Environment.privateIp.getOrElse("127.0.0.1"), 27017))
+  private val etcdClient = new SyncEtcdClient(new EtcdClient(Environment.etcdEndpoint))
 
   var mongoClient: MongoClient = new MongoClient(addresses.asJava, List(credential).asJava)
   etcdClient.shutdown()

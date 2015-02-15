@@ -4,16 +4,19 @@ import javax.inject.{Inject, Provider}
 
 import akka.actor._
 import com.google.inject.Injector
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config._
 import net.codingwell.scalaguice.ScalaModule
 import wh.application.extractor.EntryExtractingActor
 import wh.application.rest.RestActor
+import wh.infrastructure.Environment
 
 import scala.reflect.ClassTag
 
 class AkkaModule extends ScalaModule {
   def configure: Unit = {
-    val system = ActorSystem("WhereToBuySystem", ConfigFactory.load("api"))
+    val system = ActorSystem("WhereToBuySystem", ConfigFactory.load("api", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
+      .withValue("hostname", ConfigValueFactory.fromAnyRef(Environment.privateIp.getOrElse("127.0.0.1")))
+      .resolve())
     bind[ActorSystem].toInstance(system)
     bind[ActorRefFactory].toInstance(system)
     actor[EntryExtractingActor]
