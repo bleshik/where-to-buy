@@ -3,6 +3,7 @@ package wh.extractor
 import java.net.URL
 
 import akka.actor.ActorSystem
+import com.typesafe.config.{ConfigValueFactory, ConfigResolveOptions, ConfigParseOptions, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.cont.ContExtractor
 import wh.extractor.komus.KomusExtractor
@@ -47,8 +48,10 @@ object Main extends LazyLogging {
       case "akka"    =>
         val akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:9000")
         logger.info("Extractor will send extracted data to " + akkaEndpoint)
-        val remote = ActorSystem("ExtractorSystem")
-          .actorSelection(s"akka.tcp://WhereToBuySystem@$akkaEndpoint/user/EntryExtractingActor")
+        val system = ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
+          .withValue("hostname", ConfigValueFactory.fromAnyRef(Option(System.getenv("PRIVATE_IP")).getOrElse("127.0.0.1")))
+          .resolve())
+        val remote = system.actorSelection(s"akka.tcp://WhereToBuySystem@$akkaEndpoint/user/EntryExtractingActor")
         iterator.foreach(remote ! _)
     }
   }

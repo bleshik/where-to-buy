@@ -14,6 +14,7 @@ ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "SBT_OPTS=-XX:PermSize=128m -XX:MaxPermSize=128m -Xmx256m -Xms256m"\
         -e "ENVIRONMENT=production"\
+        -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}"\
         --name wh-extractor\
         --net=host\
