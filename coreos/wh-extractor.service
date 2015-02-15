@@ -11,7 +11,13 @@ EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
-ExecStart=/usr/bin/docker run -e "SBT_OPTS=-XX:PermSize=128m -XX:MaxPermSize=128m -Xmx256m -Xms256m" -e "ENVIRONMENT=production" -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}:7000" --name wh-extractor bleshik/wh-extractor:latest "run akka Every day at midnight"
+ExecStart=/usr/bin/docker run\
+        -e "SBT_OPTS=-XX:PermSize=128m -XX:MaxPermSize=128m -Xmx256m -Xms256m"\
+        -e "ENVIRONMENT=production"\
+        -e "WH_API_AKKA_ENDPOINT=172.17.42.1:7000"\
+        --name wh-extractor\
+        bleshik/wh-extractor:latest\
+        "run akka now"
 ExecStop=/usr/bin/docker stop wh-extractor
 Restart=on-failure
 

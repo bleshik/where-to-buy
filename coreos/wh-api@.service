@@ -8,11 +8,19 @@ KillMode=none
 TimeoutStartSec=0
 TimeoutStopSec=360
 EnvironmentFile=/etc/environment
-Environment=INSTANCE=%i "SBT_OPTS=-XX:PermSize=128m -XX:MaxPermSize=128m -Xmx256m -Xms256m" "ENVIRONMENT=production" "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"
+Environment=INSTANCE=%i 
 ExecStartPre=-/usr/bin/docker stop wh-api-%i
 ExecStartPre=-/usr/bin/docker rm wh-api-%i
 ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
-ExecStart=/bin/sh -c '/usr/bin/docker run -e "ETCD_ENDPOINT=http://`ifconfig docker0 | awk \'/\<inet\>/ { print $2}\'`:4001" --name wh-api-%i -p 8080:8080 -p 7000:7000 bleshik/wh-api:latest'
+ExecStart=/bin/sh -c '/usr/bin/docker run\
+        -e "SBT_OPTS=-XX:PermSize=128m -XX:MaxPermSize=128m -Xmx256m -Xms256m"\
+        -e "ENVIRONMENT=production"\
+        -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
+        -e "ETCD_ENDPOINT=http://172.17.42.1:4001"\
+        --name wh-api-%i\
+        -p 8080:8080\
+        -p 7000:7000\
+        bleshik/wh-api:latest'
 ExecStop=/usr/bin/docker stop wh-api-%i
 Restart=on-failure
 
