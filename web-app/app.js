@@ -18,7 +18,7 @@ proxy.on('error', function (error, req, res) {
  
 var app = express();
  
-app.use('/app', express.static(path.join(__dirname, 'app/')));
+app.use('/', express.static(path.join(__dirname, 'app/')));
  
 app.all('/api/*',  function (req, res) {
     req.url = req.url.slice(4);
