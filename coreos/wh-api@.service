@@ -20,7 +20,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         --name wh-api-%i\
         --net=host\
         -p 8080:8080\
-        -p 7000:7000\
+        -p 9000:9000\
         bleshik/wh-api:latest'
 ExecStop=/usr/bin/docker stop wh-api-%i
 Restart=on-failure

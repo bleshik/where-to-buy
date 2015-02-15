@@ -45,7 +45,7 @@ object Main extends LazyLogging {
     output match {
       case "console" => iterator.foreach(println)
       case "akka"    =>
-        val akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:7000")
+        val akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:9000")
         logger.info("Extractor will send extracted data to " + akkaEndpoint)
         val remote = ActorSystem("ExtractorSystem")
           .actorSelection(s"akka.tcp://WhereToBuySystem@$akkaEndpoint/user/EntryExtractingActor")
