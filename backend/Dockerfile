@@ -5,6 +5,6 @@ ADD /extractor /extractor
 RUN cd /api && sbt test
 WORKDIR /api
 EXPOSE 8080
-EXPOSE 7000
+EXPOSE 9000
 ENTRYPOINT [ "sbt" ]
 CMD [ "run" ]

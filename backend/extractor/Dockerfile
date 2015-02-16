@@ -3,6 +3,6 @@ MAINTAINER Alexey Balchunas <bleshik@gmail.com>
 ADD / /extractor
 RUN cd /extractor && sbt test
 WORKDIR /extractor
-EXPOSE 2552
+EXPOSE 9001
 ENTRYPOINT [ "sbt" ]
 CMD [ "run" ]
