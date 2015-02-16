@@ -1,5 +1,7 @@
 package wh.infrastructure
 
+import java.net.URI
+
 import com.google.inject.Stage
 
 object Environment extends Enumeration {
@@ -12,7 +14,7 @@ object Environment extends Enumeration {
 
   def defaultCoreOsDockerIp = "172.17.42.1"
 
-  def etcdEndpoint = Option(System.getenv("ETCD_ENDPOINT")).getOrElse(s"http://$defaultCoreOsDockerIp:4001")
+  def etcdEndpoint = Option(URI.create(System.getenv("ETCD_ENDPOINT"))).getOrElse(URI.create(s"http://$defaultCoreOsDockerIp:4001"))
 
   def privateIp = Option(System.getenv("PRIVATE_IP"))
 }

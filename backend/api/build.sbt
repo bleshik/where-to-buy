@@ -32,7 +32,7 @@ libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.
 
 libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.4.3"
 
-libraryDependencies += "net.nikore.etcd" %% "scala-etcd" % "0.7"
+libraryDependencies += "org.mousio" % "etcd4j" % "2.1.1"
 
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
 
