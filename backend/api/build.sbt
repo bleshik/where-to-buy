@@ -12,6 +12,8 @@ lazy val api = project.in(file(".")).dependsOn(extractor).aggregate(extractor)
 
 mainClass in Compile := Some("wh.application.Boot")
 
+resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
+
 libraryDependencies += "org.mongodb" %% "casbah" % "2.7.3"
 
 libraryDependencies += "com.novus" %% "salat" % "1.9.9"
@@ -43,7 +45,7 @@ libraryDependencies += "nz.ac.waikato.cms.weka" % "LibSVM" % "1.0.6" exclude("nz
 libraryDependencies += "net.sf.supercsv" % "super-csv" % "2.2.1"
 
 libraryDependencies ++= {
-  val akkaV = "2.3.8"
+  val akkaV = "2.4-SNAPSHOT"
   val sprayV = "1.3.1"
   Seq(
     "io.spray"            %%  "spray-can"     % sprayV,

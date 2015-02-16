@@ -8,6 +8,8 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
 mainClass in Compile := Some("wh.extractor.Main")
 
+resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
+
 libraryDependencies += "net.sourceforge.htmlunit" % "htmlunit" % "2.15"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
@@ -19,7 +21,7 @@ libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.10"
 libraryDependencies += "com.github.philcali" %% "cronish" % "0.1.3"
 
 libraryDependencies ++= {
-  val akkaV = "2.3.8"
+  val akkaV = "2.4-SNAPSHOT"
   Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaV,
     "com.typesafe.akka" %% "akka-remote" % akkaV
