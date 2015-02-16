@@ -9,11 +9,11 @@ TimeoutStartSec=0
 TimeoutStopSec=360
 EnvironmentFile=/etc/environment
 Environment=INSTANCE=%i
-ExecStartPre=-/usr/bin/docker stop wh-web-app-%i
-ExecStartPre=-/usr/bin/docker rm wh-web-app-%i
+ExecStartPre=-/usr/bin/docker stop wh-web-app
+ExecStartPre=-/usr/bin/docker rm wh-web-app
 ExecStartPre=/usr/bin/docker pull bleshik/wh-web-app:latest
-ExecStart=/usr/bin/docker run -e "ENVIRONMENT=production" -e "ETCD_ENDPOINT=http://$(ifconfig docker0 | awk '/\<inet\>/ { print $2}'):4001" --name wh-web-app-%i -p 8000:8000 bleshik/wh-web-app:latest
-ExecStop=/usr/bin/docker stop wh-web-app-%i
+ExecStart=/usr/bin/docker run -e "ENVIRONMENT=production" -e "ETCD_ENDPOINT=http://$(ifconfig docker0 | awk '/\<inet\>/ { print $2}'):4001" --name wh-web-app -p 8000:8000 bleshik/wh-web-app:latest
+ExecStop=/usr/bin/docker stop wh-web-app
 Restart=on-failure
 
 [Install]
@@ -21,7 +21,6 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 MachineMetadata=access=private
-X-Conflicts=%p@*.service
 Conflicts=%p@*.service
-X-Conflicts=docker-discover.service
+Conflicts=wh-extractor.service
 Conflicts=docker-discover.service

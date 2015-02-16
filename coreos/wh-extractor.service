@@ -17,7 +17,6 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}"\
         --name wh-extractor\
-        --net=host\
         -p 9001:9001\
         bleshik/wh-extractor:latest\
         "run akka now"'
