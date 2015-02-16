@@ -10,7 +10,7 @@ EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker stop docker-register
 ExecStartPre=-/usr/bin/docker rm docker-register
 ExecStartPre=/usr/bin/docker pull jwilder/docker-register
-ExecStart=/usr/bin/docker run --name docker-register -e HOST_IP=${COREOS_PUBLIC_IPV4} -e ETCD_HOST=${COREOS_PUBLIC_IPV4}:4001 -v /var/run/docker.sock:/var/run/docker.sock -t jwilder/docker-register
+ExecStart=/usr/bin/docker run --name docker-register -e HOST_IP=${COREOS_PUBLIC_IPV4} -e ETCD_HOST=${COREOS_PUBLIC_IPV4}:4001 -v /var/run/docker.sock:/var/run/docker.sock -t alexturek/docker-register-multiport
 Restart=on-failure
 
 [X-Fleet]
