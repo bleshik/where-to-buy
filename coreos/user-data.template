@@ -2,12 +2,11 @@
 
 coreos:
   etcd:
-    discovery: https://discovery.etcd.io/4376872b992ee9b5a63ac17a1cea4d5f
+    discovery: https://discovery.etcd.io/21c534890ffcda5d39d70c153cccd6b1
     addr: $private_ipv4:4001
     peer-addr: $private_ipv4:7001
   fleet:
     public-ip: $private_ipv4
-    metadata: access=private
   units:
     - name: etcd.service
       command: start
