@@ -45,7 +45,7 @@ class MongoDbCommodityRepository(override val db: DB)
             MongoDBObject("sanitizedName" -> MongoDBObject("$regex" -> searchPattern.toLowerCase))
           ),
           "entriesLength" -> MongoDBObject("$gt" -> 1)
-        ), 10).toList
+        ), 20).toList
     }
   }
 
