@@ -4,12 +4,15 @@ import java.util.ConcurrentModificationException
 
 import com.mongodb._
 import eventstore.api.{Event, EventStore, EventStream}
+import repository.eventsourcing.mongodb.Migration
 
 import scala.collection.JavaConverters._
 
 class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
-  // unique index on "idx" field is required for thread safety
-  dbCollection.createIndex(new BasicDBObject("streamId", 1).append("idx", 1), new BasicDBObject("unique", true))
+  Migration {
+      // unique index on "idx" field is required for thread safety
+      dbCollection.createIndex(new BasicDBObject("streamId", 1).append("idx", 1), new BasicDBObject("unique", true))
+  }
 
   private val serializer = new MongoDbSerializer[Event]
 

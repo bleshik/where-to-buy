@@ -49,9 +49,11 @@ class MongoDbCommodityRepository(override val db: DB)
     }
   }
 
-  snapshots.createIndex(MongoDBObject("sanitizedName" -> 1))
-  snapshots.createIndex(MongoDBObject("kind" -> 1))
-  snapshots.createIndex(MongoDBObject("entries.shop" -> 1, "entries.shopSpecificName" -> 1))
+  override protected def migrate(): Unit = {
+    snapshots.createIndex(MongoDBObject("sanitizedName" -> 1))
+    snapshots.createIndex(MongoDBObject("kind" -> 1))
+    snapshots.createIndex(MongoDBObject("entries.shop" -> 1, "entries.shopSpecificName" -> 1))
+  }
 
   private def kind(name: String): String = matcher.titleTokens(name, "").kind.toLowerCase
 

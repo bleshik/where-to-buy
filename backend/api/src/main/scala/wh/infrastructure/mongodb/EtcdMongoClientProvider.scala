@@ -15,8 +15,7 @@ class EtcdMongoClientProvider(val app: String) extends MongoClientProvider with 
   private val DEFAULT = List(new ServerAddress(Environment.privateIp.getOrElse("127.0.0.1"), 27017))
   private val etcdClient = new SyncEtcdClient(Environment.etcdEndpoint)
 
-  var mongoClient: MongoClient = new MongoClient(addresses.asJava, List(credential).asJava)
-  override def get: MongoClient = mongoClient
+  override def get: MongoClient = new MongoClient(addresses.asJava, List(credential).asJava)
 
   private def addresses: List[ServerAddress] = {
     val result = etcdClient.list(NODES_KEY).map(o =>
