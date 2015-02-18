@@ -42,13 +42,20 @@ object Main extends LazyLogging {
       case "akka"    =>
         val akkaEndpoint = Environment.akkaEndpoint
         val whereToBuySystem = s"akka.tcp://WhereToBuySystem@$akkaEndpoint/user/EntryExtractingActor"
-        val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
         logger.info("Extractor will send extracted data to " + whereToBuySystem)
-        val system = ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
-          .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
-          .resolve())
-        val remote = system.actorSelection(whereToBuySystem)
+        val remote = extractorSystem.actorSelection(whereToBuySystem)
         iterator.foreach(remote ! _)
+    }
+  }
+
+  private def extractorSystem: ActorSystem = {
+    val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
+    try {
+      ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
+        .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
+        .resolve())
+    } catch {
+      case e: akka.remote.RemoteTransportException => extractorSystem
     }
   }
 
