@@ -29,12 +29,9 @@ object Main extends LazyLogging {
   }
 
   private def upload(output: String): Unit = {
-    doUpload(
-      payload.iterator.flatMap { case (url, extractor) =>
-        extractor.extract(new URL(url))
-      },
-      output
-    )
+    payload.par.foreach { p =>
+      doUpload(p._2.extract(new URL(p._1)), output)
+    }
   }
 
   private def doUpload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
