@@ -12,6 +12,9 @@ function SearchCtrl($rootScope, $scope, $timeout, $location, whereApi) {
     var prompts = ["Pepsi", "Coca-Cola", "Конфеты", "Шоколад", "Sprite"];
     this.$scope.queryPrompt = prompts[Math.round(Math.random() * (prompts.length - 1))];
 
+    var titles = ["Где купить", "Окей, Грошри, где купить", "А не отведать ли мне", "Нужно купить", "Где выгоднее купить", "Надо пополнить запасы", "Где дешевле"];
+    this.$scope.title = titles[Math.round(Math.random() * (titles.length - 1))];
+
     this.search();
 }
 

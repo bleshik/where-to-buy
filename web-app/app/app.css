@@ -5,3 +5,11 @@
 .title {
     color: #777;
 }
+
+.title:hover {
+    color: #555;
+}
+
+.comment {
+    color: #aaa;
+}
