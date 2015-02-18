@@ -10,7 +10,7 @@ object Environment extends Enumeration {
 
   def akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:9000")
 
-  def instance = Option(System.getenv("INSTANCE").toInt).getOrElse(1)
+  def instance = Option(System.getenv("INSTANCE")).map(_.toInt).getOrElse(1)
 
-  def instances = Option(System.getenv("INSTANCES").toInt).getOrElse(1)
+  def instances = Option(System.getenv("INSTANCES")).map(_.toInt).getOrElse(1)
 }

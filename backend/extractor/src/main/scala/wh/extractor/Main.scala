@@ -11,6 +11,8 @@ import wh.extractor.utkonos.UtkonosExtractor
 import cronish.dsl._
 
 object Main extends LazyLogging {
+  private lazy val extractorSystem = createExtractorSystem
+
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
       throw new IllegalArgumentException("You should specify the output: 'console' or 'akka'")
@@ -48,14 +50,14 @@ object Main extends LazyLogging {
     }
   }
 
-  private def extractorSystem: ActorSystem = {
+  private def createExtractorSystem: ActorSystem = {
     val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
     try {
       ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
         .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
         .resolve())
     } catch {
-      case e: akka.remote.RemoteTransportException => extractorSystem
+      case e: akka.remote.RemoteTransportException => createExtractorSystem
     }
   }
 
@@ -65,10 +67,10 @@ object Main extends LazyLogging {
         ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
         ("http://www.7cont.ru", new ContExtractor)
     )
-    if (Environment.instance < Environment.instances) {
+    if (Environment.instance <= Environment.instances) {
       val part = all.size / Environment.instances
       val tail = all.takeRight(all.size % Environment.instances)
-      all.drop(Environment.instance * part).take(part) ++ (if (Environment.instance.equals(Environment.instances - 1)) tail else List())
+      all.drop((Environment.instance - 1) * part).take(part) ++ (if (Environment.instance.equals(Environment.instances)) tail else List())
     } else {
       logger.warn("Environment is not correct. The instance number is out of bounds. " + Environment.instance + "/" + Environment.instances)
       all
