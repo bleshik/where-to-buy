@@ -11,7 +11,12 @@ import wh.extractor.utkonos.UtkonosExtractor
 import cronish.dsl._
 
 object Main extends LazyLogging {
-  private lazy val extractorSystem = createExtractorSystem
+  private lazy val extractorSystem = {
+    val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
+    ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
+      .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
+      .resolve())
+  }
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
@@ -47,17 +52,6 @@ object Main extends LazyLogging {
         logger.info("Extractor will send extracted data to " + whereToBuySystem)
         val remote = extractorSystem.actorSelection(whereToBuySystem)
         iterator.foreach(remote ! _)
-    }
-  }
-
-  private def createExtractorSystem: ActorSystem = {
-    val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
-    try {
-      ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
-        .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
-        .resolve())
-    } catch {
-      case e: akka.remote.RemoteTransportException => createExtractorSystem
     }
   }
 
