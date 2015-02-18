@@ -13,6 +13,8 @@ ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "SBT_OPTS=-XX:PermSize=64m -XX:MaxPermSize=64m -Xmx128m -Xms128m"\
+        -e "INSTANCE=$((%i - 1))"\
+        -e "INSTANCES=2"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "WH_API_AKKA_ENDPOINT=${COREOS_PRIVATE_IPV4}:9000"\
@@ -27,4 +29,4 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineOf=wh-api@1.service
+MachineOf=wh-api@%i.service
