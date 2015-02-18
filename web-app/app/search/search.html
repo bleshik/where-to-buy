@@ -47,7 +47,7 @@
                 <ul class="list-unstyled">
                     <li ng-repeat="entry in commodity.entries | orderBy:'price'">
                       <label ng-class="{'label label-success' : $first, 'label label-default' : !$first}">{{entry.price | rubles}}</label>
-                      <img height="30" ng-src="/app/img/{{entry.shop}}.png" alt="{{entry.shop}}"/>
+                      <img height="30" ng-src="/img/{{entry.shop}}.png" alt="{{entry.shop}}"/>
                     </li>
                 </ul>
               </div>
