@@ -30,11 +30,7 @@ object Main extends LazyLogging {
 
   private def upload(output: String): Unit = {
     doUpload(
-      List(
-        ("http://www.utkonos.ru/cat", new UtkonosExtractor),
-        ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
-        ("http://www.7cont.ru", new ContExtractor)
-      ).iterator.flatMap { case (url, extractor) =>
+      payload.iterator.flatMap { case (url, extractor) =>
         extractor.extract(new URL(url))
       },
       output
@@ -46,15 +42,31 @@ object Main extends LazyLogging {
     output match {
       case "console" => iterator.foreach(println)
       case "akka"    =>
-        val akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:9000")
+        val akkaEndpoint = Environment.akkaEndpoint
         val whereToBuySystem = s"akka.tcp://WhereToBuySystem@$akkaEndpoint/user/EntryExtractingActor"
-        val extractorAddress = Option(System.getenv("PRIVATE_IP")).getOrElse("127.0.0.1")
+        val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
         logger.info("Extractor will send extracted data to " + whereToBuySystem)
         val system = ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
           .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
           .resolve())
         val remote = system.actorSelection(whereToBuySystem)
         iterator.foreach(remote ! _)
+    }
+  }
+
+  private def payload: List[(String, Extractor)] = {
+    val all = List(
+        ("http://www.utkonos.ru/cat", new UtkonosExtractor),
+        ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
+        ("http://www.7cont.ru", new ContExtractor)
+    )
+    if (Environment.instance < Environment.instances) {
+      val part = all.size / Environment.instances
+      val tail = all.takeRight(all.size % Environment.instances)
+      all.drop(Environment.instance * part).take(part) ++ (if (Environment.instance.equals(Environment.instances - 1)) tail else List())
+    } else {
+      logger.warn("Environment is not correct. The instance number is out of bounds. " + Environment.instance + "/" + Environment.instances)
+      all
     }
   }
 }
