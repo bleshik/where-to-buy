@@ -25,7 +25,7 @@ class AkkaModule extends ScalaModule {
 
   private def actor[T <: Actor: Manifest]: Unit = {
     bind[T]
-    bind[ActorRef].annotatedWithName(manifest.runtimeClass.getSimpleName).toProvider(new ActorProvider[T])
+    bind[ActorRef].annotatedWithName(manifest.runtimeClass.getSimpleName).toProvider(new ActorProvider[T]).asEagerSingleton()
   }
 }
 
