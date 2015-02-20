@@ -2,7 +2,7 @@
 
 coreos:
   etcd:
-    discovery: https://discovery.etcd.io/21c534890ffcda5d39d70c153cccd6b1
+    discovery: https://discovery.etcd.io/560af03c88f86a739383314fefe050d9
     addr: $private_ipv4:4001
     peer-addr: $private_ipv4:7001
   fleet:
@@ -21,3 +21,7 @@ write_files:
         [Journal]
         Storage=persistent
         RuntimeMaxUse=10M
+    - path: /etc/fleet/fleet.conf
+      permissions: 0644
+      content: |
+        metadata="access=private"

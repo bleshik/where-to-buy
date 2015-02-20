@@ -12,7 +12,7 @@ import cronish.dsl._
 
 object Main extends LazyLogging {
   private lazy val extractorSystem = {
-    val extractorAddress = Environment.privateIp.getOrElse("127.0.0.1")
+    val extractorAddress = Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")
     ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
       .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
       .resolve())

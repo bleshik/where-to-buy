@@ -15,7 +15,7 @@ import scala.reflect.ClassTag
 class AkkaModule extends ScalaModule {
   def configure: Unit = {
     val system = ActorSystem("WhereToBuySystem", ConfigFactory.load("api", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
-      .withValue("hostname", ConfigValueFactory.fromAnyRef(Environment.privateIp.getOrElse("127.0.0.1")))
+      .withValue("hostname", ConfigValueFactory.fromAnyRef(Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")))
       .resolve())
     bind[ActorSystem].toInstance(system)
     bind[ActorRefFactory].toInstance(system)

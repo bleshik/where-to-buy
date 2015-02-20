@@ -20,6 +20,7 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineMetadata="access=private" "type=backend"
+MachineMetadata="access=private"
 Conflicts=%p@*.service
+Conflicts=wh-api@*.service
 Conflicts=docker-discover.service

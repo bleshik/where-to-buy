@@ -17,4 +17,6 @@ object Environment extends Enumeration {
   def etcdEndpoint = Option(URI.create(System.getenv("ETCD_ENDPOINT"))).getOrElse(URI.create(s"http://$defaultCoreOsDockerIp:4001"))
 
   def privateIp = Option(System.getenv("PRIVATE_IP"))
+
+  def balancerIp = Option(System.getenv("BALANCER_IP"))
 }
