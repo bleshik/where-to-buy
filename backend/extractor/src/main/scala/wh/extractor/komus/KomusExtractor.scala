@@ -1,7 +1,7 @@
 package wh.extractor.komus
 
 import com.gargoylesoftware.htmlunit.html._
-import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
+import wh.extractor.{SupportedCity, AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -42,7 +42,7 @@ class KomusExtractor extends AbstractHtmlUnitExtractor {
         val stringPrice = cleanUpName(entry.getOneHtmlElementByAttribute("span", "class", "goods-" + diff +  "--price-now-value").asInstanceOf[HtmlSpan].getChildNodes.get(0).getTextContent)
         val price = (BigDecimal(stringPrice.replace(',', '.').replace(" ", "")) * 100).toLong
         val image: HtmlElement = entry.getHtmlElementsByTagName("img").get(0)
-        extractEntry("Komus", name, price, category, image)
+        extractEntry("Komus", SupportedCity.Moscow, name, price, category, image)
       }
     }.iterator
   }

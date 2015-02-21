@@ -7,11 +7,11 @@ case class Commodity private(name: String, entries: List[Entry], tags: Set[Strin
 
   def id: String = name
 
-  def arrived(shop: String, shopSpecificName:String, price: Long, tags: Set[String] = Set.empty): Commodity = {
+  def arrived(shop: Shop, shopSpecificName:String, price: Long, tags: Set[String] = Set.empty): Commodity = {
     apply(CommodityArrived(shop, shopSpecificName, price, tags))
   }
 
-  def changePrice(shop: String, price: Long): Commodity = {
+  def changePrice(shop: Shop, price: Long): Commodity = {
     apply(CommodityPriceChanged(shop, name, price))
   }
 
@@ -19,17 +19,17 @@ case class Commodity private(name: String, entries: List[Entry], tags: Set[Strin
     apply(CommodityTagged(name, tag))
   }
 
-  def entry(shop: String): Option[Entry] =
+  def entry(shop: Shop): Option[Entry] =
     entries.find(e => e.shop.equals(shop))
 
-  def price(shop: String): Option[Long] =
+  def price(shop: Shop): Option[Long] =
     entry(shop).map(_.price)
 
   def averagePrice: Long = {
     entries.map(_.price).sum / entries.size
   }
 
-  private def allExcept(shop: String): List[Entry] =
+  private def allExcept(shop: Shop): List[Entry] =
     entries.filterNot(e => e.shop.equals(shop))
 
   protected def when(priceChanged: CommodityPriceChanged): Commodity = {
@@ -56,7 +56,7 @@ case class Commodity private(name: String, entries: List[Entry], tags: Set[Strin
 }
 
 object Commodity {
-  def arrived(shop: String, name: String, price: Long, tags: Set[String] = Set.empty): Commodity = {
+  def arrived(shop: Shop, name: String, price: Long, tags: Set[String] = Set.empty): Commodity = {
     new Commodity(name, List(Entry(shop, name, price)), tags)
   }
 }

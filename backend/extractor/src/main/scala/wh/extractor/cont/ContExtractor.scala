@@ -1,7 +1,7 @@
 package wh.extractor.cont
 
 import com.gargoylesoftware.htmlunit.html._
-import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry}
+import wh.extractor.{SupportedCity, AbstractHtmlUnitExtractor, Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -57,6 +57,7 @@ class ContExtractor extends AbstractHtmlUnitExtractor {
       .flatMap { e =>
         extractEntry(
           "Седьмой Континент",
+          SupportedCity.Moscow,
           cleanUpName(e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent),
           e.getOneHtmlElementByAttribute("div", "class", "currentprice").asInstanceOf[HtmlDivision].getTextContent.trim.toLong,
           category,

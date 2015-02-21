@@ -1,3 +1,3 @@
 package wh.inventory.domain.model
 
-case class Entry(shop: String, shopSpecificName: String, price: Long)
+case class Entry(shop: Shop, shopSpecificName: String, price: Long)

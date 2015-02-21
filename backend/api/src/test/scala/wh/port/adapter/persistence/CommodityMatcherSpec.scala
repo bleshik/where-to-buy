@@ -1,13 +1,13 @@
 package wh.port.adapter.persistence
 
 import org.scalatest.{Matchers, FlatSpec}
-import wh.inventory.domain.model.Commodity
+import wh.inventory.domain.model.{Shop, Commodity}
 
 class CommodityMatcherSpec extends FlatSpec with Matchers {
   val matcher = new CommodityMatcher(0.5)
 
   it should "parse canonical quantity" in {
-    matcher.titleTokens("Нож кухонный  Samura Eco  универ.12,5см черная керам.SC-0021B", "Utkonos").quantity should be("1250мм")
+    matcher.titleTokens("Нож кухонный  Samura Eco  универ.12,5см черная керам.SC-0021B", Shop.Utkonos).quantity should be("1250мм")
   }
 
   it should "match similar products" in {

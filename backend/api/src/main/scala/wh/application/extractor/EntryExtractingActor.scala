@@ -4,12 +4,13 @@ import javax.inject.Inject
 
 import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
-import wh.extractor.{Category, ExtractedEntry}
+import wh.extractor.{ExtractedShop, Category, ExtractedEntry}
 import wh.images.domain.model.{LazyImage, ImageRepository}
-import wh.inventory.domain.model.{CommodityRepository, Commodity}
+import wh.inventory.domain.model.{Shop, CommodityRepository, Commodity}
 
 class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, imageRepository: ImageRepository)
   extends Actor with LazyLogging {
+
   override def receive: Receive = {
     case entry: ExtractedEntry =>
       logger.debug(s"Received entry $entry")
@@ -19,18 +20,18 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
         flatCategories(c).flatMap(_.name.split("[,и&\\s]").map(_.trim.toLowerCase)).filter(t => t.size >= 4).toSet
       ).getOrElse(Set.empty)
 
-      val incomingCommodity = Commodity.arrived(entry.source, entry.name, entry.price, categories)
+      val incomingCommodity = Commodity.arrived(entry.shop, entry.name, entry.price, categories)
       val c = commodityRepository.findSimilar(incomingCommodity)
         .map { c =>
         logger.debug(s"Found for $entry: $c")
-        if (c.entry(entry.source).isDefined) {
-          if (c.price(entry.source).get != entry.price) {
-            c.changePrice(entry.source, entry.price)
+        if (c.entry(entry.shop).isDefined) {
+          if (c.price(entry.shop).get != entry.price) {
+            c.changePrice(entry.shop, entry.price)
           } else {
             c
           }
         } else {
-          c.arrived(entry.source, entry.name, entry.price, categories)
+          c.arrived(entry.shop, entry.name, entry.price, categories)
         }
       }.getOrElse(incomingCommodity)
       commodityRepository.save(c)
@@ -45,5 +46,9 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
       }
 
       logger.debug(s"Commodity amount ${commodityRepository.size}")
+  }
+
+  private implicit def extractedShopToShop(extractedShop: ExtractedShop): Shop = {
+    Shop(extractedShop.name, extractedShop.city)
   }
 }

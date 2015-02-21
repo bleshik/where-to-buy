@@ -24,11 +24,9 @@ object Main extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    if (args.length > 1) {
-      while(true) {
-        upload(args.head)
-        Thread.sleep(3 * 60 * 60 * 1000)
-      }
+    while(true) {
+      upload(args.head)
+      Thread.sleep(3 * 60 * 60 * 1000)
     }
 
     logger.info("Exiting...")

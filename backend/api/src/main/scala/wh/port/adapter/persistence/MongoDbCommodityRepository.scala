@@ -4,7 +4,7 @@ import com.mongodb
 import com.mongodb.DB
 import com.mongodb.casbah.Imports._
 import repository.eventsourcing.mongodb.MongoDbEventSourcedRepository
-import wh.inventory.domain.model.{CommodityRepository, Commodity}
+import wh.inventory.domain.model.{Shop, CommodityRepository, Commodity}
 
 class MongoDbCommodityRepository(override val db: DB)
   extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository {
@@ -13,7 +13,7 @@ class MongoDbCommodityRepository(override val db: DB)
       commodity.entries.flatMap { e =>
         findOne(
           MongoDBObject(
-            "entries.shop" -> e.shop,
+            "entries.shop" -> MongoDBObject("name" -> e.shop.name, "city" -> e.shop.city),
             "entries.shopSpecificName" -> e.shopSpecificName
           )
         )
@@ -22,7 +22,7 @@ class MongoDbCommodityRepository(override val db: DB)
       commodity.entries.flatMap { e =>
         find(
           MongoDBObject(
-            "entries.shop" -> MongoDBObject("$ne" -> e.shop),
+            "entries.shop" -> MongoDBObject("$ne" -> MongoDBObject("name" -> e.shop.name, "city" -> e.shop.city)),
             "kind" -> kind(e.shopSpecificName)
           )
         ).find(r => matcher.matching(commodity, r))
@@ -52,10 +52,10 @@ class MongoDbCommodityRepository(override val db: DB)
   override protected def migrate(): Unit = {
     snapshots.createIndex(MongoDBObject("sanitizedName" -> 1))
     snapshots.createIndex(MongoDBObject("kind" -> 1))
-    snapshots.createIndex(MongoDBObject("entries.shop" -> 1, "entries.shopSpecificName" -> 1))
+    snapshots.createIndex(MongoDBObject("entries.shop.name" -> 1, "entries.shop.city" -> 1, "entries.shopSpecificName" -> 1))
   }
 
-  private def kind(name: String): String = matcher.titleTokens(name, "").kind.toLowerCase
+  private def kind(name: String): String = matcher.titleTokens(name, Shop("", "")).kind.toLowerCase
 
   override protected def serialize(entity: Commodity): mongodb.DBObject = {
     val dbObject = super.serialize(entity)

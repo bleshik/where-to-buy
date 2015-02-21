@@ -11,7 +11,7 @@ import org.supercsv.prefs.CsvPreference
 import weka.classifiers.functions.MultilayerPerceptron
 import weka.core.converters.ConverterUtils.DataSource
 import weka.core.{Instance, Instances}
-import wh.inventory.domain.model.{Commodity, Entry}
+import wh.inventory.domain.model.{Shop, Commodity, Entry}
 
 class CommodityMatcher(val split: Double = 1) {
   private val kilos = List(("кг", "г"), ("kg", "г"), ("л", "мл"), ("", "гр"), ("", "%"), ("", "шт"), ("см", "мм"), ("м", "мм"))
@@ -46,7 +46,7 @@ class CommodityMatcher(val split: Double = 1) {
     data = source.getDataSet
     data.setClassIndex(data.numAttributes() - 1)
     classifier.buildClassifier(data)
-    val same = Commodity.arrived("Same", "Same", 1)
+    val same = Commodity.arrived(Shop("Same", "Same"), "Same", 1)
     normalization = classifier.distributionForInstance(
       new Instance(0, scores(same, same).toArray) {
         setDataset(data)
@@ -195,8 +195,8 @@ class CommodityMatcher(val split: Double = 1) {
         .toLowerCase
     }
 
-  private def preprocessTitle(title: String, shop: String): String = {
-    shop match {
+  private def preprocessTitle(title: String, shop: Shop): String = {
+    shop.name match {
       case "Cont" => commentsPattern.matcher(title).replaceAll(" ")
       case _ => title
     }
@@ -214,7 +214,7 @@ class CommodityMatcher(val split: Double = 1) {
     ).getOrElse(number.toPlainString)
   }
 
-  def titleTokens(title: String, shop: String, probableName: Option[String] = None): TitleTokens = {
+  def titleTokens(title: String, shop: Shop, probableName: Option[String] = None): TitleTokens = {
     val preprocessedTitle = preprocessTitle(title, shop)
     val tokens = preprocessedTitle.split("\\s+")
 
@@ -272,11 +272,11 @@ class CommodityMatcher(val split: Double = 1) {
     TitleTokens(kind, name, quantity.toString(), percent.toString(), attributes)
   }
 
-  private def kind(title: String, shop: String, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).kind
-  private def name(title: String, shop: String, probableName: Option[String]= None): String = titleTokens(title, shop, probableName).name
-  private def attributes(title: String, shop: String, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).attributes
-  private def quantity(title: String, shop: String, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).quantity
-  private def percent(title: String, shop: String, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).percent
+  private def kind(title: String, shop: Shop, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).kind
+  private def name(title: String, shop: Shop, probableName: Option[String]= None): String = titleTokens(title, shop, probableName).name
+  private def attributes(title: String, shop: Shop, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).attributes
+  private def quantity(title: String, shop: Shop, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).quantity
+  private def percent(title: String, shop: Shop, probableName: Option[String] = None): String = titleTokens(title, shop, probableName).percent
 
   private def readCommodities(resource: String): List[(Commodity, Commodity)] = {
     val reader = new CsvListReader(new InputStreamReader(getClass.getClassLoader.getResourceAsStream(resource), "UTF-8"), CsvPreference.STANDARD_PREFERENCE)
@@ -284,7 +284,7 @@ class CommodityMatcher(val split: Double = 1) {
       val row: java.util.List[String] = reader.read()
       if (row != null) {
 
-        Commodity.arrived(row.get(0).trim, row.get(1).trim, row.get(2).trim.toInt) #:: extractCommodities(reader)
+        Commodity.arrived(Shop(row.get(0).trim, "Москва"), row.get(1).trim, row.get(2).trim.toInt) #:: extractCommodities(reader)
       } else {
         Stream.empty
       }
