@@ -1,4 +1,4 @@
-package wh.extractor
+package wh.extractor.domain.model
 
 import java.net.URL
 

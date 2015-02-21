@@ -4,9 +4,9 @@ import javax.inject.Inject
 
 import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
-import wh.extractor.{ExtractedShop, Category, ExtractedEntry}
-import wh.images.domain.model.{LazyImage, ImageRepository}
-import wh.inventory.domain.model.{Shop, CommodityRepository, Commodity}
+import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop}
+import wh.images.domain.model.{ImageRepository, LazyImage}
+import wh.inventory.domain.model.{Commodity, CommodityRepository, Shop}
 
 class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, imageRepository: ImageRepository)
   extends Actor with LazyLogging {

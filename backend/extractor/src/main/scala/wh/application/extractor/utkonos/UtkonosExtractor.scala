@@ -1,9 +1,10 @@
-package wh.extractor.utkonos
+package wh.application.extractor.utkonos
 
 import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlDivision, HtmlPage}
-import wh.extractor.{AbstractHtmlUnitExtractor, Category, ExtractedEntry, SupportedCity}
+import wh.application.extractor.{SupportedCity, AbstractHtmlUnitExtractor}
+import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable

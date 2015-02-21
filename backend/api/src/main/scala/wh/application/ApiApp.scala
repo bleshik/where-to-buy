@@ -12,7 +12,7 @@ import wh.infrastructure.Environment
 
 import scala.concurrent.duration._
 
-object Boot extends App with LazyLogging {
+object ApiApp extends App with LazyLogging {
   logger.debug(s"Starting Where To Buy app in ${Environment.current} environment")
   val injector = Guice.createInjector(Environment.stage, new ApiModule)
 

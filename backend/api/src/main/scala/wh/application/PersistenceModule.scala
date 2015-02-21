@@ -1,14 +1,15 @@
 package wh.application
 
-import com.google.inject.Provides
 import javax.inject.Singleton
+
+import com.google.inject.Provides
 import com.mongodb.DB
 import net.codingwell.scalaguice.ScalaModule
 import wh.images.domain.model.ImageRepository
 import wh.infrastructure.Environment
 import wh.infrastructure.mongodb.{EtcdMongoClientProvider, LocalMongoClientProvider, MongoClientDbProvider, MongoClientProvider}
 import wh.inventory.domain.model.CommodityRepository
-import wh.port.adapter.persistence.{MongoDbImageRepository, MongoDbCommodityRepository}
+import wh.port.adapter.persistence.{MongoDbCommodityRepository, MongoDbImageRepository}
 
 class PersistenceModule extends ScalaModule {
   override def configure(): Unit = {

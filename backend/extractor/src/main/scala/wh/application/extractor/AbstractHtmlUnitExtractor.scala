@@ -1,10 +1,11 @@
-package wh.extractor
+package wh.application.extractor
 
 import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlElement, HtmlImage, HtmlPage}
 import com.gargoylesoftware.htmlunit.{Page, WebClient}
 import com.typesafe.scalalogging.LazyLogging
+import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
 
 import scala.util.{Failure, Success, Try}
 

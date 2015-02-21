@@ -1,9 +1,10 @@
-package wh.extractor.komus
+package wh.application.extractor.komus
 
 import java.net.URL
 
 import org.scalatest.{FlatSpec, Matchers}
-import wh.extractor.{ExtractedShop, Category, ExtractedEntry}
+import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop}
+import wh.extractor.domain.model.Category
 
 class KomusExtractorSpec extends FlatSpec with Matchers {
   "Komus extractor" should "return right list of entries" in {

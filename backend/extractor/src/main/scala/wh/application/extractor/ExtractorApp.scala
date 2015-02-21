@@ -1,15 +1,17 @@
-package wh.extractor
+package wh.application.extractor
 
 import java.net.URL
 
 import akka.actor.ActorSystem
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigResolveOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
-import wh.extractor.cont.ContExtractor
-import wh.extractor.komus.KomusExtractor
-import wh.extractor.utkonos.UtkonosExtractor
+import wh.application.extractor.cont.ContExtractor
+import wh.application.extractor.infrastructure.Environment
+import wh.application.extractor.komus.KomusExtractor
+import wh.application.extractor.utkonos.UtkonosExtractor
+import wh.extractor.domain.model.{ExtractedEntry, Extractor}
 
-object Main extends LazyLogging {
+object ExtractorApp extends LazyLogging {
   private lazy val extractorSystem = {
     val extractorAddress = Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")
     ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))

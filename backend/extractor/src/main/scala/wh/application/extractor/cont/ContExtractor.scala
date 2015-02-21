@@ -1,7 +1,8 @@
-package wh.extractor.cont
+package wh.application.extractor.cont
 
 import com.gargoylesoftware.htmlunit.html._
-import wh.extractor.{SupportedCity, AbstractHtmlUnitExtractor, Category, ExtractedEntry}
+import wh.application.extractor.{SupportedCity, AbstractHtmlUnitExtractor}
+import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable

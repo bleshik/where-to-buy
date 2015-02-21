@@ -1,4 +1,4 @@
-package wh.extractor
+package wh.application.extractor.infrastructure
 
 object Environment extends Enumeration {
   type Environment = Value

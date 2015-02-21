@@ -1,7 +1,8 @@
-package wh.extractor.utkonos
+package wh.application.extractor.utkonos
 
 import org.scalatest.{FlatSpec, Matchers}
-import wh.extractor.{ExtractedShop, Category, ExtractedEntry}
+import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop}
+import wh.extractor.domain.model.Category
 
 class UtkonosExtractorSpec extends FlatSpec with Matchers {
   val rootCategory = Category("Продукты питания",null)

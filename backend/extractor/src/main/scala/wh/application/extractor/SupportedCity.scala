@@ -1,4 +1,4 @@
-package wh.extractor
+package wh.application.extractor
 
 object SupportedCity extends Enumeration {
   case class City(name: String) extends super.Val

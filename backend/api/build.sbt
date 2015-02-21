@@ -10,7 +10,7 @@ lazy val extractor = RootProject(file("../extractor"))
 
 lazy val api = project.in(file(".")).dependsOn(extractor).aggregate(extractor)
 
-mainClass in Compile := Some("wh.application.Boot")
+mainClass in Compile := Some("wh.application.ApiApp")
 
 resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 
