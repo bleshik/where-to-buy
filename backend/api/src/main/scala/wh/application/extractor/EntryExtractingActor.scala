@@ -40,6 +40,7 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
       } else if (c.entries.size > 1) {
         imageRepository.get(c.name).map {
           case img: LazyImage => imageRepository.save(img.download)
+          case _ =>
         }
       }
 
