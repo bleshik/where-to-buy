@@ -12,7 +12,12 @@ Environment=INSTANCE=%i
 ExecStartPre=-/usr/bin/docker stop wh-web-app
 ExecStartPre=-/usr/bin/docker rm wh-web-app
 ExecStartPre=/usr/bin/docker pull bleshik/wh-web-app:latest
-ExecStart=/usr/bin/docker run -e "ENVIRONMENT=production" -e "ETCD_ENDPOINT=http://$(ifconfig docker0 | awk '/\<inet\>/ { print $2}'):4001" --name wh-web-app -p 8000:8000 bleshik/wh-web-app:latest
+ExecStart=/bin/sh -c '/usr/bin/docker run\
+          -e "ENVIRONMENT=production"\
+          -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
+          --name wh-web-app\
+          -p 8000:8000\
+          bleshik/wh-web-app:latest'
 ExecStop=/usr/bin/docker stop wh-web-app
 Restart=always
 
