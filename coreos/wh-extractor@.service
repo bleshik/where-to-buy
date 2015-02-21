@@ -23,7 +23,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         --name wh-extractor\
         -p 9001:9001\
         bleshik/wh-extractor:latest\
-        "run akka now"'
+        "run akka"'
 ExecStop=/usr/bin/docker stop wh-extractor
 Restart=always
 

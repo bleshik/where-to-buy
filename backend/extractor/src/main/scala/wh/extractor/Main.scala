@@ -3,12 +3,11 @@ package wh.extractor
 import java.net.URL
 
 import akka.actor.ActorSystem
-import com.typesafe.config.{ConfigValueFactory, ConfigResolveOptions, ConfigParseOptions, ConfigFactory}
+import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigResolveOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.cont.ContExtractor
 import wh.extractor.komus.KomusExtractor
 import wh.extractor.utkonos.UtkonosExtractor
-import cronish.dsl._
 
 object Main extends LazyLogging {
   private lazy val extractorSystem = {
@@ -25,11 +24,11 @@ object Main extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    (if (args.length > 1) args.tail.mkString(" ") else "now") match {
-      case "now" => upload(args.head)
-      case schedule: String => task {
+    if (args.length > 1) {
+      while(true) {
         upload(args.head)
-      } executes schedule
+        Thread.sleep(3 * 60 * 60 * 1000)
+      }
     }
 
     logger.info("Exiting...")
