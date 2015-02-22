@@ -5,3 +5,27 @@
 .title {
     color: #777;
 }
+
+.title:hover {
+    color: #555;
+}
+
+.comment {
+    color: #aaa;
+}
+
+.navbar-form {
+    border: none;
+}
+
+.borderless tbody tr td, .borderless tbody tr th, .borderless thead tr th {
+    border: none;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+}

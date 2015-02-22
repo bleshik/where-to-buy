@@ -9,5 +9,5 @@ angular.module('where', [
   'where.filter.currency'
 ]).
 config(['$routeProvider', function($routeProvider) {
-  $routeProvider.otherwise({redirectTo: '/search'});
+  $routeProvider.otherwise({redirectTo: '/commodities'});
 }]);

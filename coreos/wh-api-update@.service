@@ -1,0 +1,14 @@
+[Unit]
+Description=Updating Unit
+Requires=docker.service
+Requires=fleet.service
+After=docker.service
+After=fleet.service
+
+[Service]
+Type=simple
+TimeoutStartSec=0
+ExecStart=/bin/sh -c 'if [ "`docker inspect --format {{.Id}} bleshik/wh-api`" != "`(docker pull bleshik/wh-api > /dev/null; docker inspect --format {{.Id}} bleshik/wh-api)`" ] ; then echo "New version of bleshik/wh-api downloaded. I will restart it now..."; /usr/bin/fleetctl stop wh-api@%i.service; /usr/bin/fleetctl start wh-api@%i.service ; fi'
+
+[X-Fleet]
+MachineOf=wh-api@%i.service

@@ -1,0 +1,31 @@
+[Unit]
+Description=Where To Buy Web App
+After=docker.service
+Requires=docker.service
+
+[Service]
+KillMode=none
+TimeoutStartSec=0
+TimeoutStopSec=360
+EnvironmentFile=/etc/environment
+Environment=INSTANCE=%i
+ExecStartPre=-/usr/bin/docker stop wh-web-app
+ExecStartPre=-/usr/bin/docker rm wh-web-app
+ExecStartPre=/usr/bin/docker pull bleshik/wh-web-app:latest
+ExecStart=/bin/sh -c '/usr/bin/docker run\
+          -e "ENVIRONMENT=production"\
+          -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
+          --name wh-web-app\
+          -p 8000:8000\
+          bleshik/wh-web-app:latest'
+ExecStop=/usr/bin/docker stop wh-web-app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+MachineMetadata="access=private"
+Conflicts=%p@*.service
+Conflicts=wh-api@*.service
+Conflicts=docker-discover.service

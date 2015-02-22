@@ -1,0 +1,35 @@
+[Unit]
+Description=Where To Buy REST API HTTP Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+KillMode=none
+TimeoutStartSec=0
+TimeoutStopSec=360
+EnvironmentFile=/etc/environment
+Environment=INSTANCE=%i 
+ExecStartPre=-/usr/bin/docker stop wh-api
+ExecStartPre=-/usr/bin/docker rm wh-api
+ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
+ExecStart=/bin/sh -c '/usr/bin/docker run\
+        -e "SBT_OPTS=-XX:PermSize=128m -XX:MaxPermSize=128m -Xmx256m -Xms256m"\
+        -e "ENVIRONMENT=production"\
+        -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
+        -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
+        -e "ETCD_ENDPOINT=http://172.17.42.1:4001"\
+        --restart always\
+        --name wh-api\
+        -p 8080:8080\
+        -p 9000:9000\
+        bleshik/wh-api:latest'
+ExecStop=/usr/bin/docker stop wh-api
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]                                                                                                                                                                            
+MachineMetadata="access=private" "type=backend"
+Conflicts=%p@*.service
+Conflicts=docker-discover.service

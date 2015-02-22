@@ -1,4 +1,4 @@
 var config = {
-    api: { host: "127.0.0.1", port: 8080 },
+    api: { host: process.env.BALANCER_IP, port: 8080 },
     port: 8000
 };

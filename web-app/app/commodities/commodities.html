@@ -1,0 +1,63 @@
+<nav class="navbar navbar-default" style="margin-bottom: 0px;" ng-show="landed">
+  <div class="container-fluid">
+    <div class="navbar-header hidden-xs">
+      <a class="navbar-brand title" href="" ng-click="ctrl.land(false)">Где купить<a>
+    </div>
+
+    <div class="col-sm-7">
+      <form class="navbar-form navbar-left" style="width:100%">
+          <input type="text" class="form-control" style="width: 100%" placeholder="{{queryPrompt}}" ng-model="query" ng-change="ctrl.search()" wh-focus="landed"/>
+      </form>
+    </div>
+
+    <form class="navbar-form navbar-right hidden-xs">
+      <h5><a href="" class="title">Москва</a></h5>
+    </form>
+  </div>
+</nav>
+<div class="container-fluid">
+    <div class="panel panel-default col-md-6 col-md-offset-3" style="margin-top: 20%;" ng-hide="landed">
+        <div class="panel-body">
+            <div class="row">
+                <h3 class="title text-center">{{title}}</h3>
+            </div>
+            <div class="row col-md-10 col-md-offset-1">
+                <form ng-submit="ctrl.search()">
+                    <input type="text" class="form-control" placeholder="{{queryPrompt}}" ng-model="query" ng-change="ctrl.canQueryOnChange() && ctrl.search()" wh-focus="!landed"/>
+                </form>
+            </div>
+            <div class="row col-md-10 col-md-offset-1">
+                <p class="text-center comment">
+                   <small><b>Грошри</b> поможет Вам найти, где выгоднее купить продукты питания.</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    <table class="borderless table table-hover title" ng-show="commodities != null && landed">
+        <tr ng-hide="commodities.length > 0">
+            <td>
+                По Вашему запросу ничего не найдено
+            </td>
+        </tr>
+        <tr ng-repeat="commodity in commodities | limitTo:5" class="row">
+            <td class="col-md-2">
+              <div>
+                <a href="#" class="thumbnail">
+                  <img ng-src="/api/commodities/{{commodity.name | escape}}.jpg" alt="{{commodity.name}}">
+                </a>
+              </div>
+            </td>   
+            <td>
+              <div class="caption">
+                <b>{{commodity.name}}</b>
+                <ul class="list-unstyled">
+                    <li ng-repeat="entry in commodity.entries | orderBy:'price'">
+                      <label ng-class="{'label label-success' : $first, 'label label-default' : !$first}">{{entry.price | rubles}}</label>
+                      <img height="30" ng-src="/img/{{entry.shop.name}}.png" alt="{{entry.shop.name}}"/>
+                    </li>
+                </ul>
+              </div>
+            </td>   
+        </tr>
+    </table>
+</div>

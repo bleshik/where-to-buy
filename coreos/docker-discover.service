@@ -8,8 +8,8 @@ EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker stop docker-discover
 ExecStartPre=-/usr/bin/docker rm docker-discover
 ExecStartPre=/usr/bin/docker pull jwilder/docker-discover
-ExecStart=/usr/bin/docker run --name docker-discover -e ETCD_HOST=${COREOS_PUBLIC_IPV4}:4001 -p 1936:1936 -p 8080:8080 -p 8000:8000 -t jwilder/docker-discover
-Restart=on-failure
+ExecStart=/usr/bin/docker run --name docker-discover -e ETCD_HOST=${COREOS_PRIVATE_IPV4}:4001 -p 1936:1936 -p 8080:8080 -p 80:8000 -p 9001:9001 -p 9000:9000 -t jwilder/docker-discover
+Restart=always
 
 [X-Fleet]
 MachineMetadata=access=public
