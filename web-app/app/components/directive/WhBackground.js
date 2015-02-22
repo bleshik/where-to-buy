@@ -9,7 +9,8 @@ function whBackground($timeout){
             'background-size' : 'cover',
             '-webkit-background-size': 'cover',
             '-moz-background-size': 'cover',
-            '-o-background-size': 'cover'
+            '-o-background-size': 'cover',
+            'background-repeat': 'no-repeat'
         } : {
             'background-image': '',
             'background-size' : '',
