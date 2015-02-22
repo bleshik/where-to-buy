@@ -10,7 +10,7 @@ object Environment extends Enumeration {
 
   def balancerIp = Option(System.getenv("BALANCER_IP"))
 
-  def akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("127.0.0.1:9000")
+  def akkaEndpoint = Option(System.getenv("WH_API_AKKA_ENDPOINT")).getOrElse("akka.tcp://WhereToBuySystem@127.0.0.1:9000/user/EntryExtractingActor")
 
   def instance = Option(System.getenv("INSTANCE")).map(_.toInt).getOrElse(1)
 
