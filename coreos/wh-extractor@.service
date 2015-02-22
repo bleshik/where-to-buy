@@ -18,7 +18,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
-        -e "WH_API_AKKA_ENDPOINT="akka.tcp://WhereToBuySystem@`fleetctl list-machines | grep public | cut -f2`:9000/user/EntryExtractingActor"\
+        -e "WH_API_AKKA_ENDPOINT=akka.tcp://WhereToBuySystem@`fleetctl list-machines | grep public | cut -f2`:9000/user/EntryExtractingActor"\
         --restart always\
         --name wh-extractor\
         -p 9001:9001\
