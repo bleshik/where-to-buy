@@ -1,22 +1,18 @@
 <nav class="navbar navbar-default" style="margin-bottom: 0px;" ng-show="landed">
   <div class="container-fluid">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-      </button>
-      <a class="navbar-brand title" href="#">Где купить<a>
+    <div class="navbar-header hidden-xs">
+      <a class="navbar-brand title" href="" ng-click="ctrl.land(false)">Где купить<a>
     </div>
 
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <form class="navbar-form navbar-left" style="width: 50%" role="search">
-        <div class="form-group" style="width: 100%">
+    <div class="col-sm-7">
+      <form class="navbar-form navbar-left" style="width:100%">
           <input type="text" class="form-control" style="width: 100%" placeholder="{{queryPrompt}}" ng-model="query" ng-change="ctrl.search()" wh-focus="landed"/>
-        </div>
-      </form>
-      <form class="navbar-form navbar-right">
-            <h5><a href="" class="title">Москва</a></h5>
       </form>
     </div>
+
+    <form class="navbar-form navbar-right hidden-xs">
+      <h5><a href="" class="title">Москва</a></h5>
+    </form>
   </div>
 </nav>
 <div class="container-fluid">
@@ -35,7 +31,7 @@
             </div>
         </div>
     </div>
-    <table class="table title" ng-show="commodities != null && landed">
+    <table class="borderless table table-hover title" ng-show="commodities != null && landed">
         <tr ng-hide="commodities.length > 0">
             <td>
                 По Вашему запросу ничего не найдено
