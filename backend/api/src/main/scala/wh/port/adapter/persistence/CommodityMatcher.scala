@@ -243,7 +243,7 @@ class CommodityMatcher(val split: Double = 1) {
         val probableNameTokens = t.toLowerCase.split("\\s+")
         if (probableNameTokens.forall(t => name.toLowerCase.contains(t))) {
           attributes = name.toLowerCase
-          probableNameTokens.foreach(n => attributes = attributes.replaceAll(n, ""))
+          probableNameTokens.foreach(n => attributes = attributes.replaceAll(Pattern.quote(n), ""))
           attributes = attributes.split("\\s+").mkString(" ")
           Some(t)
         } else {
