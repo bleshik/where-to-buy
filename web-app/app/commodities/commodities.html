@@ -22,7 +22,9 @@
                 <h3 class="title text-center">{{title}}</h3>
             </div>
             <div class="row col-md-10 col-md-offset-1">
-                <input type="text" class="form-control" placeholder="{{queryPrompt}}" ng-model="query" ng-change="ctrl.search()" wh-focus="!landed"/>
+                <form ng-submit="ctrl.search()">
+                    <input type="text" class="form-control" placeholder="{{queryPrompt}}" ng-model="query" ng-change="ctrl.canQueryOnChange() && ctrl.search()" wh-focus="!landed"/>
+                </form>
             </div>
             <div class="row col-md-10 col-md-offset-1">
                 <p class="text-center comment">

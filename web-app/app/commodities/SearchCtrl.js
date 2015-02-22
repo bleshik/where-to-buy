@@ -38,3 +38,7 @@ SearchCtrl.prototype.land = function(landed) {
     var titles = ["Где купить", "Окей, Грошри, где купить", "А не отведать ли мне", "Нужно купить", "Где выгоднее купить", "Надо пополнить запасы", "Где дешевле"];
     this.$scope.title = titles[Math.round(Math.random() * (titles.length - 1))];
 }
+
+SearchCtrl.prototype.canQueryOnChange = function() {
+    return !isMobile();
+}
