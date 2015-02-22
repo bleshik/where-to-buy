@@ -12,7 +12,7 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "SBT_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx128m -Xms128m"\
+        -e "SBT_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx192m -Xms192m"\
         -e "INSTANCE=%i"\
         -e "INSTANCES=2"\
         -e "ENVIRONMENT=production"\
