@@ -1,0 +1,11 @@
+[Unit]
+Description=Updating Unit
+
+[Service]
+Type=simple
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+ExecStart=/bin/sh -c 'journalctl -o short -f | awk \'{ print "${LOGENTRIES_TOKEN}", $0; fflush(); }\' | ncat data.logentries.com 10000'
+
+[X-Fleet]
+Global=true
