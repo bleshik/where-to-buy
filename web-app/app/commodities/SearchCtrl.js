@@ -16,15 +16,18 @@ SearchCtrl.prototype.search = function() {
             this.$timeout.cancel(this.timeout);
         }
         var _this = this;
-        this.timeout = this.$timeout(function() {
+        var _timeout = this.$timeout(function() {
             if (_this.$scope.landed) {
                 var commodities = _this.whereApi("commodities").query({query: _this.$scope.query}, function() {
-                    _this.$scope.commodities = commodities;
+                    if (_timeout == _this.timeout) {
+                        _this.$scope.commodities = commodities;
+                    }
                 });
             } else {
                 _this.$location.search('q', _this.$scope.query);
             }
         }, 100);
+        this.timeout = _timeout;
     }
 }
 
