@@ -58,8 +58,8 @@ class ContExtractor extends AbstractHtmlUnitExtractor {
       .flatMap { e =>
         extractEntry(
           "Седьмой Континент",
-          SupportedCity.Moscow,
-          cleanUpName(e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent),
+          SupportedCity.Moscow.name,
+          e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent,
           e.getOneHtmlElementByAttribute("div", "class", "currentprice").asInstanceOf[HtmlDivision].getTextContent.trim.toLong,
           category,
           e.getElementsByTagName("img").get(0)

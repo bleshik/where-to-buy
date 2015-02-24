@@ -19,8 +19,8 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
       List("goods_view has_weight", "goods_view").flatMap(cl => goods.getElementsByAttribute("div", "class", cl).asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].flatMap { entry =>
         extractEntry(
           "Утконос",
-          SupportedCity.Moscow,
-          cleanUpName(entry.getElementsByTagName("a").asScala.head.getTextContent),
+          SupportedCity.Moscow.name,
+          entry.getElementsByTagName("a").asScala.head.getTextContent,
           (BigDecimal(
             entry.getElementsByAttribute("div", "class", "price color_black")
               .asScala

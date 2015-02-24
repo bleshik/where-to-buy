@@ -16,14 +16,14 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
   client.getOptions.setJavaScriptEnabled(false)
   client.getOptions.setCssEnabled(false)
   client.getOptions.setThrowExceptionOnFailingStatusCode(false)
-  client.getCookieManager.setCookiesEnabled(false)
+  client.getCookieManager.setCookiesEnabled(true)
 
   override def extract(url: URL): Iterator[ExtractedEntry] = handle(Try(doExtract(client.getPage(url))))
 
   def doExtract(page: HtmlPage): Iterator[ExtractedEntry]
 
-  protected def extractEntry(shop: String, city: SupportedCity.City, name: String, price: Long, category: Category, image: HtmlElement): Option[ExtractedEntry] = {
-    src(image).map(src => ExtractedEntry(ExtractedShop(shop, city.name), name, price, category, src))
+  protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: HtmlElement): Option[ExtractedEntry] = {
+    src(image).map(src => ExtractedEntry(ExtractedShop(shop, city), cleanUpName(name), price, category, src))
   }
 
   protected def filterImage(image: URL): Boolean = { true }
@@ -49,7 +49,7 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
   }
 
   protected def cleanUpName(str: String): String = {
-    val noDotsStr = str.replace("…»", "").trim
+    val noDotsStr = str.replace("…»", "").replaceAll("(?m)\\s+", " ").trim
     if (!noDotsStr.head.isSpaceChar && !noDotsStr.head.isWhitespace) {
       if (!noDotsStr.last.isSpaceChar && !noDotsStr.head.isWhitespace) {
         noDotsStr
