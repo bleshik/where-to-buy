@@ -1,6 +1,7 @@
 package wh.application.extractor
 
 import java.net.URL
+import java.util.logging.{Level, Logger}
 
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlElement, HtmlImage, HtmlPage}
 import com.gargoylesoftware.htmlunit.{Page, WebClient}
@@ -10,6 +11,7 @@ import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extra
 import scala.util.{Failure, Success, Try}
 
 abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
+  Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.SEVERE)
   protected val client = new WebClient()
   client.getOptions.setJavaScriptEnabled(false)
   client.getOptions.setCssEnabled(false)
