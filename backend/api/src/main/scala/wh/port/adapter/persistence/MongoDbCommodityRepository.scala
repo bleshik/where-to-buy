@@ -35,7 +35,7 @@ class MongoDbCommodityRepository(override val db: DB)
    * @param searchPattern a pattern used for search.
    * @return list of commodities.
    */
-  override def search(searchPattern: String): List[Commodity] = {
+  override def search(searchPattern: String, city: String): List[Commodity] = {
     if (searchPattern.isEmpty) {
       List()
     } else {
@@ -44,6 +44,7 @@ class MongoDbCommodityRepository(override val db: DB)
             MongoDBObject("kind" -> MongoDBObject("$regex" -> searchPattern.toLowerCase)),
             MongoDBObject("sanitizedName" -> MongoDBObject("$regex" -> searchPattern.toLowerCase))
           ),
+          "entries.shop.city" -> city,
           "entriesLength" -> MongoDBObject("$gt" -> 1)
         ), 20).toList
     }
