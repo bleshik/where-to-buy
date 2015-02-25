@@ -17,7 +17,7 @@ class ContExtractor extends AbstractHtmlUnitExtractor {
       .asScala
       .asInstanceOf[mutable.Buffer[HtmlAnchor]]
       .iterator
-      .flatMap(a => click(a).map(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(a.getTextContent), null))))).getOrElse(Iterator.empty))
+      .flatMap(a => click(a).flatMap(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(a.getTextContent), null))))).getOrElse(Iterator.empty))
   }
 
   private def extractFromCategoryList(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
@@ -31,7 +31,7 @@ class ContExtractor extends AbstractHtmlUnitExtractor {
           .asScala
           .asInstanceOf[mutable.Buffer[HtmlAnchor]]
           .iterator
-          .flatMap(cp => click(cp).map(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(cp.getTextContent), category))))).getOrElse(Iterator.empty))
+          .flatMap(cp => click(cp).flatMap(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(cp.getTextContent), category))))).getOrElse(Iterator.empty))
       }.getOrElse(
         extractFromEntryList(page, category)
         // pages are not handled properly for some reason

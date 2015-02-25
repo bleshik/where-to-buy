@@ -18,7 +18,17 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
   client.getOptions.setThrowExceptionOnFailingStatusCode(false)
   client.getCookieManager.setCookiesEnabled(true)
 
-  override def extract(url: URL): Iterator[ExtractedEntry] = handle(Try(doExtract(client.getPage(url))))
+  override def extract(url: URL): Iterator[ExtractedEntry] = extract(url, 3)
+
+  private def extract(url: URL, attempts: Int): Iterator[ExtractedEntry] = {
+    if (attempts <= 0) {
+      Iterator.empty
+    } else {
+      handle(Try(client.getPage(url).asInstanceOf[HtmlPage])).map { x: HtmlPage =>
+        if (okay(x)) doExtract(x) else extract(url, attempts - 1)
+      }.getOrElse(extract(url, attempts - 1))
+    }
+  }
 
   def doExtract(page: HtmlPage): Iterator[ExtractedEntry]
 
@@ -39,14 +49,24 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
      .getOrElse(None)
   }
 
-  protected def click(a: HtmlAnchor): Option[HtmlPage] = {
-    a.click().asInstanceOf[Page] match {
-      case x: HtmlPage =>
-        Some(x)
-      case _ =>
-        None
+  protected def click(a: HtmlAnchor, attempts: Int = 3): Option[HtmlPage] = {
+    if (attempts <= 0) {
+      None
+    } else {
+      a.click().asInstanceOf[Page] match {
+        case x: HtmlPage =>
+          if (okay(x)) {
+            Some(x)
+          } else {
+            click(a, attempts - 1)
+          }
+        case _ =>
+          None
+      }
     }
   }
+
+  private def okay(page: HtmlPage): Boolean = page.getWebResponse.getStatusCode >= 200 && page.getWebResponse.getStatusCode < 300
 
   protected def cleanUpName(str: String): String = {
     val noDotsStr = str.replace("…»", "").replaceAll("(?m)\\s+", " ").trim
@@ -61,12 +81,12 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
     }
   }
 
-  protected def handle(t: Try[Iterator[ExtractedEntry]]): Iterator[ExtractedEntry] = {
+  protected def handle[T](t: Try[T]): Option[T] = {
     t match {
-      case Success(i) => i
+      case Success(i) => Some(i)
       case Failure(thrown) =>
-        logger.error("Coudln't load entries", thrown)
-        Iterator.empty
+        logger.error("The try tailed", thrown)
+        None
     }
   }
 }

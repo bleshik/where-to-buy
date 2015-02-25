@@ -40,6 +40,7 @@ class DixyExtractor extends AbstractHtmlUnitExtractor {
   val dixyRegion = "dixy_region"
 
   override def extract(url: URL): Iterator[ExtractedEntry] = regionToCity.iterator.flatMap { region =>
+    client.getCookieManager.clearCookies()
     client.getCookieManager.addCookie(new Cookie(url.getHost, dixyRegion, region._1))
     super.extract(url)
   }
