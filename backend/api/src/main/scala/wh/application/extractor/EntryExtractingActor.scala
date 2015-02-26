@@ -17,7 +17,7 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
   override def receive: Receive = {
     case entry: ExtractedEntry =>
       Future {
-        logger.debug(s"Received entry $entry")
+        logger.trace(s"Received entry $entry")
         def flatCategories(c: Category): Stream[Category] =
           c #:: (if (c.parentCategory != null) flatCategories(c.parentCategory) else Stream.empty)
         val categories = Option(entry.category).map(c =>
@@ -27,7 +27,7 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
         val incomingCommodity = Commodity.arrived(entry.shop, entry.name, entry.price, categories)
         val c = commodityRepository.findSimilar(incomingCommodity)
           .map { c =>
-          logger.debug(s"Found for $entry: $c")
+          logger.trace(s"Found for $entry: $c")
           if (c.entry(entry.shop).isDefined) {
             if (c.price(entry.shop).get != entry.price) {
               c.changePrice(entry.shop, entry.price)
@@ -49,7 +49,7 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
           }
         }
 
-        logger.debug(s"Commodity amount ${commodityRepository.size}")
+        logger.trace(s"Commodity amount ${commodityRepository.size}")
       }
   }
 

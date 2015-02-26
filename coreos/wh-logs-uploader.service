@@ -7,5 +7,8 @@ TimeoutStartSec=0
 EnvironmentFile=/etc/environment
 ExecStart=/bin/sh -c 'journalctl -o short -f | awk \'{ print "${LOGENTRIES_TOKEN}", $0; fflush(); }\' | ncat data.logentries.com 10000'
 
+[Install]
+WantedBy=multi-user.target
+
 [X-Fleet]
 Global=true

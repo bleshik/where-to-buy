@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigResolveOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import wh.application.extractor.cont.ContExtractor
+import wh.application.extractor.dixy.DixyExtractor
 import wh.application.extractor.infrastructure.Environment
 import wh.application.extractor.komus.KomusExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
@@ -54,9 +55,10 @@ object ExtractorApp extends LazyLogging {
 
   private def payload: List[(String, Extractor)] = {
     val all = List(
-        ("http://www.utkonos.ru/cat", new UtkonosExtractor),
-        ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
-        ("http://www.7cont.ru", new ContExtractor)
+      ("http://www.utkonos.ru/cat", new UtkonosExtractor),
+      ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
+      ("http://www.7cont.ru", new ContExtractor),
+      ("http://dixy.ru", new DixyExtractor)
     )
     if (Environment.instance <= Environment.instances) {
       val part = all.size / Environment.instances

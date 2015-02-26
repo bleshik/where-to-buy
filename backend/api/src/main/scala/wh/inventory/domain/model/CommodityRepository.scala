@@ -13,7 +13,8 @@ trait CommodityRepository extends PersistenceOrientedRepository[Commodity, Strin
   /**
    * Finds list of commodities using the search pattern.
    * @param searchPattern a pattern used for search.
+   * @param city a city where to look for commodities.
    * @return list of commodities.
    */
-  def search(searchPattern: String): List[Commodity]
+  def search(searchPattern: String, city: String): List[Commodity]
 }

@@ -13,6 +13,9 @@ ExecStartPre=/usr/bin/docker pull jwilder/docker-register
 ExecStart=/usr/bin/docker run --name docker-register -e HOST_IP=${COREOS_PRIVATE_IPV4} -e ETCD_HOST=${COREOS_PRIVATE_IPV4}:4001 -v /var/run/docker.sock:/var/run/docker.sock -t alexturek/docker-register-multiport
 Restart=always
 
+[Install]
+WantedBy=multi-user.target
+
 [X-Fleet]
 Global=true
 MachineMetadata=access=private

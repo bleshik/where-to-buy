@@ -39,7 +39,7 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
 
   def serialize(event: Event, streamName: String): DBObject = {
     val dbObject = serializer.serialize(event)
-    dbObject.put("occurredOn", System.nanoTime())
+    dbObject.put("occurredOn", System.currentTimeMillis())
     dbObject.put("streamId", streamName)
     dbObject
   }

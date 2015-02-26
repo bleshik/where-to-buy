@@ -2,6 +2,8 @@
 Description=Where To Buy Web App
 After=docker.service
 Requires=docker.service
+After=etcd.service
+Requires=etcd.service
 
 [Service]
 KillMode=none

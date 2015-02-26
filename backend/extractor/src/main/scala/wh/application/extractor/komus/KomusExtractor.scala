@@ -39,11 +39,11 @@ class KomusExtractor extends AbstractHtmlUnitExtractor {
     List("full", "table").flatMap { diff =>
       val entries = page.getBody.getElementsByAttribute("div", "class", "goods-" + diff + "--inside").asInstanceOf[java.util.List[HtmlDivision]].asScala
       entries.flatMap { entry =>
-        val name = cleanUpName(entry.getOneHtmlElementByAttribute("a", "class", "goods-" + diff + "--name-link").asInstanceOf[HtmlAnchor].getChildNodes.get(0).getTextContent)
+        val name = entry.getOneHtmlElementByAttribute("a", "class", "goods-" + diff + "--name-link").asInstanceOf[HtmlAnchor].getChildNodes.get(0).getTextContent
         val stringPrice = cleanUpName(entry.getOneHtmlElementByAttribute("span", "class", "goods-" + diff +  "--price-now-value").asInstanceOf[HtmlSpan].getChildNodes.get(0).getTextContent)
         val price = (BigDecimal(stringPrice.replace(',', '.').replace(" ", "")) * 100).toLong
         val image: HtmlElement = entry.getHtmlElementsByTagName("img").get(0)
-        extractEntry("Komus", SupportedCity.Moscow, name, price, category, image)
+        extractEntry("Komus", SupportedCity.Moscow.name, name, price, category, image)
       }
     }.iterator
   }

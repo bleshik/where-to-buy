@@ -15,5 +15,6 @@ target/
 
 third-party/
 node_modules/
+current.js
 
 *.log

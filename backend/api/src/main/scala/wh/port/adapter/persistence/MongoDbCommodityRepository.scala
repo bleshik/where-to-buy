@@ -35,7 +35,7 @@ class MongoDbCommodityRepository(override val db: DB)
    * @param searchPattern a pattern used for search.
    * @return list of commodities.
    */
-  override def search(searchPattern: String): List[Commodity] = {
+  override def search(searchPattern: String, city: String): List[Commodity] = {
     if (searchPattern.isEmpty) {
       List()
     } else {
@@ -44,7 +44,7 @@ class MongoDbCommodityRepository(override val db: DB)
             MongoDBObject("kind" -> MongoDBObject("$regex" -> searchPattern.toLowerCase)),
             MongoDBObject("sanitizedName" -> MongoDBObject("$regex" -> searchPattern.toLowerCase))
           ),
-          "entriesLength" -> MongoDBObject("$gt" -> 1)
+          "relevantCities" -> city
         ), 20).toList
     }
   }
@@ -53,6 +53,7 @@ class MongoDbCommodityRepository(override val db: DB)
     snapshots.createIndex(MongoDBObject("sanitizedName" -> 1))
     snapshots.createIndex(MongoDBObject("kind" -> 1))
     snapshots.createIndex(MongoDBObject("entries.shop.name" -> 1, "entries.shop.city" -> 1, "entries.shopSpecificName" -> 1))
+    snapshots.createIndex(MongoDBObject("relevantCities" -> 1))
   }
 
   private def kind(name: String): String = matcher.titleTokens(name, Shop("", "")).kind.toLowerCase
@@ -61,7 +62,7 @@ class MongoDbCommodityRepository(override val db: DB)
     val dbObject = super.serialize(entity)
     dbObject.put("sanitizedName", matcher.sanitizeName(dbObject.get("name").asInstanceOf[String]))
     dbObject.put("kind", kind(dbObject.get("name").asInstanceOf[String]))
-    dbObject.put("entriesLength", entity.entries.size)
+    dbObject.put("relevantCities", entity.entries.groupBy(_.shop.city).filter(_._2.size > 1).map(_._1).toSet)
     dbObject
   }
 
