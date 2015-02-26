@@ -1,9 +1,9 @@
 [Unit]
 Description=Updating Unit
-Requires=docker.service
-Requires=fleet.service
 After=docker.service
+Requires=docker.service
 After=fleet.service
+Requires=fleet.service
 
 [Service]
 Type=simple
@@ -28,6 +28,9 @@ ExecStart=/bin/sh -c 'while [ 1 ] ; do\
         done;\
         sleep 60;\
     done'
+
+[Install]
+WantedBy=multi-user.target
 
 [X-Fleet]
 Global=true
