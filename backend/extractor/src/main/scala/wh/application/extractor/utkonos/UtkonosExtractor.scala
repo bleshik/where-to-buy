@@ -21,7 +21,7 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
           "Утконос",
           SupportedCity.Moscow.name,
           entry.getElementsByTagName("a").asScala.head.getTextContent,
-          (BigDecimal(
+          extractPrice(
             entry.getElementsByAttribute("div", "class", "price color_black")
               .asScala
               .headOption
@@ -31,8 +31,8 @@ class UtkonosExtractor extends AbstractHtmlUnitExtractor {
                 entry.getOneHtmlElementByAttribute("div", "class", "price color_action").asInstanceOf[HtmlDivision]
                   .getChildNodes.get(1)
                   .getTextContent
-              ).replaceAll("\\s+", "").replace(",", ".")
-          ) * 100).toLong,
+              )
+          ),
           category,
           entry.getElementsByTagName("img").get(0))
       }).iterator ++ page.getBody.getElementsByAttribute("div", "class", "el_paginate").asScala.headOption.asInstanceOf[Option[HtmlDivision]].map { pagination =>

@@ -7,7 +7,7 @@ import wh.extractor.domain.model.{ExtractedEntry, Category, ExtractedShop}
 
 class AuchanExtractorSpec extends FlatSpec with Matchers {
   "Auchan extractor" should "return right list of entries" in {
-    val extractor = new AuchanExtractor(List(1).iterator)
+    val extractor = new AuchanExtractor
     val page = getClass.getClassLoader.getResource("auchan/1.html")
     val category = Category("Пюре", Category("Питание", Category("Детские товары", null)))
     val shop = ExtractedShop("Ашан", "Астрахань")

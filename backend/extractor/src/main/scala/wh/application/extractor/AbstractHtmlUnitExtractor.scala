@@ -12,21 +12,24 @@ import scala.util.{Failure, Success, Try}
 
 abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
   Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.SEVERE)
-  protected val client = new WebClient()
-  client.getOptions.setJavaScriptEnabled(false)
-  client.getOptions.setCssEnabled(false)
-  client.getOptions.setThrowExceptionOnFailingStatusCode(false)
-  client.getCookieManager.setCookiesEnabled(true)
+  protected lazy val client = newClient
 
-  override def extract(url: URL): Iterator[ExtractedEntry] = extract(url, 3)
+  protected def newClient = {
+    val theNewClient = new WebClient()
+    theNewClient.getOptions.setJavaScriptEnabled(false)
+    theNewClient.getOptions.setCssEnabled(false)
+    theNewClient.getOptions.setThrowExceptionOnFailingStatusCode(false)
+    theNewClient.getCookieManager.setCookiesEnabled(true)
+    theNewClient
+  }
 
-  private def extract(url: URL, attempts: Int): Iterator[ExtractedEntry] = {
+  override def extract(url: URL): Iterator[ExtractedEntry] = page(url, 3).map(p => doExtract(p)).getOrElse(Iterator.empty)
+
+  protected def page(url: URL, attempts: Int = 3): Option[HtmlPage] = {
     if (attempts <= 0) {
-      Iterator.empty
+      None
     } else {
-      handle(Try(client.getPage(url).asInstanceOf[HtmlPage])).map { x: HtmlPage =>
-        if (okay(x)) doExtract(x) else extract(url, attempts - 1)
-      }.getOrElse(extract(url, attempts - 1))
+      handle(Try(client.getPage(url).asInstanceOf[HtmlPage])).filter(okay).orElse(page(url, attempts - 1))
     }
   }
 
@@ -79,6 +82,10 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
     } else {
       cleanUpName(noDotsStr.tail)
     }
+  }
+
+  protected def extractPrice(str: String): Long = {
+    (BigDecimal(cleanUpName(str.replace("р.", "").replace(",", ".").replaceAll("\\s+", ""))) * 100).longValue()
   }
 
   protected def handle[T](t: Try[T]): Option[T] = {

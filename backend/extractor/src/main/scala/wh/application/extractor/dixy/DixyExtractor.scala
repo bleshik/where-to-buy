@@ -41,7 +41,7 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractHtmlUnitExtr
 
   override def extract(url: URL): Iterator[ExtractedEntry] =
     regionToCity
-      .filter(region => cities == null || cities.isEmpty || cities.contains(region._1) || cities.contains(region._2))
+      .filter(region => cities == null || cities.contains(region._1) || cities.contains(region._2))
       .iterator
       .flatMap { region =>
       client.getCookieManager.clearCookies()
@@ -65,15 +65,12 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractHtmlUnitExtr
             .getTextContent
             .replace("весовая", "")
             .replace("весовой", ""),
-        (BigDecimal(
-          item.getElementsByAttribute("h5", "class", "price-now threedigit")
+        extractPrice(item.getElementsByAttribute("h5", "class", "price-now threedigit")
             .asScala
             .headOption
             .asInstanceOf[Option[HtmlHeading5]]
             .getOrElse(item.getOneHtmlElementByAttribute("h5", "class", "price-now").asInstanceOf[HtmlHeading5])
-            .getTextContent
-            .replace(",", ".")) * 100
-        ).toLong,
+            .getTextContent),
         null,
         item.getElementsByTagName("img")
           .asScala
