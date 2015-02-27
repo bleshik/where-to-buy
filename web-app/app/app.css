@@ -16,6 +16,9 @@
 
 .navbar-form {
     border: none;
+    margin-right: 0px;
+    margin-left: 0px;
+    padding: 0px;
 }
 
 .borderless tbody tr td, .borderless tbody tr th, .borderless thead tr th {
