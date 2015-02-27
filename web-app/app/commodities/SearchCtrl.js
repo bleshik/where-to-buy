@@ -5,6 +5,9 @@ function SearchCtrl($rootScope, $scope, $timeout, $location, whereApi) {
     this.$location = $location;
     this.whereApi = whereApi;
 
+    this.$scope.city = this.$location.search().city;
+    this.$scope.city = this.$scope.city != null ? this.$scope.city : "Москва";
+
     this.$scope.query = this.$location.search().q;
     this.land(this.$scope.query != null);
     this.search();
