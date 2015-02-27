@@ -49,11 +49,11 @@ abstract class AbstractHtmlUnitExtractor extends Extractor with LazyLogging {
      .getOrElse(None)
   }
 
-  protected def click(a: HtmlAnchor, attempts: Int = 3): Option[HtmlPage] = {
+  protected def click(a: HtmlElement, attempts: Int = 3): Option[HtmlPage] = {
     if (attempts <= 0) {
       None
     } else {
-      a.click().asInstanceOf[Page] match {
+      a.asInstanceOf[HtmlAnchor].click().asInstanceOf[Page] match {
         case x: HtmlPage =>
           if (okay(x)) {
             Some(x)
