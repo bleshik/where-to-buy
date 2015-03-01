@@ -4,15 +4,15 @@ import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html._
 import com.gargoylesoftware.htmlunit.util.Cookie
-import wh.application.extractor.AbstractHtmlUnitExtractor
+import wh.application.extractor.AbstractExtractor
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class AuchanExtractor extends AbstractHtmlUnitExtractor {
+class AuchanExtractor extends AbstractExtractor {
 
-  override def extract(url: URL): Iterator[ExtractedEntry] = page(url).map { page =>
+  override def extract(url: URL): Iterator[ExtractedEntry] = htmlPage(url).map { page =>
     page.getBody
       .getElementsByAttribute("ul", "class", "city-list")
       .asScala

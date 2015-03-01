@@ -10,6 +10,7 @@ import wh.application.extractor.cont.ContExtractor
 import wh.application.extractor.dixy.DixyExtractor
 import wh.application.extractor.infrastructure.Environment
 import wh.application.extractor.komus.KomusExtractor
+import wh.application.extractor.metro.MetroExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
 import wh.extractor.domain.model.{ExtractedEntry, Extractor}
 
@@ -56,6 +57,7 @@ object ExtractorApp extends LazyLogging {
 
   private def payload: List[(String, Extractor)] = {
     val all = List(
+      ("http://klg.metro-cc.ru", new MetroExtractor),
       ("http://www.auchan.ru", new AuchanExtractor),
       ("http://www.utkonos.ru/cat", new UtkonosExtractor),
       ("http://www.komus.ru/catalog/6311/", new KomusExtractor),

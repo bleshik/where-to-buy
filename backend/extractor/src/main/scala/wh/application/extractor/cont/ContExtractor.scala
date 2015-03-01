@@ -1,14 +1,14 @@
 package wh.application.extractor.cont
 
 import com.gargoylesoftware.htmlunit.html._
-import wh.application.extractor.{SupportedCity, AbstractHtmlUnitExtractor}
+import wh.application.extractor.{SupportedCity, AbstractExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
-class ContExtractor extends AbstractHtmlUnitExtractor {
+class ContExtractor extends AbstractExtractor {
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     page.getBody
       .getOneHtmlElementByAttribute("ul", "id", "categories")
