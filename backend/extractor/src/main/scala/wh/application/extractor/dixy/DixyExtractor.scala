@@ -4,13 +4,13 @@ import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html.{HtmlDivision, HtmlHeading5, HtmlPage}
 import com.gargoylesoftware.htmlunit.util.Cookie
-import wh.application.extractor.AbstractHtmlUnitExtractor
+import wh.application.extractor.AbstractExtractor
 import wh.extractor.domain.model.ExtractedEntry
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class DixyExtractor(val cities: Set[String] = null) extends AbstractHtmlUnitExtractor {
+class DixyExtractor(val cities: Set[String] = null) extends AbstractExtractor {
   val regionToCity = Map(
     ("Архангельская область", "Архангельск"),
     ("Брянская область", "Брянск"),

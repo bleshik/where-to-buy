@@ -1,13 +1,13 @@
 package wh.application.extractor.komus
 
 import com.gargoylesoftware.htmlunit.html._
-import wh.application.extractor.{SupportedCity, AbstractHtmlUnitExtractor}
+import wh.application.extractor.{SupportedCity, AbstractExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class KomusExtractor extends AbstractHtmlUnitExtractor {
+class KomusExtractor extends AbstractExtractor {
 
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = extractFromCategoryList(page, null)
 

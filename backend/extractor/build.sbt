@@ -12,6 +12,10 @@ resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 
 libraryDependencies += "net.sourceforge.htmlunit" % "htmlunit" % "2.15"
 
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.3"
+
+libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.4.3"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
