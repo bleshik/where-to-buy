@@ -4,10 +4,12 @@ import java.lang.Math.min
 import java.lang.reflect.{Constructor, ParameterizedType}
 import java.util.ConcurrentModificationException
 
-import eventstore.api.{InitialEvent, Event, EventStore}
+import com.typesafe.scalalogging.LazyLogging
+import eventstore.api.{Event, EventStore, InitialEvent}
 import repository.{IdentifiedEntity, PersistenceOrientedRepository}
 
-abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K], K](val eventStore: EventStore) extends PersistenceOrientedRepository[T, K] {
+abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K], K](val eventStore: EventStore)
+  extends PersistenceOrientedRepository[T, K] with LazyLogging {
   override def get(id: K): Option[T] = {
     get(id, -1)
   }
@@ -69,7 +71,11 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
         case e: ConcurrentModificationException =>
           save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
       }
-      saveSnapshot(entity)
+      try {
+        saveSnapshot(entity)
+      } catch {
+        case e: Exception => logger.error("Couldn't save snapshot", e)
+      }
       entity
     }
   }
