@@ -13,6 +13,7 @@ import wh.application.extractor.komus.KomusExtractor
 import wh.application.extractor.metro.MetroExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
 import wh.extractor.domain.model.{ExtractedEntry, Extractor}
+import wh.util.ConcurrencyUtil._
 
 object ExtractorApp extends LazyLogging {
   private lazy val extractorSystem = {
@@ -39,7 +40,7 @@ object ExtractorApp extends LazyLogging {
 
   private def upload(output: String): Unit = {
     logger.debug(s"My payload is ${payload.map(_._1)}")
-    payload.par.foreach { p =>
+    payload.par.withMinThreads(3).foreach { p =>
       doUpload(p._2.extract(new URL(p._1)), output)
     }
   }
