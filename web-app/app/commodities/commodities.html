@@ -52,7 +52,7 @@
                 <b>{{commodity.name}}</b>
                 <ul class="list-unstyled">
                     <li ng-repeat="entry in commodity.entries | orderBy: 'price' | filter: { shop: { city: city } }">
-                      <label ng-class="{'label label-success' : $first, 'label label-default' : !$first}">{{entry.price | rubles}}</label>
+                      <label ng-class="{'label label-success' : commodity.minPrice == entry.price, 'label label-default' : commodity.minPrice != entry.price}">{{entry.price | rubles}}</label>
                       <img height="30" ng-src="/img/{{entry.shop.name}}.png" alt="{{entry.shop.name}}"/>
                     </li>
                 </ul>
