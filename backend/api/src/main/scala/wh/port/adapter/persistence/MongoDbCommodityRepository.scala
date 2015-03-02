@@ -3,17 +3,19 @@ package wh.port.adapter.persistence
 import com.mongodb
 import com.mongodb.DB
 import com.mongodb.casbah.Imports._
+import com.typesafe.scalalogging.LazyLogging
 import repository.eventsourcing.mongodb.MongoDbEventSourcedRepository
 import wh.inventory.domain.model.{Shop, CommodityRepository, Commodity}
 
 class MongoDbCommodityRepository(override val db: DB)
-  extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository {
+  extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository with LazyLogging {
   override def findSimilar(commodity: Commodity): Option[Commodity] = {
     get(commodity.name).orElse {
       commodity.entries.flatMap { e =>
         findOne(
           MongoDBObject(
-            "entries.shop" -> MongoDBObject("name" -> e.shop.name, "city" -> e.shop.city),
+            "entries.shop.name" -> e.shop.name,
+            "entries.shop.city" -> e.shop.city,
             "entries.shopSpecificName" -> e.shopSpecificName
           )
         )
@@ -22,7 +24,8 @@ class MongoDbCommodityRepository(override val db: DB)
       commodity.entries.flatMap { e =>
         find(
           MongoDBObject(
-            "entries.shop" -> MongoDBObject("$ne" -> MongoDBObject("name" -> e.shop.name, "city" -> e.shop.city)),
+            "entries.shop.name" -> MongoDBObject("$ne" -> e.shop.name),
+            "entries.shop.city" -> MongoDBObject("$ne" -> e.shop.city),
             "kind" -> kind(e.shopSpecificName)
           )
         ).find(r => matcher.matching(commodity, r))
