@@ -9,23 +9,18 @@ import wh.inventory.domain.model.{Shop, CommodityRepository, Commodity}
 
 class MongoDbCommodityRepository(override val db: DB)
   extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository with LazyLogging {
+
   override def findSimilar(commodity: Commodity): Option[Commodity] = {
-    get(commodity.name).orElse {
-      commodity.entries.flatMap { e =>
-        findOne(
-          MongoDBObject(
-            "entries.shop.name" -> e.shop.name,
-            "entries.shop.city" -> e.shop.city,
-            "entries.shopSpecificName" -> e.shopSpecificName
-          )
-        )
-      }.headOption
-    }.orElse {
+    commodity.entries.flatMap { e =>
+      findOne(MongoDBObject("$or" -> List(
+        MongoDBObject("entries.shopSpecificName" -> e.shopSpecificName),
+        MongoDBObject("id" -> e.shopSpecificName)
+      )))
+    }.headOption.orElse {
       commodity.entries.flatMap { e =>
         find(
           MongoDBObject(
             "entries.shop.name" -> MongoDBObject("$ne" -> e.shop.name),
-            "entries.shop.city" -> MongoDBObject("$ne" -> e.shop.city),
             "kind" -> kind(e.shopSpecificName)
           )
         ).find(r => matcher.matching(commodity, r))
@@ -42,20 +37,20 @@ class MongoDbCommodityRepository(override val db: DB)
     if (searchPattern.isEmpty) {
       List()
     } else {
-        find(MongoDBObject(
-          "$or" -> List(
-            MongoDBObject("kind" -> MongoDBObject("$regex" -> searchPattern.toLowerCase)),
-            MongoDBObject("sanitizedName" -> MongoDBObject("$regex" -> searchPattern.toLowerCase))
-          ),
-          "relevantCities" -> city
-        ), 20).toList
+        matcher.sanitizeName(searchPattern).split("\\s+").distinct.toList.flatMap { token =>
+          find(MongoDBObject(
+            "nameTokens" -> MongoDBObject("$regex" -> s"^$token.*"),
+            "relevantCities" -> city
+          ), 20).toList
+        }
     }
   }
 
   override protected def migrate(): Unit = {
-    snapshots.createIndex(MongoDBObject("sanitizedName" -> 1))
+    snapshots.createIndex(MongoDBObject("nameTokens" -> 1))
     snapshots.createIndex(MongoDBObject("kind" -> 1))
-    snapshots.createIndex(MongoDBObject("entries.shop.name" -> 1, "entries.shop.city" -> 1, "entries.shopSpecificName" -> 1))
+    snapshots.createIndex(MongoDBObject("entries.shop.name" -> 1))
+    snapshots.createIndex(MongoDBObject("entries.shopSpecificName" -> 1))
     snapshots.createIndex(MongoDBObject("relevantCities" -> 1))
   }
 
@@ -63,9 +58,11 @@ class MongoDbCommodityRepository(override val db: DB)
 
   override protected def serialize(entity: Commodity): mongodb.DBObject = {
     val dbObject = super.serialize(entity)
-    dbObject.put("sanitizedName", matcher.sanitizeName(dbObject.get("name").asInstanceOf[String]))
     dbObject.put("kind", kind(dbObject.get("name").asInstanceOf[String]))
     dbObject.put("relevantCities", entity.entries.groupBy(_.shop.city).filter(_._2.size > 1).map(_._1).toSet)
+    dbObject.put("nameTokens", dbObject.get("entries").asInstanceOf[MongoDBList].flatMap { entry =>
+      matcher.sanitizeName(entry.asInstanceOf[DBObject].get("shopSpecificName").asInstanceOf[String]).split("\\s+")
+    }.toSet.filter(_.size > 2))
     dbObject
   }
 
