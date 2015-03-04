@@ -8,6 +8,7 @@ abstract class EventSourcedEntity[T <: EventSourcedEntity[T]](val initialEvent: 
   private val MUTATE_METHOD_NAME = "when"
   private var mutatingChanges: List[Event] = List()
   private var version: Long = 1
+  private var _updateDate: Long = System.currentTimeMillis()
   private var committedVersion: Long = 0
 
   def apply(event: Event): T = {
@@ -15,6 +16,7 @@ abstract class EventSourcedEntity[T <: EventSourcedEntity[T]](val initialEvent: 
     mutatedEntity.mutatingChanges = this.mutatingChanges :+ event
     mutatedEntity.version = this.version + 1
     mutatedEntity.committedVersion = this.committedVersion
+    mutatedEntity._updateDate = System.currentTimeMillis()
     mutatedEntity
   }
 
@@ -40,6 +42,8 @@ abstract class EventSourcedEntity[T <: EventSourcedEntity[T]](val initialEvent: 
   def unmutatedVersion: Long = {
     version - changes.length
   }
+
+  def updateDate: Long = _updateDate
 
   def changes: List[Event] = {
     if ((version - mutatingChanges.length == 1) && committedVersion == 0) {

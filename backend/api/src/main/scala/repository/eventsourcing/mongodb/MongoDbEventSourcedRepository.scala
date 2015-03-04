@@ -25,18 +25,27 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
     val dbObject = serializer.serialize(entity)
     dbObject.put("id", entity.id)
     dbObject.put("version", entity.mutatedVersion)
+    dbObject.put("updateDate", System.currentTimeMillis())
     dbObject
   }
 
   protected def deserialize(dbObject: DBObject): T = {
     val entity = serializer.deserialize(dbObject)
+
     if (dbObject.get("version") != null) {
       val versionField = classOf[EventSourcedEntity[T]].getDeclaredField("version")
       versionField.setAccessible(true)
       versionField.set(entity, dbObject.get("version").asInstanceOf[Long])
     }
+
+    val updateDateField = classOf[EventSourcedEntity[T]].getDeclaredField("_updateDate")
+    updateDateField.setAccessible(true)
+    updateDateField.set(entity, Option(dbObject.get("updateDate")).getOrElse(-1L).asInstanceOf[Long])
+
     entity.commitChanges()
   }
+
+
 
   override protected def snapshot(id: K, before: Long): Option[T] = {
     val dbObject = snapshots.findOne(new BasicDBObject("version", new BasicDBObject("$lte", if (before < 0) Long.MaxValue else before)).append("id", id))
