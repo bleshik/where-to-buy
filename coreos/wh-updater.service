@@ -14,7 +14,7 @@ ExecStart=/bin/sh -c 'while [ 1 ] ; do\
             if [ ! -z "`docker images | grep \"bleshik/$img\"`" ] ; then\
                 echo "Any updates for bleshik/$img?";\
                 CUR_VERSION=`docker inspect --format {{.Image}} $img 2> /dev/null`;\
-                NEW_VERSION=`(docker pull bleshik/$img 2>&1 > /dev/null; docker inspect --format {{.Id}} bleshik/$img 2> /dev/null)`;\
+                NEW_VERSION=`(docker pull bleshik/$img 2>&1 > /dev/null && docker inspect --format {{.Id}} bleshik/$img 2> /dev/null)`;\
                 if [ $? -eq 0 ] && [ "$CUR_VERSION" != "$NEW_VERSION" ] ; then\
                     echo "New version of bleshik/$img downloaded. I will restart it now...";\
                     for unit in `fleetctl list-units | grep $COREOS_PRIVATE_IPV4 | cut -f1 | grep $img` ; do\

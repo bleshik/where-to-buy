@@ -28,14 +28,19 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
         val c = commodityRepository.findSimilar(incomingCommodity)
           .map { c =>
           logger.trace(s"Found for $entry: $c")
-          if (c.entry(entry.shop).isDefined) {
-            if (c.price(entry.shop).get != entry.price) {
-              c.changePrice(entry.shop, entry.price)
+          if (System.currentTimeMillis() - c.updateDate >= 1000) {
+            if (c.entry(entry.shop).isDefined) {
+              if (c.price(entry.shop).get != entry.price) {
+                c.changePrice(entry.shop, entry.price)
+              } else {
+                c
+              }
             } else {
-              c
+              c.arrived(entry.shop, entry.name, entry.price, categories)
             }
           } else {
-            c.arrived(entry.shop, entry.name, entry.price, categories)
+            logger.warn(s"Record ${c.id} is updated too often")
+            c
           }
         }.getOrElse(incomingCommodity)
         commodityRepository.save(c)
