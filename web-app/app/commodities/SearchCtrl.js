@@ -24,7 +24,7 @@ SearchCtrl.prototype.search = function() {
                 var commodities = _this.whereApi("commodities").query({query: _this.$scope.query}, function() {
                     if (_timeout == _this.timeout) {
                         commodities.forEach(function(c) {
-                            c.minPrice = _.min(_.map(c.entries, function(e) { return e.price; }));
+                            c.minPrice = _.min(_.map(c.entries.filter(function (e) { return e.shop.city === _this.$scope.city; }), function(e) { return e.price; }));
                         });
                         _this.$scope.commodities = commodities;
                     }
