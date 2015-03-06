@@ -11,10 +11,11 @@ module.exports = function(config){
       'app/components/**/ResourceProvider.js',
       'app/components/**/WhBackground.js',
       'app/components/**/WhFocusDirective.js',
+      'app/components/**/WhWaypoint.js',
       'app/components/**/CurrencyFilter.js',
       'app/components/**/EscapeFilter.js',
       'app/components/**/CommonDirectivesModule.js',
-      'app/search*/**/*.js',
+      'app/commodities/*.js',
       'app/test/**/*.js'
     ],
 
