@@ -37,12 +37,10 @@ class MongoDbCommodityRepository(override val db: DB)
     if (searchPattern.isEmpty) {
       List()
     } else {
-        matcher.sanitizeName(searchPattern).split("\\s+").distinct.toList.flatMap { token =>
-          find(MongoDBObject(
-            "nameTokens" -> MongoDBObject("$regex" -> s"^$token.*"),
-            "relevantCities" -> city
-          ), MongoDBObject("name" -> 1), limit, offset).toList
-        }
+      find(MongoDBObject(
+        "$and" -> matcher.sanitizeName(searchPattern).split("\\s+").distinct.toList.map(token => MongoDBObject("nameTokens" -> MongoDBObject("$regex" -> s"^$token.*"))),
+        "relevantCities" -> city
+      ), MongoDBObject("name" -> 1), limit, offset).toList
     }
   }
 
