@@ -7,7 +7,6 @@ function SearchCtrl($rootScope, $scope, $timeout, $location, whereApi) {
 
     this.$scope.city = this.$location.search().city;
     this.$scope.city = this.$scope.city != null ? this.$scope.city : "Москва";
-
     this.$scope.query = this.$location.search().q;
     this.land(this.$scope.query != null);
     this.search();
@@ -21,20 +20,25 @@ SearchCtrl.prototype.search = function() {
         var _this = this;
         var _timeout = this.$timeout(function() {
             if (_this.$scope.landed) {
-                var commodities = _this.whereApi("commodities").query({query: _this.$scope.query}, function() {
-                    if (_timeout == _this.timeout) {
-                        commodities.forEach(function(c) {
-                            c.minPrice = _.min(_.map(c.entries, function(e) { return e.price; }));
-                        });
-                        _this.$scope.commodities = commodities;
-                    }
-                });
+                _this.loadMore(true);
             } else {
                 _this.$location.search('q', _this.$scope.query);
             }
         }, 100);
         this.timeout = _timeout;
     }
+}
+SearchCtrl.prototype.loadMore = function(replace) {
+    var limit = 10;
+    var offset = (this.$scope.commodities != null && replace !== true ? this.$scope.commodities.length : 0);
+    console.log(limit + " " + offset);
+    var _this = this;
+    var commodities = _this.whereApi("commodities").query({query: _this.$scope.query, offset: offset, limit: limit}, function() {
+        commodities.forEach(function(c) {
+            c.minPrice = _.min(_.map(c.entries.filter(function (e) { return e.shop.city === _this.$scope.city; }), function(e) { return e.price; }));
+        });
+        _this.$scope.commodities = replace !== true && _this.$scope.commodities != null ? _this.$scope.commodities.concat(commodities) : commodities;
+    });
 }
 
 SearchCtrl.prototype.land = function(landed) {

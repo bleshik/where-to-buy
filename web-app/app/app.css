@@ -32,3 +32,13 @@ html {
 body {
     min-height: 100%;
 }
+
+li {
+    margin-top: 10px;
+}
+.loader {
+    visibility: hidden;
+}
+.loader.loading {
+    visibility: visible;
+}

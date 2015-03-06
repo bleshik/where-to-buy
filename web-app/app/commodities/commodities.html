@@ -39,7 +39,7 @@
                 По Вашему запросу ничего не найдено
             </td>
         </tr>
-        <tr ng-repeat="commodity in commodities | limitTo:5" class="row">
+        <tr ng-repeat="commodity in commodities" class="row">
             <td class="col-md-2">
               <div>
                 <a href="#" class="thumbnail">
@@ -60,4 +60,9 @@
             </td>   
         </tr>
     </table>
+    <div class="row">
+        <div class="col-sm-1 col-sm-offset-6 loader" wh-waypoint="ctrl.loadMore()">
+            <h1><span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span></h1>
+        </div>
+    </div>
 </div>
