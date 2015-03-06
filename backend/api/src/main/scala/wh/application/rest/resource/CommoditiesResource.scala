@@ -28,7 +28,11 @@ class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactor
         cacheImagesForDay { complete { Future { commodityRepository.get(name) } } }
       } ~
       parameter("q") { query: String =>
-        complete { Future { commodityRepository.search(query, "Москва") } }
+        parameter("limit") { limit: String =>
+          parameter("offset") { offset: String =>
+            complete { Future { commodityRepository.search(query,  "Москва", limit.toInt, offset.toInt) } }
+          }
+        }
       }
     }
   }

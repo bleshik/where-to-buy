@@ -7,7 +7,12 @@ angular.module('where.api', ["ngResource"])
     return function(name) {
         switch(name) {
             case "commodities": 
-                return _this.$resource('/api/commodities/:name?q=:query', {name:'@name', query: "@query"});
+                return _this.$resource('/api/commodities/:name?q=:query&limit=:limit&offset=:offset', {
+                    name:'@name',
+                    query: "@query",
+                    limit: "@limit",
+                    offset: "@offset"
+                });
         }
     }
 });
