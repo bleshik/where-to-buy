@@ -4,7 +4,6 @@ import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html._
 import wh.extractor.domain.model.{Category, ExtractedEntry}
-import wh.util.ConcurrencyUtil._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -49,7 +48,7 @@ class GlobusGurmeExtractor extends AbstractExtractor {
         .asScala
         .asInstanceOf[mutable.Buffer[HtmlElement]].flatMap { pages =>
         pages.getElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]]
-      }.par.withMinThreads(3).map(click(_)).flatten).flatMap { page: HtmlPage =>
+      }.toStream.map(click(_)).flatten).flatMap { page: HtmlPage =>
       List("product-list-item product-list-item_first", "product-list-item ").flatMap { itemClass =>
         page.getBody
           .getElementsByAttribute("div", "class", itemClass)
