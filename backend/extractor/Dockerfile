@@ -1,4 +1,4 @@
-FROM bleshik/scala:2.11.2
+FROM bleshik/scala:2.11.5
 MAINTAINER Alexey Balchunas <bleshik@gmail.com>
 ADD / /extractor
 RUN cd /extractor && sbt test

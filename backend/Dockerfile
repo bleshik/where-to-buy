@@ -1,4 +1,4 @@
-FROM bleshik/scala:2.11.2
+FROM bleshik/scala:2.11.5
 MAINTAINER Alexey Balchunas <bleshik@gmail.com>
 ADD /api /api
 ADD /extractor /extractor
