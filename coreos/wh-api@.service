@@ -15,7 +15,7 @@ ExecStartPre=-/usr/bin/docker stop wh-api
 ExecStartPre=-/usr/bin/docker rm wh-api
 ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "SBT_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx192m -Xms192m"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx192m -Xms192m"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
