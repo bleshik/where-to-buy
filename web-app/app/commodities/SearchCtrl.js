@@ -20,7 +20,11 @@ SearchCtrl.prototype.search = function() {
         var _this = this;
         var _timeout = this.$timeout(function() {
             if (_this.$scope.landed) {
-                _this.loadMore(true);
+                _this.loadMore(true, function(result) {
+                    if (_timeout == _this.timeout) {
+                        _this.$scope.commodities = result;
+                    }
+                });
             } else {
                 _this.$location.search('q', _this.$scope.query);
             }
@@ -28,16 +32,20 @@ SearchCtrl.prototype.search = function() {
         this.timeout = _timeout;
     }
 }
-SearchCtrl.prototype.loadMore = function(replace) {
+SearchCtrl.prototype.loadMore = function(replace, callback) {
     var limit = 10;
     var offset = (this.$scope.commodities != null && replace !== true ? this.$scope.commodities.length : 0);
-    console.log(limit + " " + offset);
     var _this = this;
     var commodities = _this.whereApi("commodities").query({query: _this.$scope.query, offset: offset, limit: limit}, function() {
         commodities.forEach(function(c) {
             c.minPrice = _.min(_.map(c.entries.filter(function (e) { return e.shop.city === _this.$scope.city; }), function(e) { return e.price; }));
         });
-        _this.$scope.commodities = replace !== true && _this.$scope.commodities != null ? _this.$scope.commodities.concat(commodities) : commodities;
+        var result = replace !== true && _this.$scope.commodities != null ? _this.$scope.commodities.concat(commodities) : commodities;
+        if (callback == null) {
+            _this.$scope.commodities = result
+        } else {
+            callback(result)
+        }
     });
 }
 
