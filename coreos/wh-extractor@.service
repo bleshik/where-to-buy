@@ -26,7 +26,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -p 9001:9001\
         bleshik/wh-extractor:latest\
         akka'
-ExecStop=/usr/bin/docker stop wh-extractor
+ExecStop=-/usr/bin/docker stop wh-extractor
 Restart=always
 
 [Install]

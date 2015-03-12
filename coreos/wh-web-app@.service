@@ -20,7 +20,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
           --name wh-web-app\
           -p 8000:8000\
           bleshik/wh-web-app:latest'
-ExecStop=/usr/bin/docker stop wh-web-app
+ExecStop=-/usr/bin/docker stop wh-web-app
 Restart=always
 
 [Install]
