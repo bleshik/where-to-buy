@@ -1,10 +1,12 @@
-name := "Where To Buy"
+name := "Wh Api"
 
 version := "1.0"
 
 scalaVersion := "2.11.5"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
+
+enablePlugins(JavaAppPackaging)
 
 lazy val extractor = RootProject(file("../extractor"))
 

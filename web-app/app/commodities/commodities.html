@@ -33,36 +33,38 @@
             </div>
         </div>
     </div>
-    <table class="borderless table table-hover title" ng-show="commodities != null && landed">
-        <tr ng-hide="commodities.length > 0">
-            <td>
-                По Вашему запросу ничего не найдено
-            </td>
-        </tr>
-        <tr ng-repeat="commodity in commodities" class="row">
-            <td class="col-md-2">
-              <div>
-                <a href="#" class="thumbnail">
-                  <img ng-src="/api/commodities/{{commodity.name | escape}}.jpg" alt="{{commodity.name}}">
-                </a>
-              </div>
-            </td>   
-            <td>
-              <div class="caption">
-                <b>{{commodity.name}}</b>
-                <ul class="list-unstyled">
-                    <li ng-repeat="entry in commodity.entries | orderBy: 'price' | filter: { shop: { city: city } }">
-                      <label ng-class="{'label label-success' : commodity.minPrice == entry.price, 'label label-default' : commodity.minPrice != entry.price}">{{entry.price | rubles}}</label>
-                      <img height="30" ng-src="/img/{{entry.shop.name}}.png" alt="{{entry.shop.name}}"/>
-                    </li>
-                </ul>
-              </div>
-            </td>   
-        </tr>
-    </table>
-    <div class="row">
-        <div class="col-sm-1 col-sm-offset-6 loader" wh-waypoint="ctrl.loadMore()">
-            <h1><span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span></h1>
+    <div ng-show="commodities != null && landed">
+        <table class="borderless table table-hover title">
+            <tr ng-hide="commodities.length > 0">
+                <td>
+                    По Вашему запросу ничего не найдено
+                </td>
+            </tr>
+            <tr ng-repeat="commodity in commodities" class="row">
+                <td class="col-md-2">
+                  <div>
+                    <a href="#" class="thumbnail">
+                      <img ng-src="/api/commodities/{{commodity.name | escape}}.jpg" alt="{{commodity.name}}">
+                    </a>
+                  </div>
+                </td>   
+                <td>
+                  <div class="caption">
+                    <b>{{commodity.name}}</b>
+                    <ul class="list-unstyled">
+                        <li ng-repeat="entry in commodity.entries | orderBy: 'price' | filter: { shop: { city: city } }">
+                          <label ng-class="{'label label-success' : commodity.minPrice == entry.price, 'label label-default' : commodity.minPrice != entry.price}">{{entry.price | rubles}}</label>
+                          <img height="30" ng-src="/img/{{entry.shop.name}}.png" alt="{{entry.shop.name}}"/>
+                        </li>
+                    </ul>
+                  </div>
+                </td>   
+            </tr>
+        </table>
+        <div class="row">
+            <div class="col-sm-1 col-sm-offset-6 loader" wh-waypoint="ctrl.loadMore()">
+                <h1><span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span></h1>
+            </div>
         </div>
     </div>
 </div>

@@ -14,7 +14,7 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "SBT_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx192m -Xms192m"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx256m -Xms256m"\
         -e "INSTANCE=%i"\
         -e "INSTANCES=2"\
         -e "ENVIRONMENT=production"\
@@ -25,8 +25,8 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         --name wh-extractor\
         -p 9001:9001\
         bleshik/wh-extractor:latest\
-        "run akka"'
-ExecStop=/usr/bin/docker stop wh-extractor
+        akka'
+ExecStop=-/usr/bin/docker stop wh-extractor
 Restart=always
 
 [Install]

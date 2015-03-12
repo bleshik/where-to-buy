@@ -1,18 +1,19 @@
 'use strict';
 
 function whWaypoint($timeout) {
-    return function init(scope, element, attrs) {
-        new Waypoint({
+    function refresh(context) {
+        context.refresh();
+        $timeout(function() { refresh(context); }, 1000);
+    }
+    return function(scope, element, attrs) {
+        refresh(new Waypoint({
             element: element,
             handler: function(direction) {
                 element.addClass("loading");
                 scope.$eval(attrs.whWaypoint);
                 element.removeClass("loading");
-                $timeout(function() {
-                    Waypoint.refreshAll()
-                });
             },
             offset: 'bottom-in-view'
-        });
+        }).context);
     }
 }

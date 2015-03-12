@@ -22,8 +22,12 @@ class MongoDbCommodityRepository(override val db: DB)
           MongoDBObject(
             "entries.shop.name" -> MongoDBObject("$ne" -> e.shop.name),
             "kind" -> kind(e.shopSpecificName)
-          )
-        ).find(r => matcher.matching(commodity, r))
+          ),
+          limit = 0
+        ).toList
+         .filter(r => matcher.matching(commodity, r))
+         .sortBy(r => matcher.matchingConfidence(commodity, r))
+         .reverse
       }.headOption
     }
   }
