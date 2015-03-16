@@ -10,8 +10,9 @@ import scala.collection.JavaConverters._
 
 class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
   Migration {
-      // unique index on "idx" field is required for thread safety
-      dbCollection.createIndex(new BasicDBObject("streamId", 1).append("idx", 1), new BasicDBObject("unique", true))
+    // unique index on "idx" field is required for thread safety
+    dbCollection.createIndex(new BasicDBObject("streamId", 1).append("idx", 1), new BasicDBObject("unique", true))
+    dbCollection.createIndex(new BasicDBObject("occurredOn", 1))
   }
 
   private val serializer = new MongoDbSerializer[Event]
