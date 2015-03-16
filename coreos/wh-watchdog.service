@@ -8,8 +8,8 @@ Type=simple
 TimeoutStartSec=0
 ExecStart=/bin/sh -c 'while [ 1 ] ; do\
         echo "Looking for failed units...";\
-        for unit in `fleetctl list-units | tail -n +2 | grep -v mongo-replica-config.service | grep -v running | cut -f1 | sort -u` ; do\
-            echo "Starting $unit failed unit" && flw unload $unit && flw start $unit;\
+        for unit in `fleetctl list-units | tail -n +2 | grep -v mongo-replica-config.service | grep -v activating | grep -v running | cut -f1 | sort -u` ; do\
+            echo "Starting $unit failed unit" ; fleetctl unload $unit ; fleetctl start $unit;\
         done;\
         sleep 60;\
     done'
