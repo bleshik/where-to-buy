@@ -28,9 +28,9 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
         val c = commodityRepository.findSimilar(incomingCommodity)
           .map { c =>
           logger.trace(s"Found for $entry: $c")
-          if (System.currentTimeMillis() - c.updateDate >= 1000) {
+          if (System.currentTimeMillis() - c.updateDate >= 60 * 60 * 1000) {
             if (c.entry(entry.shop).isDefined) {
-              if (c.price(entry.shop).get != entry.price) {
+              if (c.price(entry.shop).get.equals(entry.price)) {
                 c.changePrice(entry.shop, entry.price)
               } else {
                 c
