@@ -16,7 +16,7 @@ mainClass in Compile := Some("wh.application.ApiApp")
 
 resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 
-libraryDependencies += "org.mongodb" %% "casbah" % "2.7.3"
+libraryDependencies += "org.mongodb" %% "casbah" % "2.8.0"
 
 libraryDependencies += "com.novus" %% "salat" % "1.9.9"
 
