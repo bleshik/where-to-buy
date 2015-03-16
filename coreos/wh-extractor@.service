@@ -14,10 +14,10 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx192m -Xms192m"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx320m -Xms320m"\
         -e "INSTANCE=%i"\
         -e "INSTANCES=2"\
-        -e "CONCURRENCY=1"\
+        -e "CONCURRENCY=3"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
@@ -33,5 +33,5 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineMetadata="access=private"
+MachineMetadata="access=private" "type=backend"
 Conflicts=%p@*.service
