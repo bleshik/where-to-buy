@@ -9,6 +9,7 @@ import wh.application.extractor.auchan.AuchanExtractor
 import wh.application.extractor.cont.ContExtractor
 import wh.application.extractor.dixy.DixyExtractor
 import wh.application.extractor.infrastructure.Environment
+import wh.application.extractor.infrastructure.Environment.minimumConcurrency
 import wh.application.extractor.komus.KomusExtractor
 import wh.application.extractor.metro.MetroExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
@@ -40,7 +41,7 @@ object ExtractorApp extends LazyLogging {
 
   private def upload(output: String): Unit = {
     logger.debug(s"My payload is ${payload.map(_._1)}")
-    payload.par.withMinThreads(3).foreach { p =>
+    payload.par.withMinThreads(minimumConcurrency).foreach { p =>
       doUpload(p._2.extract(new URL(p._1)), output)
     }
   }
