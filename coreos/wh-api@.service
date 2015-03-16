@@ -15,12 +15,11 @@ ExecStartPre=-/usr/bin/docker stop wh-api
 ExecStartPre=-/usr/bin/docker rm wh-api
 ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx256m -Xms256m"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx192m -Xms192m"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
         -e "ETCD_ENDPOINT=http://172.17.42.1:4001"\
-        --restart always\
         --name wh-api\
         -p 8080:8080\
         -p 9000:9000\
