@@ -18,33 +18,27 @@ SearchCtrl.prototype.search = function() {
             this.$timeout.cancel(this.timeout);
         }
         var _this = this;
-        var _timeout = this.$timeout(function() {
+        this.timeout = this.$timeout(function() {
             if (_this.$scope.landed) {
-                _this.loadMore(true, function(result) {
-                    if (_timeout == _this.timeout) {
-                        _this.$scope.commodities = result;
-                    }
-                });
+                _this.loadMore(true);
             } else {
                 _this.$location.search('q', _this.$scope.query);
             }
         }, 100);
-        this.timeout = _timeout;
     }
 }
-SearchCtrl.prototype.loadMore = function(replace, callback) {
+SearchCtrl.prototype.loadMore = function(replace) {
     var limit = 10;
     var offset = (this.$scope.commodities != null && replace !== true ? this.$scope.commodities.length : 0);
     var _this = this;
+    var query = _this.$scope.query;
     var commodities = _this.whereApi("commodities").query({query: _this.$scope.query, offset: offset, limit: limit}, function() {
         commodities.forEach(function(c) {
             c.minPrice = _.min(_.map(c.entries.filter(function (e) { return e.shop.city === _this.$scope.city; }), function(e) { return e.price; }));
         });
         var result = replace !== true && _this.$scope.commodities != null ? _this.$scope.commodities.concat(commodities) : commodities;
-        if (callback == null) {
+        if (_this.$scope.query === query) {
             _this.$scope.commodities = result
-        } else {
-            callback(result)
         }
     });
 }
