@@ -39,7 +39,7 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
               c.arrived(entry.shop, entry.name, entry.price, categories)
             }
           } else {
-            logger.warn(s"Record ${c.id} is updated too often")
+            logger.debug(s"Record ${c.id} is updated too often")
             c
           }
         }.getOrElse(incomingCommodity)
