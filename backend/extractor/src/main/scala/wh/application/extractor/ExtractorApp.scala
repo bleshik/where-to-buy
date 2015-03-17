@@ -40,7 +40,7 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def upload(output: String): Unit = {
-    logger.debug(s"My payload is ${payload.map(_._1)}")
+    logger.info(s"My payload is ${payload.map(_._1)}")
     payload.par.withMinThreads(minimumConcurrency).foreach { p =>
       doUpload(p._2.extract(new URL(p._1)), output)
     }
