@@ -21,6 +21,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
         -e "ETCD_ENDPOINT=http://172.17.42.1:4001"\
         --name wh-api\
+        --rm\
         -p 8080:8080\
         -p 9000:9000\
         bleshik/wh-api:latest'

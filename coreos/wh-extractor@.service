@@ -23,6 +23,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
         -e "WH_API_AKKA_ENDPOINT=akka.tcp://WhereToBuySystem@`fleetctl list-machines | grep public | cut -f2`:9000/user/EntryExtractingActor"\
         --name wh-extractor\
+        --rm\
         -p 9001:9001\
         bleshik/wh-extractor:latest\
         akka'
