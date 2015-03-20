@@ -6,10 +6,11 @@ import java.util.logging.{Level, Logger}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.gargoylesoftware.htmlunit.html._
-import com.gargoylesoftware.htmlunit.{TopLevelWindow, Page, StringWebResponse, WebClient}
+import com.gargoylesoftware.htmlunit.{Page, StringWebResponse, WebClient}
 import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
 
+import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -36,10 +37,10 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
    new Iterator[ExtractedEntry]() {
      override def hasNext: Boolean = {
        if (!entries.hasNext) {
-         if (client.getWebWindows.size() > 0) {
-           logger.warn(s"The extractor did not closed windows after extracting the entries. Number of open windows: ${client.getWebWindows.size()}. I will close all windows, but the problem should be fixed.")
+         val openWindows = client.getWebWindows.asScala.count(!_.isClosed)
+         if (openWindows > 0) {
+           client.closeAllWindows()
          }
-         client.closeAllWindows()
        }
       entries.hasNext
     }
@@ -110,23 +111,8 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
             click(a, attempts - 1)
           }
         case x =>
-          close(x)
           None
       }
-    }
-  }
-
-  protected def clickAndCloseWindow(a: HtmlElement, attempts: Int = 3): Option[HtmlPage] = {
-    val nextPage = click(a, attempts)
-    close(a.getPage)
-    nextPage
-  }
-
-  protected def close(page: Page): Unit = {
-    page.getEnclosingWindow match {
-      case window: TopLevelWindow =>
-        window.close()
-      case _ => page.cleanUp()
     }
   }
 

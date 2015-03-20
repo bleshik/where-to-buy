@@ -4,7 +4,6 @@ import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html._
 import com.gargoylesoftware.htmlunit.util.Cookie
-import wh.util.ConcurrencyUtil._
 import wh.application.extractor.AbstractExtractor
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
@@ -50,9 +49,9 @@ class AuchanExtractor extends AbstractExtractor {
       .asScala
       .asInstanceOf[mutable.Buffer[HtmlAnchor]]
       .map(c => cleanUpName(c.getTextContent))
-    drop.getElementsByAttribute("div", "class", "drop2").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].zipWithIndex.par.withMinThreads(3).flatMap { case (subDrop, i) =>
+    drop.getElementsByAttribute("div", "class", "drop2").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].zipWithIndex.flatMap { case (subDrop, i) =>
       val parentCategory = Category(categories(i), rootCategory)
-      subDrop.getHtmlElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]].par.flatMap { category =>
+      subDrop.getHtmlElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]].flatMap { category =>
         click(category).map(page => extractCategory(page, Category(cleanUpName(category.getTextContent), parentCategory))).getOrElse(Iterator.empty)
       }
     }.iterator
