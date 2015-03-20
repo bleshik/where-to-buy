@@ -6,7 +6,7 @@ import java.util.logging.{Level, Logger}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.gargoylesoftware.htmlunit.html._
-import com.gargoylesoftware.htmlunit.{Page, StringWebResponse, WebClient}
+import com.gargoylesoftware.htmlunit.{TopLevelWindow, Page, StringWebResponse, WebClient}
 import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
 
@@ -31,7 +31,22 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
     theNewClient
   }
 
-  override def extract(url: URL): Iterator[ExtractedEntry] = htmlPage(url, 3).map(p => doExtract(p)).getOrElse(Iterator.empty)
+  override def extract(url: URL): Iterator[ExtractedEntry] = htmlPage(url, 3).map { p =>
+   val entries = doExtract(p)
+   new Iterator[ExtractedEntry]() {
+     override def hasNext: Boolean = {
+       if (!entries.hasNext) {
+         if (client.getWebWindows.size() > 0) {
+           logger.warn(s"The extractor did not closed windows after extracting the entries. Number of open windows: ${client.getWebWindows.size()}. I will close all windows, but the problem should be fixed.")
+         }
+         client.closeAllWindows()
+       }
+      entries.hasNext
+    }
+
+      override def next(): ExtractedEntry = entries.next()
+    }
+  }.getOrElse(Iterator.empty)
 
   protected def page(url: URL, attempts: Int = 3): Option[Page] = {
     if (attempts <= 0) {
@@ -94,9 +109,24 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
           } else {
             click(a, attempts - 1)
           }
-        case _ =>
+        case x =>
+          close(x)
           None
       }
+    }
+  }
+
+  protected def clickAndCloseWindow(a: HtmlElement, attempts: Int = 3): Option[HtmlPage] = {
+    val nextPage = click(a, attempts)
+    close(a.getPage)
+    nextPage
+  }
+
+  protected def close(page: Page): Unit = {
+    page.getEnclosingWindow match {
+      case window: TopLevelWindow =>
+        window.close()
+      case _ => page.cleanUp()
     }
   }
 
