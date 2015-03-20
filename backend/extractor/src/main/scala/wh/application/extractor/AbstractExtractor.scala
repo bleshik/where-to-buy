@@ -10,7 +10,6 @@ import com.gargoylesoftware.htmlunit.{Page, StringWebResponse, WebClient}
 import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
 
-import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -33,20 +32,24 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
   }
 
   override def extract(url: URL): Iterator[ExtractedEntry] = htmlPage(url, 3).map { p =>
-   val entries = doExtract(p)
-   new Iterator[ExtractedEntry]() {
-     override def hasNext: Boolean = {
-       if (!entries.hasNext) {
-         val openWindows = client.getWebWindows.asScala.count(!_.isClosed)
-         if (openWindows > 0) {
-           client.closeAllWindows()
-         }
-       }
-      entries.hasNext
-    }
+    handle(Try(doExtract(p))).map { entries =>
+      new Iterator[ExtractedEntry]() {
+        override def hasNext: Boolean = {
+          if (!entries.hasNext) {
+            client.closeAllWindows()
+          }
+          entries.hasNext
+        }
 
-      override def next(): ExtractedEntry = entries.next()
-    }
+        override def next(): ExtractedEntry = {
+          try {
+            entries.next()
+          } catch {
+            case x: Exception => client.closeAllWindows(); throw x
+          }
+        }
+      }
+    }.getOrElse(Iterator.empty)
   }.getOrElse(Iterator.empty)
 
   protected def page(url: URL, attempts: Int = 3): Option[Page] = {
@@ -103,15 +106,15 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
     if (attempts <= 0) {
       None
     } else {
-      a.asInstanceOf[HtmlAnchor].click().asInstanceOf[Page] match {
-        case x: HtmlPage =>
-          if (okay(x)) {
-            Some(x)
-          } else {
-            click(a, attempts - 1)
+      handle(Try(a.asInstanceOf[HtmlAnchor].click().asInstanceOf[Page])).asInstanceOf[Option[Page]] match {
+        case Some(x) =>
+          x match {
+            case x: HtmlPage if okay(x) =>
+              Some(x)
+            case _ =>
+              click(a, attempts - 1)
           }
-        case x =>
-          None
+        case _ => None
       }
     }
   }
