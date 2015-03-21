@@ -3,7 +3,6 @@ package wh.application.extractor.auchan
 import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html._
-import com.gargoylesoftware.htmlunit.util.Cookie
 import wh.application.extractor.AbstractExtractor
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
@@ -26,9 +25,7 @@ class AuchanExtractor extends AbstractExtractor {
           .map(_.getAttribute("data-shop-id"))
     }.map { cities =>
       cities.flatMap { region =>
-        client.getCookieManager.clearCookies()
-        client.getCookieManager.addCookie(new Cookie(url.getHost, "user_shop_id", region))
-        super.extract(url)
+        super.extract(url, Map(("user_shop_id", region)))
       }
     }.getOrElse(Iterator.empty)
   }.getOrElse(Iterator.empty)
