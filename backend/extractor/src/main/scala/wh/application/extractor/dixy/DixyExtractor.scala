@@ -1,6 +1,7 @@
 package wh.application.extractor.dixy
 
-import java.net.URL
+import java.net.{URLDecoder, URL}
+import java.nio.charset.StandardCharsets
 
 import com.gargoylesoftware.htmlunit.html.{HtmlDivision, HtmlHeading5, HtmlPage}
 import wh.application.extractor.AbstractExtractor
@@ -47,6 +48,7 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractExtractor {
     }
 
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
+    val region = page.getWebClient.getCookieManager.getCookie(dixyRegion).getValue
     page.getBody
       .getOneHtmlElementByAttribute("div", "id", "flowpanes")
       .asInstanceOf[HtmlDivision]
@@ -54,27 +56,29 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractExtractor {
       .asScala
       .asInstanceOf[mutable.Buffer[HtmlDivision]]
       .flatMap { item =>
-      extractEntry(
-        "Дикси",
-        regionToCity.get(page.getWebClient.getCookieManager.getCookie(dixyRegion).getValue).get,
-        item.getOneHtmlElementByAttribute("div", "class", "prices-3")
+      regionToCity.get(region).orElse(regionToCity.get(URLDecoder.decode(region, StandardCharsets.UTF_8.name()))).flatMap { city =>
+        extractEntry(
+          "Дикси",
+          city,
+          item.getOneHtmlElementByAttribute("div", "class", "prices-3")
             .asInstanceOf[HtmlDivision]
             .getTextContent
             .replace("весовая", "")
             .replace("весовой", ""),
-        extractPrice(item.getElementsByAttribute("h5", "class", "price-now threedigit")
+          extractPrice(item.getElementsByAttribute("h5", "class", "price-now threedigit")
             .asScala
             .headOption
             .asInstanceOf[Option[HtmlHeading5]]
             .getOrElse(item.getOneHtmlElementByAttribute("h5", "class", "price-now").asInstanceOf[HtmlHeading5])
             .getTextContent),
-        null,
-        item.getElementsByTagName("img")
-          .asScala
-          .asInstanceOf[mutable.Buffer[HtmlDivision]]
-          .headOption
-          .orNull
-      )
+          null,
+          item.getElementsByTagName("img")
+            .asScala
+            .asInstanceOf[mutable.Buffer[HtmlDivision]]
+            .headOption
+            .orNull
+        )
+      }
     }.iterator
   }
 }
