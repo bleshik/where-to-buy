@@ -6,9 +6,9 @@ Type=simple
 TimeoutStartSec=0
 EnvironmentFile=/etc/environment
 ExecStart=/bin/sh -c 'journalctl -o short -f |\
-          grep -v "^.*docker.*No such container.*$" |\
-          grep -v "^.*docker.*failed to .* one or more containers$" |\
-          grep -v "^.*docker.*Fatal errors found in configuration$" |\
+          grep -v ".*No such container.*" |\
+          grep -v ".*Fatal errors found in configuration.*" |\
+          grep -v ".*failed to .* one or more containers.*" |\
           awk \'{ print "${LOGENTRIES_TOKEN}", $0; fflush(); }\' |\
           ncat data.logentries.com 10000'
 

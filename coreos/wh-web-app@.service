@@ -19,7 +19,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
           -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
           --name wh-web-app\
           --rm\
-          -p 8000:8000\
+          -p 8000\
           bleshik/wh-web-app:latest'
 ExecStop=-/usr/bin/docker stop wh-web-app
 Restart=always
@@ -28,7 +28,5 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]
-MachineMetadata="access=private"
+Conflicts=wh-extractor@*.service
 Conflicts=%p@*.service
-Conflicts=wh-api@*.service
-Conflicts=docker-discover.service

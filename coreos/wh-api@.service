@@ -22,8 +22,8 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "ETCD_ENDPOINT=http://172.17.42.1:4001"\
         --name wh-api\
         --rm\
-        -p 8080:8080\
-        -p 9000:9000\
+        -p 8080\
+        -p 9000\
         bleshik/wh-api:latest'
 ExecStop=-/usr/bin/docker stop wh-api
 Restart=always
@@ -32,6 +32,5 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]                                                                                                                                                                            
-MachineMetadata="access=private" "type=backend"
+Conflicts=wh-extractor@*.service
 Conflicts=%p@*.service
-Conflicts=docker-discover.service

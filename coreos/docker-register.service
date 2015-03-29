@@ -18,4 +18,3 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 Global=true
-MachineMetadata=access=private
