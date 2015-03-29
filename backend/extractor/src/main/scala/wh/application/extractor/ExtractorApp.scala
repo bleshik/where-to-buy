@@ -31,10 +31,7 @@ object ExtractorApp extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    while(true) {
-      upload(args.head)
-      Thread.sleep(3 * 60 * 60 * 1000)
-    }
+    upload(args.head)
 
     logger.info("Exiting...")
   }
@@ -42,7 +39,11 @@ object ExtractorApp extends LazyLogging {
   private def upload(output: String): Unit = {
     logger.info(s"My payload is ${payload.map(_._1)}")
     payload.par.withMinThreads(minimumConcurrency).foreach { p =>
-      doUpload(p._2.extract(new URL(p._1)), output)
+      while(true) {
+        logger.info(s"Starting extracting ${p._1}")
+        doUpload(p._2.extract(new URL(p._1)), output)
+        logger.info(s"Done extracting ${p._1}")
+      }
     }
   }
 
@@ -59,13 +60,13 @@ object ExtractorApp extends LazyLogging {
 
   private def payload: List[(String, Extractor)] = {
     val all = List(
-      ("http://globusgurme.ru/catalog/", new GlobusGurmeExtractor),
       ("http://klg.metro-cc.ru", new MetroExtractor),
       ("http://www.auchan.ru", new AuchanExtractor),
       ("http://www.utkonos.ru/cat", new UtkonosExtractor),
       ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
       ("http://www.7cont.ru", new ContExtractor),
-      ("http://dixy.ru", new DixyExtractor)
+      ("http://dixy.ru", new DixyExtractor),
+      ("http://globusgurme.ru/catalog", new GlobusGurmeExtractor)
     )
 
     // divide all the shops

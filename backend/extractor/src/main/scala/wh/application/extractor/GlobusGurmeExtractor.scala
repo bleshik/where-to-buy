@@ -46,9 +46,10 @@ class GlobusGurmeExtractor extends AbstractExtractor {
       page.getBody
         .getElementsByAttribute("ul", "class", "gg-search-pager")
         .asScala
-        .asInstanceOf[mutable.Buffer[HtmlElement]].flatMap { pages =>
-        pages.getElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]]
-      }.toStream.map(click(_)).flatten).flatMap { page: HtmlPage =>
+        .asInstanceOf[mutable.Buffer[HtmlElement]]
+        .flatMap { pages =>
+        pages.getElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]].map(href)
+      }.flatten.toStream.flatMap(htmlPage(_))).flatMap { page: HtmlPage =>
       List("product-list-item product-list-item_first", "product-list-item ").flatMap { itemClass =>
         page.getBody
           .getElementsByAttribute("div", "class", itemClass)
