@@ -16,5 +16,7 @@ object Environment extends Enumeration {
 
   def instances = Option(System.getenv("INSTANCES")).map(_.toInt).getOrElse(1)
 
+  def shops = Option(System.getenv("SHOPS")).map(_.split(',').toList)
+
   def minimumConcurrency = Option(System.getenv("CONCURRENCY")).map(_.toInt).getOrElse(1)
 }

@@ -67,7 +67,9 @@ object ExtractorApp extends LazyLogging {
       ("http://www.7cont.ru", new ContExtractor),
       ("http://dixy.ru", new DixyExtractor)
     )
-    if (Environment.instance <= Environment.instances) {
+
+    // divide all the shops
+    val myPayload = if (Environment.instance <= Environment.instances) {
       val part = all.size / Environment.instances
       val tail = all.takeRight(all.size % Environment.instances)
       all.drop((Environment.instance - 1) * part).take(part) ++ (if (Environment.instance.equals(Environment.instances)) tail else List())
@@ -75,5 +77,12 @@ object ExtractorApp extends LazyLogging {
       logger.warn("Environment is not correct. The instance number is out of bounds. " + Environment.instance + "/" + Environment.instances)
       all
     }
+
+    // filter shops by name if needed
+    Environment.shops.map { shops: List[String] =>
+      myPayload.filter { e =>
+        shops.exists { shop => e._1.toLowerCase.contains(shop.toLowerCase) }
+      }
+    }.getOrElse(myPayload)
   }
 }
