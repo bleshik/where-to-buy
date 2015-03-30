@@ -31,7 +31,9 @@ object ExtractorApp extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    upload(args.head)
+    while(true) {
+      upload(args.head)
+    }
 
     logger.info("Exiting...")
   }
@@ -39,11 +41,9 @@ object ExtractorApp extends LazyLogging {
   private def upload(output: String): Unit = {
     logger.info(s"My payload is ${payload.map(_._1)}")
     payload.par.withMinThreads(minimumConcurrency).foreach { p =>
-      while(true) {
         logger.info(s"Starting extracting ${p._1}")
         doUpload(p._2.extract(new URL(p._1)), output)
         logger.info(s"Done extracting ${p._1}")
-      }
     }
   }
 
