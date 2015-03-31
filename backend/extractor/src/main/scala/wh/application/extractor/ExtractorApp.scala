@@ -48,8 +48,8 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def doUpload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
-    logger.info("Started uploading to " + output)
     output match {
+      case "none" => iterator.foreach(_ => ())
       case "console" => iterator.foreach(println)
       case "akka"    =>
         logger.info(s"Extractor will send extracted data to ${Environment.akkaEndpoint}")

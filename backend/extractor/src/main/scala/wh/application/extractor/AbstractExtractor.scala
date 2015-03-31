@@ -43,8 +43,23 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
 
   override def extract(url: URL): Iterator[ExtractedEntry] = extract(url, client)
 
-  def extract(url: URL, client: WebClient): Iterator[ExtractedEntry] =
-    htmlPage(url, 3, client).map { p => handle(Try(doExtract(p)))}.flatten.getOrElse(Iterator.empty)
+  def extract(url: URL, client: WebClient): Iterator[ExtractedEntry] = {
+    val it = htmlPage(url, 3, client).flatMap { p => handle(Try(doExtract(p))) }.getOrElse(Iterator.empty)
+    new Iterator[ExtractedEntry] {
+      @volatile var i = 0
+
+      override def hasNext: Boolean = it.hasNext
+
+      override def next(): ExtractedEntry = {
+        val n = it.next()
+        i += 1
+        if (i % 50 == 0) {
+          logger.info(s"Extracted $i entries from $url with cookies ${client.getCookies(url)}")
+        }
+        n
+      }
+    }
+  }
 
   def extract(url: URL, cookies: Map[String, String]): Iterator[ExtractedEntry] =
     extract(url, client(url, cookies))
