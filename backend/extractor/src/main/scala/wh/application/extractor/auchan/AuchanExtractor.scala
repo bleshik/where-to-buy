@@ -46,12 +46,12 @@ class AuchanExtractor extends AbstractExtractor {
       .asScala
       .asInstanceOf[mutable.Buffer[HtmlAnchor]]
       .map(c => cleanUpName(c.getTextContent))
-    drop.getElementsByAttribute("div", "class", "drop2").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].zipWithIndex.flatMap { case (subDrop, i) =>
+    drop.getElementsByAttribute("div", "class", "drop2").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].zipWithIndex.iterator.flatMap { case (subDrop, i) =>
       val parentCategory = Category(categories(i), rootCategory)
-      subDrop.getHtmlElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]].flatMap { category =>
+      subDrop.getHtmlElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]].iterator.flatMap { category =>
         click(category).map(page => extractCategory(page, Category(cleanUpName(category.getTextContent), parentCategory))).getOrElse(Iterator.empty)
       }
-    }.iterator
+    }
   }
 
   private def extractCategory(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
