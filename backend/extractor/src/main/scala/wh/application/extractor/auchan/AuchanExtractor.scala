@@ -36,8 +36,9 @@ class AuchanExtractor extends AbstractExtractor {
       .asInstanceOf[HtmlElement]
       .getChildNodes
       .asScala
-      .takeRight(2)
-      .head
+      .asInstanceOf[mutable.Buffer[HtmlListItem]]
+      .filter { li => !li.getAttribute("class").trim.equals("auction") }
+      .last
     val rootCategory = Category(cleanUpName(li.getFirstChild.getTextContent), null)
     val drop = li.getLastChild.asInstanceOf[HtmlDivision]
     val categories = drop.getOneHtmlElementByAttribute("ul", "class", "drop-ul")
