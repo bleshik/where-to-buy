@@ -6,7 +6,6 @@ Requires=etcd.service
 After=etcd.service
 
 [Service]
-KillMode=none
 TimeoutStartSec=0
 TimeoutStopSec=360
 EnvironmentFile=/etc/environment
@@ -14,10 +13,10 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx384m -Xms128m"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx1352m -Xms676m"\
         -e "INSTANCE=%i"\
-        -e "INSTANCES=2"\
-        -e "CONCURRENCY=3"\
+        -e "INSTANCES=1"\
+        -e "CONCURRENCY=4"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
@@ -34,7 +33,8 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]
+MachineMetadata="access=private"
+Conflicts=wh-extractor@*.service
 Conflicts=wh-api@*.service
 Conflicts=wh-web-app@*.service
 Conflicts=mongo@*.service
-Conflicts=%p@*.service

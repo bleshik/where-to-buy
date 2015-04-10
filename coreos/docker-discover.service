@@ -2,7 +2,6 @@
 Description=Reverse Proxy For Services
 
 [Service]
-KillMode=none
 TimeoutStartSec=0
 EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker stop docker-discover

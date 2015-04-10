@@ -6,7 +6,6 @@ After=etcd.service
 Requires=etcd.service
 
 [Service]
-KillMode=none
 TimeoutStartSec=0
 TimeoutStopSec=360
 EnvironmentFile=/etc/environment

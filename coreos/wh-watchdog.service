@@ -4,7 +4,6 @@ After=fleet.service
 Requires=fleet.service
 
 [Service]
-Type=simple
 TimeoutStartSec=0
 ExecStart=/bin/sh -c 'while [ 1 ] ; do\
         echo "Looking for failed units...";\
@@ -13,6 +12,7 @@ ExecStart=/bin/sh -c 'while [ 1 ] ; do\
         done;\
         sleep 60;\
     done'
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
