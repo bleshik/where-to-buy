@@ -8,7 +8,7 @@ import wh.extractor.domain.model.{Category, ExtractedEntry}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class GlobusGurmeExtractor extends AbstractExtractor {
+class GlobusGurmeExtractor extends AbstractHtmlUnitExtractor {
   override def extract(url: URL): Iterator[ExtractedEntry] = {
     Iterator("%CC%EE%F1%EA%E2%E0", "%D1%E0%ED%EA%F2-%CF%E5%F2%E5%F0%E1%F3%F0%E3").flatMap { city =>
       super.extract(new URL(url.toString + "?city=" + city))

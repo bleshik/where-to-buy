@@ -4,13 +4,13 @@ import java.net.{URLDecoder, URL}
 import java.nio.charset.StandardCharsets
 
 import com.gargoylesoftware.htmlunit.html.{HtmlDivision, HtmlHeading5, HtmlPage}
-import wh.application.extractor.AbstractExtractor
+import wh.application.extractor.AbstractHtmlUnitExtractor
 import wh.extractor.domain.model.ExtractedEntry
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class DixyExtractor(val cities: Set[String] = null) extends AbstractExtractor {
+class DixyExtractor(val cities: Set[String] = null) extends AbstractHtmlUnitExtractor {
   val regionToCity = Map(
     ("Архангельская область", "Архангельск"),
     ("Брянская область", "Брянск"),

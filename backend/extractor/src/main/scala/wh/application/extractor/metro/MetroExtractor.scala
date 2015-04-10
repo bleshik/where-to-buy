@@ -3,14 +3,14 @@ package wh.application.extractor.metro
 import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html._
-import wh.application.extractor.AbstractExtractor
+import wh.application.extractor.AbstractHtmlUnitExtractor
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
-class MetroExtractor extends AbstractExtractor {
+class MetroExtractor extends AbstractHtmlUnitExtractor {
   protected def domains(url: URL): Map[String, URL] = {
     json[List[Map[String, Object]]](url.toURI.resolve("/index.php?route=store/store/getstores").toURL)
       .map(_.flatMap(_.get("tradecenter").asInstanceOf[Option[List[Map[String, Object]]]].getOrElse(List.empty)))

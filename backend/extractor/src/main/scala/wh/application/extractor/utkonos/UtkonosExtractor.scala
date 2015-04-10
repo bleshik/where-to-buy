@@ -3,13 +3,13 @@ package wh.application.extractor.utkonos
 import java.net.URL
 
 import com.gargoylesoftware.htmlunit.html.{HtmlAnchor, HtmlDivision, HtmlPage}
-import wh.application.extractor.{SupportedCity, AbstractExtractor}
+import wh.application.extractor.{SupportedCity, AbstractHtmlUnitExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class UtkonosExtractor extends AbstractExtractor {
+class UtkonosExtractor extends AbstractHtmlUnitExtractor {
   override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
     extractFromCategory(page, null)
   }
