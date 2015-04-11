@@ -28,7 +28,7 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
     })
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Element): Option[ExtractedEntry] =
-    handle(Try(new URL(image.absUrl("src")))).map(src => extractEntry(shop, city, name, price, category, src))
+    handle(Try(new URL(image.absUrl("src")))).flatMap(src => extractEntry(shop, city, name, price, category, src))
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Elements): Option[ExtractedEntry] =
     extractEntry(shop, city, name, price, category, image.first())

@@ -74,10 +74,8 @@ abstract class AbstractHtmlUnitExtractor extends AbstractExtractor with LazyLogg
   def doExtract(page: HtmlPage): Iterator[ExtractedEntry]
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: HtmlElement): Option[ExtractedEntry] = {
-    src(image).map(src => extractEntry(shop, city, name, price, category, src))
+    src(image).flatMap(src => extractEntry(shop, city, name, price, category, src))
   }
-
-  protected def filterImage(image: URL): Boolean = { true }
 
   protected def src(element: HtmlElement): Option[URL] = url(element, "src")
 
@@ -86,8 +84,7 @@ abstract class AbstractHtmlUnitExtractor extends AbstractExtractor with LazyLogg
   private def url(img: HtmlElement, attribute: String): Option[URL] = {
     Try(img.getAttribute(attribute)).map { src: String =>
       srcToUrl(img.getPage.getUrl, src)
-    }.map(src => if (filterImage(src)) Some(src) else None)
-     .getOrElse(None)
+    }.map(Some(_)).getOrElse(None)
   }
 
   protected def click(a: HtmlElement): Option[HtmlPage] =

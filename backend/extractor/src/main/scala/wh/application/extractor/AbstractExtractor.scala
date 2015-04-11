@@ -4,9 +4,8 @@ import java.net.URL
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.gargoylesoftware.htmlunit.html.HtmlElement
 import com.typesafe.scalalogging.LazyLogging
-import wh.extractor.domain.model.{ExtractedShop, ExtractedEntry, Category, Extractor}
+import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
 
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
@@ -56,9 +55,15 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
     (BigDecimal(cleanUpName(str.replace("р.", "").replace("руб.", "").replace(",", ".").replaceAll("[^0-9\\.]+", ""))) * multiplier).longValue()
   }
 
-  protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: URL): ExtractedEntry = {
-    ExtractedEntry(ExtractedShop(shop, city), cleanUpName(name), price, category, image)
+  protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: URL): Option[ExtractedEntry] = {
+    if (filterImage(image)) {
+      Some(ExtractedEntry(ExtractedShop(shop, city), cleanUpName(name), price, category, image))
+    } else {
+      None
+    }
   }
+
+  protected def filterImage(image: URL): Boolean = { true }
 
   protected def srcToUrl(from: URL, src: String): URL = {
     if (!src.contains("://")) {
