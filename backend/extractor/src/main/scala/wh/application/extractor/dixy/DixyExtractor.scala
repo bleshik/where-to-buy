@@ -1,16 +1,14 @@
 package wh.application.extractor.dixy
 
-import java.net.{URLDecoder, URL}
-import java.nio.charset.StandardCharsets
+import java.net.URL
 
-import com.gargoylesoftware.htmlunit.html.{HtmlDivision, HtmlHeading5, HtmlPage}
-import wh.application.extractor.AbstractHtmlUnitExtractor
+import org.jsoup.nodes.Document
+import wh.application.extractor.AbstractJsoupExtractor
 import wh.extractor.domain.model.ExtractedEntry
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 
-class DixyExtractor(val cities: Set[String] = null) extends AbstractHtmlUnitExtractor {
+class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtractor {
   val regionToCity = Map(
     ("Архангельская область", "Архангельск"),
     ("Брянская область", "Брянск"),
@@ -47,36 +45,26 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractHtmlUnitExtr
       super.extract(url, Map((dixyRegion, region._1)))
     }
 
-  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
-    val region = page.getWebClient.getCookieManager.getCookie(dixyRegion).getValue
-    page.getBody
-      .getOneHtmlElementByAttribute("div", "id", "flowpanes")
-      .asInstanceOf[HtmlDivision]
-      .getElementsByAttribute("div", "class", "fp-item")
+  override def doExtract(page: Document): Iterator[ExtractedEntry] = {
+    val region = page.select("select#switch-region option[selected]").text
+    page.select("div#flowpanes div.fp-item")
       .asScala
-      .asInstanceOf[mutable.Buffer[HtmlDivision]]
       .flatMap { item =>
-      regionToCity.get(region).orElse(regionToCity.get(URLDecoder.decode(region, StandardCharsets.UTF_8.name()))).flatMap { city =>
+      regionToCity.get(region).flatMap { city =>
         extractEntry(
           "Дикси",
           city,
-          item.getOneHtmlElementByAttribute("div", "class", "prices-3")
-            .asInstanceOf[HtmlDivision]
-            .getTextContent
+          item.select("div.prices-3")
+            .text
             .replace("весовая", "")
             .replace("весовой", ""),
-          extractPrice(item.getElementsByAttribute("h5", "class", "price-now threedigit")
+          extractPrice(item.select("h5.price-now.threedigit")
             .asScala
             .headOption
-            .asInstanceOf[Option[HtmlHeading5]]
-            .getOrElse(item.getOneHtmlElementByAttribute("h5", "class", "price-now").asInstanceOf[HtmlHeading5])
-            .getTextContent),
+            .map(_.text)
+            .getOrElse(item.select("h5.price-now").text)),
           null,
-          item.getElementsByTagName("img")
-            .asScala
-            .asInstanceOf[mutable.Buffer[HtmlDivision]]
-            .headOption
-            .orNull
+          item.select("img")
         )
       }
     }.iterator
