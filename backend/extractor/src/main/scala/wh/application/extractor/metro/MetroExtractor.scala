@@ -2,15 +2,14 @@ package wh.application.extractor.metro
 
 import java.net.URL
 
-import com.gargoylesoftware.htmlunit.html._
-import wh.application.extractor.AbstractHtmlUnitExtractor
+import org.jsoup.nodes.Document
+import wh.application.extractor.AbstractJsoupExtractor
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.util.Try
 
-class MetroExtractor extends AbstractHtmlUnitExtractor {
+class MetroExtractor extends AbstractJsoupExtractor {
   protected def domains(url: URL): Map[String, URL] = {
     json[List[Map[String, Object]]](url.toURI.resolve("/index.php?route=store/store/getstores").toURL)
       .map(_.flatMap(_.get("tradecenter").asInstanceOf[Option[List[Map[String, Object]]]].getOrElse(List.empty)))
@@ -21,32 +20,26 @@ class MetroExtractor extends AbstractHtmlUnitExtractor {
     }.getOrElse(Map())
   }
 
-  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
-    domains(page.getUrl).toStream.iterator.flatMap { domain =>
-      htmlPage(domain._2).map{page =>
-        page.getBody
-          .getElementsByAttribute("li", "class", "item __submenu")
+  override def doExtract(page: Document): Iterator[ExtractedEntry] = {
+    domains(new URL(page.baseUri)).toStream.iterator.flatMap { domain =>
+      document(domain._2).map{ page =>
+        page.select("li.item.__submenu")
           .asScala
-          .asInstanceOf[mutable.Buffer[HtmlListItem]]
-          .toStream
           .iterator
+          .filterNot(_.classNames().contains("__action"))
           .flatMap { submenu =>
-          val rootCategory = Category(cleanUpName(submenu.getFirstChild.getTextContent), null)
-          submenu.getElementsByAttribute("div", "class", "subcatalog_list")
+          val rootCategory = Category(cleanUpName(submenu.child(0).text), null)
+          submenu.select("div.subcatalog_list")
             .asScala
-            .asInstanceOf[mutable.Buffer[HtmlDivision]]
-            .toStream
             .iterator
             .flatMap { subcatalog =>
-            val category = Category(cleanUpName(subcatalog.getFirstChild.getTextContent), rootCategory)
-            subcatalog.getElementsByAttribute("a", "class", "subcatalog_link")
+            val category = Category(cleanUpName(subcatalog.child(0).text), rootCategory)
+            subcatalog.select("a.subcatalog_link")
               .asScala
-              .asInstanceOf[mutable.Buffer[HtmlAnchor]]
-              .toStream
               .iterator
               .flatMap { subcatalogLink =>
-              href(subcatalogLink).map { href =>
-                val subCategory = Category(cleanUpName(subcatalogLink.getTextContent), category)
+              url(subcatalogLink, "href").map { href =>
+                val subCategory = Category(cleanUpName(subcatalogLink.text), category)
                 handle(Try(extractCategoryEntries(domain._1, href, subCategory))).getOrElse(Iterator.empty)
               }.getOrElse(Iterator.empty)
             }
@@ -70,23 +63,20 @@ class MetroExtractor extends AbstractHtmlUnitExtractor {
         }
       }.iterator
       .flatMap { json =>
-      json.map(_.get("data").asInstanceOf[Option[Map[String, Object]]])
-        .flatten
-        .map(_.get("items").asInstanceOf[Option[List[String]]])
-        .flatten.map { entries =>
-        entries.iterator.map(html).flatMap { entryPage =>
-          entryPage.getBody
-            .getElementsByAttribute("div", "class", "current")
+      json.flatMap(_.get("data").asInstanceOf[Option[Map[String, Object]]])
+        .flatMap(_.get("items").asInstanceOf[Option[List[String]]])
+        .map { entries =>
+        entries.iterator.map(document).flatMap { entryPage =>
+          entryPage.select("div.current")
             .asScala
-            .asInstanceOf[mutable.Buffer[HtmlDivision]]
             .headOption
             .map { price =>
-            val img = entryPage.getBody.getElementsByTagName("img").get(0)
+            val img = entryPage.select("img").first
             extractEntry(
               "Metro",
               city,
-              img.getAttribute("title"),
-              extractPrice(price.getTextContent, 1),
+              img.attr("title"),
+              extractPrice(price.text, 1),
               category,
               img
             )
