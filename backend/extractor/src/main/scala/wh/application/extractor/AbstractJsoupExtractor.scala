@@ -26,7 +26,7 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
         val n = it.next()
         i += 1
         if (i % 50 == 0) {
-          logger.info(s"Extracted $i entries from $url with cookies $cookies")
+          logger.info(s"Extracted $i entries (last category is ${n.category.name}}) from $url (${n.shop.city}) with cookies $cookies")
         }
         n
       }
