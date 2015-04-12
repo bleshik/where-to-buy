@@ -39,15 +39,19 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
   }
 
   protected def cleanUpName(str: String): String = {
-    val noDotsStr = str.replace("…»", "").replaceAll("(?m)\\s+", " ").trim
-    if (!noDotsStr.head.isSpaceChar && !noDotsStr.head.isWhitespace) {
-      if (!noDotsStr.last.isSpaceChar && !noDotsStr.head.isWhitespace) {
-        noDotsStr
-      } else {
-        cleanUpName(noDotsStr.take(noDotsStr.length - 1))
-      }
+    if (str == null || str.isEmpty) {
+      ""
     } else {
-      cleanUpName(noDotsStr.tail)
+      val noDotsStr = str.replace("…»", "").replaceAll("(?m)\\s+", " ").trim
+      if (!noDotsStr.head.isSpaceChar && !noDotsStr.head.isWhitespace) {
+        if (!noDotsStr.last.isSpaceChar && !noDotsStr.head.isWhitespace) {
+          noDotsStr
+        } else {
+          cleanUpName(noDotsStr.take(noDotsStr.length - 1))
+        }
+      } else {
+        cleanUpName(noDotsStr.tail)
+      }
     }
   }
 
