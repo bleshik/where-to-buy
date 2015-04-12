@@ -12,8 +12,6 @@ mainClass in Compile := Some("wh.application.extractor.ExtractorApp")
 
 resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 
-libraryDependencies += "net.sourceforge.htmlunit" % "htmlunit" % "2.15"
-
 libraryDependencies += "org.jsoup" % "jsoup" % "1.8.1"
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.3"
