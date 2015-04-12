@@ -21,7 +21,10 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
           .headOption
           .map(price => price.text)
           .orElse(
-            entry.select("div.price.color_action").text.split('.').lastOption
+            entry.select("div.price.color_action")
+              .asScala
+              .headOption
+              .map(_.ownText)
           ).map(extractPrice(_))
         .flatMap { price =>
           extractEntry(
