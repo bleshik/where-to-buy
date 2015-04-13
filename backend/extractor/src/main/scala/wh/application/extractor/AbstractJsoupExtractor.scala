@@ -24,9 +24,15 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
 
       override def next(): ExtractedEntry = {
         val n = it.next()
+        if (i == 0) {
+          logger.info(s"Starting extracting $url (${n.shop.city}) with cookies $cookies")
+        }
         i += 1
         if (i % 50 == 0) {
           logger.info(s"Extracted $i entries (last category is ${n.category.name}}) from $url (${n.shop.city}) with cookies $cookies")
+        }
+        if (!it.hasNext) {
+          logger.info(s"Done extracting $url (${n.shop.city}) with cookies $cookies")
         }
         n
       }

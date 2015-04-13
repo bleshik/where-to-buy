@@ -9,7 +9,6 @@ import wh.application.extractor.auchan.AuchanExtractor
 import wh.application.extractor.cont.ContExtractor
 import wh.application.extractor.dixy.DixyExtractor
 import wh.application.extractor.infrastructure.Environment
-import wh.application.extractor.infrastructure.Environment.minimumConcurrency
 import wh.application.extractor.komus.KomusExtractor
 import wh.application.extractor.metro.MetroExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
@@ -39,12 +38,17 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def upload(output: String): Unit = {
+    def mergeStreams[A](xs: Stream[A], ys: Stream[A]): Stream[A] =
+      xs.head #:: ys.head #:: mergeStreams[A](xs.tail, ys.tail)
+    def mergeIterators[A](xs: Iterator[A], ys: Iterator[A]): Iterator[A] =
+      mergeStreams[A](xs.toStream, ys.toStream).iterator
     logger.info(s"My payload is ${payload.map(_._1)}")
-    payload.par.withMinThreads(minimumConcurrency).foreach { p =>
-        logger.info(s"Starting extracting ${p._1}")
-        doUpload(p._2.extract(new URL(p._1)), output)
-        logger.info(s"Done extracting ${p._1}")
-    }
+
+    val it = payload.par.withMinThreads(Environment.minimumConcurrency)
+        .map(p => Stream.continually(p._2.extract(new URL(p._1))).iterator.flatten) // make every extractor result infinite
+        .reduce((a, b) => mergeIterators(a, b)) // merge the infinite iterators
+
+    doUpload(it, output)
   }
 
   private def doUpload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
