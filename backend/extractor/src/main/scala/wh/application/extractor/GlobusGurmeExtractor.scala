@@ -31,27 +31,30 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
 
   private def extractEntriesFromCategory(page: Document, category: Category): Iterator[ExtractedEntry] = {
     val city = cleanUpName(page.select("a[title=Выберите город]").text)
-    (Iterator(page) ++
-      page.select("ul.gg-search-pager").first().select("a").asScala.flatMap(url(_, "href"))
-      .toStream.flatMap(document(_))).flatMap { page: Document =>
+    page.select("ul.gg-search-pager")
+      .asScala
+      .headOption
+      .map { Iterator(page) ++ _.select("a").asScala.flatMap(url(_, "href")).toStream.iterator.flatMap(document(_)) }
+      .getOrElse(Iterator(page))
+      .flatMap { page: Document =>
         page.select("div.product-list-item")
           .asScala
           .flatMap { item =>
           item.select("div.price-item")
             .asScala
-            .map { priceDiv => extractPrice(priceDiv.text)
-            val img = item.select("img")
-            val name = cleanUpName(item.select("div.product-list-head a").text)
-            val quantity =
-              if (priceDiv.hasClass("price-item-weight"))
-                "1 кг"
-              else if (priceDiv.hasClass("price-item-items"))
-                "1 шт"
-              else
-                ""
-            extractEntry("Глобус Гурмэ", city, name + " " + quantity, extractPrice(priceDiv.text), category, img)
+            .flatMap { priceDiv => extractPrice(priceDiv.text)
+              val img = item.select("img")
+              val name = cleanUpName(item.select("div.product-list-head a").text)
+              val quantity =
+                if (priceDiv.hasClass("price-item-weight"))
+                  "1 кг"
+                else if (priceDiv.hasClass("price-item-items"))
+                  "1 шт"
+                else
+                  ""
+              extractEntry("Глобус Гурмэ", city, name + " " + quantity, extractPrice(priceDiv.text), category, img)
+          }.iterator
         }
-      }.flatten.iterator
     }
   }
 }
