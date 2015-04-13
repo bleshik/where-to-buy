@@ -44,7 +44,7 @@ class ContExtractor extends AbstractJsoupExtractor {
           "Седьмой Континент",
           SupportedCity.Moscow.name,
           e.select("div.title a").text,
-          extractPrice(e.select("div.currentprice").text),
+          extractPrice(e.select("div.currentprice").text, 1),
           category,
           e.select("img")
         )
