@@ -4,13 +4,13 @@ import java.net.URL
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.typesafe.scalalogging.LazyLogging
 import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
+import wh.util.LoggingHandling
 
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-abstract class AbstractExtractor extends Extractor with LazyLogging {
+abstract class AbstractExtractor extends Extractor with LoggingHandling {
   protected lazy val json  = {
     val mapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
@@ -23,19 +23,6 @@ abstract class AbstractExtractor extends Extractor with LazyLogging {
     )).orElse(
         if (attempts > 0) json[T](url, attempts - 1) else None
       )
-  }
-
-  protected def handle[T](t: Try[T]): Option[T] = {
-    t match {
-      case Success(i) => Some(i)
-      case Failure(thrown) => thrown match {
-        case exception: Exception =>
-          logger.error("The try tailed", thrown)
-          None
-        case other: Throwable =>
-          throw other
-      }
-    }
   }
 
   protected def cleanUpName(str: String): String = {

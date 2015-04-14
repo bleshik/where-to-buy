@@ -2,7 +2,7 @@ package wh.application.extractor
 
 import java.net.URL
 
-import org.jsoup.nodes.Document
+import wh.application.extractor.JsoupPage._
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
@@ -14,30 +14,30 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
     }
   }
 
-  override def doExtract(page: Document): Iterator[ExtractedEntry] = extractEntriesFromCategories(page, null)
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = extractEntriesFromCategories(page, null)
 
-  private def extractEntriesFromCategories(page: Document, category: Category): Iterator[ExtractedEntry] = {
-    val categories = page.select("li.hide640 a")
+  private def extractEntriesFromCategories(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    val categories = page.document.select("li.hide640 a")
     if (categories.isEmpty) {
       extractEntriesFromCategory(page, category)
     } else {
       categories.asScala.iterator.flatMap { categoryLink =>
-        click(categoryLink).map { nextPage =>
+        page.click(categoryLink).map { nextPage =>
           extractEntriesFromCategories(nextPage, Category(cleanUpName(categoryLink.ownText), category))
         }
       }.flatten
     }
   }
 
-  private def extractEntriesFromCategory(page: Document, category: Category): Iterator[ExtractedEntry] = {
-    val city = cleanUpName(page.select("a[title=Выберите город]").text)
-    page.select("ul.gg-search-pager")
+  private def extractEntriesFromCategory(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    val city = cleanUpName(page.document.select("a[title=Выберите город]").text)
+    page.document.select("ul.gg-search-pager")
       .asScala
       .headOption
       .map { Iterator(page) ++ _.select("a").asScala.flatMap(url(_, "href")).toStream.iterator.flatMap(document(_)) }
       .getOrElse(Iterator(page))
-      .flatMap { page: Document =>
-        page.select("div.product-list-item")
+      .flatMap { page: JsoupPage =>
+        page.document.select("div.product-list-item")
           .asScala
           .flatMap { item =>
           item.select("div.price-item")

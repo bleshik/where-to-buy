@@ -2,19 +2,18 @@ package wh.application.extractor.utkonos
 
 import java.net.URL
 
-import org.jsoup.nodes.Document
-import wh.application.extractor.{AbstractJsoupExtractor, SupportedCity}
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 
 class UtkonosExtractor extends AbstractJsoupExtractor {
-  override def doExtract(page: Document): Iterator[ExtractedEntry] = {
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
     extractFromCategory(page, null)
   }
 
-  private def extractFromCategory(page: Document, category: Category): Iterator[ExtractedEntry] = {
-    page.select("div.goods_container.goods_view_box").asScala.headOption.map { goods =>
+  private def extractFromCategory(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    page.document.select("div.goods_container.goods_view_box").asScala.headOption.map { goods =>
       goods.select("div.goods_view").asScala.flatMap { entry =>
         entry.select("div.price.color_black")
           .asScala
@@ -35,19 +34,19 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
             category,
             entry.select("img"))
         }
-      }.iterator ++ page.select("div.el_paginate").asScala.headOption.map { pagination =>
+      }.iterator ++ page.document.select("div.el_paginate").asScala.headOption.map { pagination =>
         pagination.select("a").asScala.lastOption.map { lastLink =>
           if (cleanUpName(lastLink.text).equals("Вперед"))
-            click(lastLink).map(extractFromCategory(_, category)).getOrElse(Iterator.empty)
+            page.click(lastLink).map(extractFromCategory(_, category)).getOrElse(Iterator.empty)
           else
             Iterator.empty
         }.getOrElse(Iterator.empty)
       }.getOrElse(Iterator.empty)
-    }.getOrElse(Iterator.empty) ++ page.select("a.align_center.cat_preview")
+    }.getOrElse(Iterator.empty) ++ page.document.select("a.align_center.cat_preview")
       .asScala
       .iterator
       .flatMap { a =>
-        click(a).map(extractFromCategory(_, Category(cleanUpName(a.text), category))).getOrElse(Iterator.empty)
+        page.click(a).map(extractFromCategory(_, Category(cleanUpName(a.text), category))).getOrElse(Iterator.empty)
       }
   }
 

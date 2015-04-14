@@ -2,8 +2,7 @@ package wh.application.extractor.dixy
 
 import java.net.URL
 
-import org.jsoup.nodes.Document
-import wh.application.extractor.AbstractJsoupExtractor
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.ExtractedEntry
 
 import scala.collection.JavaConverters._
@@ -45,9 +44,9 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtract
       super.extract(url, Map((dixyRegion, region._1)))
     }
 
-  override def doExtract(page: Document): Iterator[ExtractedEntry] = {
-    val region = page.select("select#switch-region option[selected]").text
-    page.select("div#flowpanes div.fp-item")
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    val region = page.document.select("select#switch-region option[selected]").text
+    page.document.select("div#flowpanes div.fp-item")
       .asScala
       .flatMap { item =>
       regionToCity.get(region).flatMap { city =>

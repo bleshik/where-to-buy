@@ -8,6 +8,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.{Document, Element}
 import org.jsoup.select.Elements
 import wh.extractor.domain.model.{Category, ExtractedEntry}
+import wh.util.LoggingHandling
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -16,7 +17,7 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
   override def extract(url: URL): Iterator[ExtractedEntry] = extract(url, Map())
 
   def extract(url: URL, cookies: Map[String, String]): Iterator[ExtractedEntry] = {
-    val it = document(url, cookies).map(doExtract).getOrElse(Iterator.empty)
+    val it = JsoupPage.document(url, cookies).map(doExtract).getOrElse(Iterator.empty)
     new Iterator[ExtractedEntry] {
       @volatile var i = 0
 
@@ -39,26 +40,31 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
     }
   }
 
-  protected def document(url: URL, cookies: Map[String, String] = Map()): Option[Document] =
-    handle(Try {
-      if (!url.getProtocol.startsWith("http")) {
-        Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString)
-      } else {
-        Jsoup.connect(url.toString).cookies(cookies.asJava).get()
-      }
-    })
-
-  protected def document(html: String): Document = Jsoup.parse(html)
-
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Element): Option[ExtractedEntry] =
     handle(Try(new URL(image.absUrl("src")))).flatMap(src => extractEntry(shop, city, name, price, category, src))
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Elements): Option[ExtractedEntry] =
     extractEntry(shop, city, name, price, category, image.first())
 
-  protected def click(a: Element): Option[Document] = url(a, "href").flatMap(document(_))
+  def doExtract(page: JsoupPage): Iterator[ExtractedEntry]
+}
 
-  protected def url(e: Element, attribute: String): Option[URL] = handle(Try(new URL(e.absUrl(attribute))))
+case class JsoupPage(document: Document, cookies: Map[String, String] = Map()) {
+  def click(a: Element): Option[JsoupPage] =
+    JsoupPage.url(a, "href").flatMap(u => JsoupPage.document(u, cookies))
+}
 
-  def doExtract(page: Document): Iterator[ExtractedEntry]
+object JsoupPage extends LoggingHandling {
+  def document(html: String): JsoupPage = JsoupPage(Jsoup.parse(html))
+
+  def document(url: URL, cookies: Map[String, String] = Map()): Option[JsoupPage] =
+    handle(Try {
+      if (!url.getProtocol.startsWith("http")) {
+        JsoupPage(Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString), cookies)
+      } else {
+        JsoupPage(Jsoup.connect(url.toString).cookies(cookies.asJava).get(), cookies)
+      }
+    })
+
+  def url(e: Element, attribute: String): Option[URL] = handle(Try(new URL(e.absUrl(attribute))))
 }

@@ -2,17 +2,18 @@ package wh.application.extractor.auchan
 
 import java.net.URL
 
-import org.jsoup.nodes.{Document, Element}
-import wh.application.extractor.AbstractJsoupExtractor
+import org.jsoup.nodes.Element
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import wh.application.extractor.JsoupPage._
 
 class AuchanExtractor extends AbstractJsoupExtractor {
 
   override def extract(url: URL): Iterator[ExtractedEntry] = document(url).map { page =>
-    page.select("ul.city-list")
+    page.document.select("ul.city-list")
       .asScala
       .asInstanceOf[mutable.Buffer[Element]]
       .headOption
@@ -29,8 +30,8 @@ class AuchanExtractor extends AbstractJsoupExtractor {
     }.getOrElse(Iterator.empty)
   }.getOrElse(Iterator.empty)
 
-  override def doExtract(page: Document): Iterator[ExtractedEntry] = {
-    val li = page.select("ul.sub-nav")
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    val li = page.document.select("ul.sub-nav")
       .first()
       .children()
       .asScala
@@ -44,13 +45,13 @@ class AuchanExtractor extends AbstractJsoupExtractor {
     drop.select("div.drop2").asScala.zipWithIndex.iterator.flatMap { case (subDrop, i) =>
       val parentCategory = Category(categories(i), rootCategory)
       subDrop.select("a").asScala.iterator.flatMap { category =>
-        click(category).map(page => extractCategory(page, Category(cleanUpName(category.text), parentCategory))).getOrElse(Iterator.empty)
+        page.click(category).map(page => extractCategory(page, Category(cleanUpName(category.text), parentCategory))).getOrElse(Iterator.empty)
       }
     }
   }
 
-  private def extractCategory(page: Document, category: Category): Iterator[ExtractedEntry] = {
-    page.select("div.city-box.cf li")
+  private def extractCategory(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    page.document.select("div.city-box.cf li")
       .asScala
       .headOption
       .map { city =>
@@ -58,7 +59,7 @@ class AuchanExtractor extends AbstractJsoupExtractor {
           .replace("г.", "")
           .trim
     }.map { city =>
-      page.select("ul.items-list li")
+      page.document.select("ul.items-list li")
         .asScala
         .iterator
         .flatMap { item =>
@@ -66,8 +67,8 @@ class AuchanExtractor extends AbstractJsoupExtractor {
         val price = extractPrice(item.select("div.price").text)
         extractEntry("Ашан", city, name, price, category, item.select("img"))
       } ++
-        page.select("a.next").asScala.headOption.map { nextLink =>
-          click(nextLink).map { next =>
+        page.document.select("a.next").asScala.headOption.map { nextLink =>
+          page.click(nextLink).map { next =>
             extractCategory(next, category)
           }.getOrElse(Iterator.empty)
         }.getOrElse(Iterator.empty)

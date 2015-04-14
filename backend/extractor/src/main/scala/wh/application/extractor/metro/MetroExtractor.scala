@@ -2,8 +2,8 @@ package wh.application.extractor.metro
 
 import java.net.URL
 
-import org.jsoup.nodes.Document
-import wh.application.extractor.AbstractJsoupExtractor
+import wh.application.extractor.JsoupPage._
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
@@ -20,10 +20,10 @@ class MetroExtractor extends AbstractJsoupExtractor {
     }.getOrElse(Map())
   }
 
-  override def doExtract(page: Document): Iterator[ExtractedEntry] = {
-    domains(new URL(page.baseUri)).toStream.iterator.flatMap { domain =>
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    domains(new URL(page.document.baseUri)).toStream.iterator.flatMap { domain =>
       document(domain._2).map{ page =>
-        page.select("li.item.__submenu")
+        page.document.select("li.item.__submenu")
           .asScala
           .iterator
           .filterNot(_.classNames().contains("__action"))
@@ -67,11 +67,11 @@ class MetroExtractor extends AbstractJsoupExtractor {
         .flatMap(_.get("items").asInstanceOf[Option[List[String]]])
         .map { entries =>
         entries.iterator.map(document).flatMap { entryPage =>
-          entryPage.select("div.current")
+          entryPage.document.select("div.current")
             .asScala
             .headOption
             .map { price =>
-            val img = entryPage.select("img").first
+            val img = entryPage.document.select("img").first
             extractEntry(
               "Metro",
               city,
