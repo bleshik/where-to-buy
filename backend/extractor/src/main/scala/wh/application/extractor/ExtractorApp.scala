@@ -38,15 +38,29 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def upload(output: String): Unit = {
-    def mergeStreams[A](xs: Stream[A], ys: Stream[A]): Stream[A] =
-      xs.head #:: ys.head #:: mergeStreams[A](xs.tail, ys.tail)
-    def mergeIterators[A](xs: Iterator[A], ys: Iterator[A]): Iterator[A] =
-      mergeStreams[A](xs.toStream, ys.toStream).iterator
     logger.info(s"My payload is ${payload.map(_._1)}")
-
     val it = payload.par.withMinThreads(Environment.minimumConcurrency)
-        .map(p => Stream.continually(p._2.extract(new URL(p._1))).iterator.flatten) // make every extractor result infinite
-        .reduce((a, b) => mergeIterators(a, b)) // merge the infinite iterators
+        .map { p =>
+          Iterator.continually[Iterator[ExtractedEntry]](p._2.extract(new URL(p._1))).flatten
+        } // make every extractor result infinite
+        .reduce { (a, b) =>
+          new Iterator[ExtractedEntry] {
+            @volatile var cur = a
+            override def hasNext: Boolean = a.hasNext || b.hasNext
+
+            override def next(): ExtractedEntry = {
+              if (!cur.hasNext) {
+                swap()
+              }
+              val n = cur.next()
+              swap()
+              n
+            }
+
+            private def swap(): Unit =
+              if (cur == a) cur = b else cur = a
+          }
+        } // merge the infinite iterators
 
     doUpload(it, output)
   }
