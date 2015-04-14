@@ -16,8 +16,8 @@ import scala.util.Try
 abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging {
   override def extract(url: URL): Iterator[ExtractedEntry] = extract(url, Map())
 
-  def extract(url: URL, cookies: Map[String, String]): Iterator[ExtractedEntry] = {
-    val it = JsoupPage.document(url, cookies).map(doExtract).getOrElse(Iterator.empty)
+  def extract(url: URL, cookies: Map[String, String], city: Option[String] = None): Iterator[ExtractedEntry] = {
+    val it = JsoupPage.document(url, cookies, city).map(doExtract).getOrElse(Iterator.empty)
     new Iterator[ExtractedEntry] {
       @volatile var i = 0
 
@@ -49,7 +49,7 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
   def doExtract(page: JsoupPage): Iterator[ExtractedEntry]
 }
 
-case class JsoupPage(document: Document, cookies: Map[String, String] = Map()) {
+case class JsoupPage(document: Document, cookies: Map[String, String] = Map(), city: Option[String] = None) {
   def click(a: Element): Option[JsoupPage] =
     JsoupPage.url(a, "href").flatMap(u => JsoupPage.document(u, cookies))
 }
@@ -57,12 +57,12 @@ case class JsoupPage(document: Document, cookies: Map[String, String] = Map()) {
 object JsoupPage extends LoggingHandling {
   def document(html: String): JsoupPage = JsoupPage(Jsoup.parse(html))
 
-  def document(url: URL, cookies: Map[String, String] = Map()): Option[JsoupPage] =
+  def document(url: URL, cookies: Map[String, String] = Map(), city: Option[String] = None): Option[JsoupPage] =
     handle(Try {
       if (!url.getProtocol.startsWith("http")) {
-        JsoupPage(Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString), cookies)
+        JsoupPage(Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString), cookies, city)
       } else {
-        JsoupPage(Jsoup.connect(url.toString).cookies(cookies.asJava).get(), cookies)
+        JsoupPage(Jsoup.connect(url.toString).cookies(cookies.asJava).get(), cookies, city)
       }
     })
 

@@ -20,33 +20,35 @@ class MetroExtractor extends AbstractJsoupExtractor {
     }.getOrElse(Map())
   }
 
+
+  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] =
+    domains(url).toList.map { d => () => extract(d._2, Map(), Some(d._1)) }
+
   override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
-    domains(new URL(page.document.baseUri)).toStream.iterator.flatMap { domain =>
-      document(domain._2).map{ page =>
-        page.document.select("li.item.__submenu")
+    page.city.map { city =>
+      page.document.select("li.item.__submenu")
+        .asScala
+        .iterator
+        .filterNot(_.classNames().contains("__action"))
+        .flatMap { submenu =>
+        val rootCategory = Category(cleanUpName(submenu.child(0).text), null)
+        submenu.select("div.subcatalog_list")
           .asScala
           .iterator
-          .filterNot(_.classNames().contains("__action"))
-          .flatMap { submenu =>
-          val rootCategory = Category(cleanUpName(submenu.child(0).text), null)
-          submenu.select("div.subcatalog_list")
+          .flatMap { subcatalog =>
+          val category = Category(cleanUpName(subcatalog.child(0).text), rootCategory)
+          subcatalog.select("a.subcatalog_link")
             .asScala
             .iterator
-            .flatMap { subcatalog =>
-            val category = Category(cleanUpName(subcatalog.child(0).text), rootCategory)
-            subcatalog.select("a.subcatalog_link")
-              .asScala
-              .iterator
-              .flatMap { subcatalogLink =>
-              url(subcatalogLink, "href").map { href =>
-                val subCategory = Category(cleanUpName(subcatalogLink.text), category)
-                handle(Try(extractCategoryEntries(domain._1, href, subCategory))).getOrElse(Iterator.empty)
-              }.getOrElse(Iterator.empty)
-            }
+            .flatMap { subcatalogLink =>
+            url(subcatalogLink, "href").map { href =>
+              val subCategory = Category(cleanUpName(subcatalogLink.text), category)
+              handle(Try(extractCategoryEntries(city, href, subCategory))).getOrElse(Iterator.empty)
+            }.getOrElse(Iterator.empty)
           }
         }
-      }.getOrElse(Iterator.empty)
-    }
+      }
+    }.getOrElse(Iterator.empty)
   }
 
   protected def entriesUrls(categoryUrl: URL): List[URL] = {

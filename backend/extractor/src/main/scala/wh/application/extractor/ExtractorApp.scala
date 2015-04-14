@@ -12,7 +12,7 @@ import wh.application.extractor.infrastructure.Environment
 import wh.application.extractor.komus.KomusExtractor
 import wh.application.extractor.metro.MetroExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
-import wh.extractor.domain.model.{ExtractedEntry, Extractor}
+import wh.extractor.domain.model.ExtractedEntry
 import wh.util.ConcurrencyUtil._
 
 object ExtractorApp extends LazyLogging {
@@ -38,11 +38,9 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def upload(output: String): Unit = {
-    logger.info(s"My payload is ${payload.map(_._1)}")
+    val myPayload = payload
+    logger.info(s"My payoad contains ${myPayload.size} sources")
     val it = payload.par.withMinThreads(Environment.minimumConcurrency)
-        .map { p =>
-          Iterator.continually[Iterator[ExtractedEntry]](p._2.extract(new URL(p._1))).flatten
-        } // make every extractor result infinite
         .reduce { (a, b) =>
           new Iterator[ExtractedEntry] {
             @volatile var cur = a
@@ -76,7 +74,7 @@ object ExtractorApp extends LazyLogging {
     }
   }
 
-  private def payload: List[(String, Extractor)] = {
+  private def payload: List[Iterator[ExtractedEntry]] = {
     val all = List(
       ("http://klg.metro-cc.ru", new MetroExtractor),
       ("http://www.auchan.ru", new AuchanExtractor),
@@ -85,10 +83,13 @@ object ExtractorApp extends LazyLogging {
       ("http://www.7cont.ru", new ContExtractor),
       ("http://dixy.ru", new DixyExtractor),
       ("http://globusgurme.ru/catalog", new GlobusGurmeExtractor)
-    )
+    ).filter { p =>
+      Environment.shops.isEmpty || Environment.shops.get.exists { shop => p._1.toLowerCase.contains(shop.toLowerCase) }
+    }.flatMap { p =>
+      p._2.parts(new URL(p._1)).map { part => Iterator.continually(part()).flatten } // make every extractor result infinite
+    }
 
-    // divide all the shops
-    val myPayload = if (Environment.instance <= Environment.instances) {
+    if (Environment.instance <= Environment.instances) {
       val part = all.size / Environment.instances
       val tail = all.takeRight(all.size % Environment.instances)
       all.drop((Environment.instance - 1) * part).take(part) ++ (if (Environment.instance.equals(Environment.instances)) tail else List())
@@ -96,12 +97,5 @@ object ExtractorApp extends LazyLogging {
       logger.warn("Environment is not correct. The instance number is out of bounds. " + Environment.instance + "/" + Environment.instances)
       all
     }
-
-    // filter shops by name if needed
-    Environment.shops.map { shops: List[String] =>
-      myPayload.filter { e =>
-        shops.exists { shop => e._1.toLowerCase.contains(shop.toLowerCase) }
-      }
-    }.getOrElse(myPayload)
   }
 }
