@@ -49,22 +49,26 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
   def doExtract(page: JsoupPage): Iterator[ExtractedEntry]
 }
 
-case class JsoupPage(document: Document, cookies: Map[String, String] = Map(), city: Option[String] = None) {
+case class JsoupPage(document: Document, cookies: Map[String, String] = Map(), city: Option[String] = None, history: List[URL] = List()) {
   def click(a: Element): Option[JsoupPage] =
-    JsoupPage.url(a, "href").flatMap(u => JsoupPage.document(u, cookies))
+    JsoupPage.url(a, "href")
+             .flatMap(u => JsoupPage.document(u, cookies, city, history :+ new URL(document.baseUri)))
+             .flatMap(p => if (p.history.contains(new URL(p.document.baseUri))) None else Some(p))
 }
 
 object JsoupPage extends LoggingHandling {
   def document(html: String): JsoupPage = JsoupPage(Jsoup.parse(html))
 
-  def document(url: URL, cookies: Map[String, String] = Map(), city: Option[String] = None): Option[JsoupPage] =
+  def document(url: URL, cookies: Map[String, String] = Map(), city: Option[String] = None, history: List[URL] = List()): Option[JsoupPage] = {
+    logger.info(url.toString)
     handle(Try {
       if (!url.getProtocol.startsWith("http")) {
-        JsoupPage(Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString), cookies, city)
+        JsoupPage(Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString), cookies, city, history)
       } else {
-        JsoupPage(Jsoup.connect(url.toString).cookies(cookies.asJava).get(), cookies, city)
+        JsoupPage(Jsoup.connect(url.toString).cookies(cookies.asJava).get(), cookies, city, history)
       }
     })
+  }
 
   def url(e: Element, attribute: String): Option[URL] = handle(Try(new URL(e.absUrl(attribute))))
 }
