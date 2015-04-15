@@ -17,6 +17,9 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
   override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = extractEntriesFromCategories(page, null)
 
   private def extractEntriesFromCategories(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    if (category != null && category.name.toLowerCase.trim.contains("подарочные наборы")) {
+      return Iterator.empty
+    }
     val categories = page.document.select("li.hide640 a")
     if (categories.isEmpty) {
       extractEntriesFromCategory(page, category)
