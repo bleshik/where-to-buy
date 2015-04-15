@@ -1,10 +1,9 @@
 package wh.port.adapter.persistence
 
-import java.io.{InputStream, InputStreamReader, StringReader}
+import java.io.{ByteArrayInputStream, InputStream, InputStreamReader, StringReader}
 import java.lang.Math.{max, min}
 import java.util.regex.Pattern
 
-import org.apache.commons.io.input.ReaderInputStream
 import org.apache.commons.lang3.StringUtils.getJaroWinklerDistance
 import org.supercsv.io.CsvListReader
 import org.supercsv.prefs.CsvPreference
@@ -28,9 +27,9 @@ class CommodityMatcher(val split: Double = 1) {
   val matchingPairs = readCommodities("commodity-matching-pairs.csv")
   val notMatchingPairs = readCommodities("commodity-not-matching-pairs.csv")
 
-  learn(new ReaderInputStream(new StringReader(
+  learn(new ByteArrayInputStream(
       toDataSet(matchingPairs.take((matchingPairs.size * split).asInstanceOf[Int]).map(p => scores(p._1, p._2) :+ 1) ++
-      notMatchingPairs.take((notMatchingPairs.size * split).asInstanceOf[Int]).map(p => scores(p._1, p._2) :+ 0)))))
+      notMatchingPairs.take((notMatchingPairs.size * split).asInstanceOf[Int]).map(p => scores(p._1, p._2) :+ 0)).getBytes()))
 
   def toDataSet(dataSet: List[List[Any]]): String = {
     val result = new StringBuilder
