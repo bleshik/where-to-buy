@@ -8,16 +8,17 @@ import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop}
 import wh.images.domain.model.{ImageRepository, LazyImage}
 import wh.inventory.domain.model.{Commodity, CommodityRepository, Shop}
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
-class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, imageRepository: ImageRepository)
+class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepository, val imageRepository: ImageRepository, implicit val executionContext: ExecutionContext)
   extends Actor with LazyLogging {
+  @volatile var i = 0
 
   override def receive: Receive = {
-    case entry: ExtractedEntry =>
+     case entry: ExtractedEntry =>
       Future {
         logger.trace(s"Received entry $entry")
+        val start = System.currentTimeMillis()
         def flatCategories(c: Category): Stream[Category] =
           c #:: (if (c.parentCategory != null) flatCategories(c.parentCategory) else Stream.empty)
         val categories = Option(entry.category).map(c =>
@@ -53,7 +54,10 @@ class EntryExtractingActor @Inject()(commodityRepository: CommodityRepository, i
             case _ =>
           }
         }
-
+        i += 1
+        if (i % 100 == 0) {
+          logger.info(s"Entry was handled in ${System.currentTimeMillis() - start}")
+        }
         logger.trace(s"Commodity amount ${commodityRepository.size}")
       }
   }

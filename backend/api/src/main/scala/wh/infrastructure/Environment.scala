@@ -19,4 +19,6 @@ object Environment extends Enumeration {
   def privateIp = Option(System.getenv("PRIVATE_IP"))
 
   def balancerIp = Option(System.getenv("BALANCER_IP"))
+
+  def workerPoolConcurrency = Option(System.getenv("CONCURRENCY")).map(_.toInt).getOrElse(12)
 }
