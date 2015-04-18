@@ -8,6 +8,7 @@ import com.typesafe.scalalogging.LazyLogging
 import wh.application.extractor.auchan.AuchanExtractor
 import wh.application.extractor.cont.ContExtractor
 import wh.application.extractor.dixy.DixyExtractor
+import wh.application.extractor.globusgurme.GlobusGurmeExtractor
 import wh.application.extractor.infrastructure.Environment
 import wh.application.extractor.komus.KomusExtractor
 import wh.application.extractor.metro.MetroExtractor

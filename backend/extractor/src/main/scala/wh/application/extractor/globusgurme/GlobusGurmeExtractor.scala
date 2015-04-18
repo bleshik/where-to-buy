@@ -1,8 +1,9 @@
-package wh.application.extractor
+package wh.application.extractor.globusgurme
 
 import java.net.URL
 
 import wh.application.extractor.JsoupPage._
+import wh.application.extractor.{AbstractJsoupExtractor, JsoupPage}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._

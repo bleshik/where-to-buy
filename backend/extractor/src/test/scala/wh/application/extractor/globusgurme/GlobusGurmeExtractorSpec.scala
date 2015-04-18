@@ -3,7 +3,7 @@ package wh.application.extractor.globusgurme
 import java.net.URL
 
 import org.scalatest.{FlatSpec, Matchers}
-import wh.application.extractor.GlobusGurmeExtractor
+import wh.application.extractor.globusgurme.GlobusGurmeExtractor
 import wh.extractor.domain.model.{Category, ExtractedShop, ExtractedEntry}
 
 class GlobusGurmeExtractorSpec extends FlatSpec with Matchers {
