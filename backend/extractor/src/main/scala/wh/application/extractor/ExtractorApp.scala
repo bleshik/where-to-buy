@@ -39,38 +39,23 @@ object ExtractorApp extends LazyLogging {
 
   private def upload(output: String): Unit = {
     val myPayload = payload
-    logger.info(s"My payoad contains ${myPayload.size} sources")
-    val it = payload.par.withMinThreads(Environment.minimumConcurrency)
-        .reduce { (a, b) =>
-          new Iterator[ExtractedEntry] {
-            @volatile var cur = a
-            override def hasNext: Boolean = a.hasNext || b.hasNext
-
-            override def next(): ExtractedEntry = {
-              if (!cur.hasNext) {
-                swap()
-              }
-              val n = cur.next()
-              swap()
-              n
-            }
-
-            private def swap(): Unit =
-              if (cur == a) cur = b else cur = a
-          }
-        } // merge the infinite iterators
-
-    doUpload(it, output)
+    logger.info(s"My payload contains ${myPayload.size} sources")
+    while(true) {
+      payload.par.withMinThreads(Environment.minimumConcurrency).foreach { it =>
+        if (it.hasNext) {
+          doUpload(it.next(), output)
+        }
+      }
+    }
   }
 
-  private def doUpload(iterator: Iterator[ExtractedEntry], output: String): Unit = {
+  private def doUpload(entry: ExtractedEntry, output: String): Unit = {
     output match {
-      case "none" => iterator.foreach(_ => ())
-      case "console" => iterator.foreach(println)
+      case "none" =>
+      case "console" => println(entry)
       case "akka"    =>
-        logger.info(s"Extractor will send extracted data to ${Environment.akkaEndpoint}")
         val remote = extractorSystem.actorSelection(Environment.akkaEndpoint)
-        iterator.foreach(remote ! _)
+        remote ! entry
     }
   }
 
