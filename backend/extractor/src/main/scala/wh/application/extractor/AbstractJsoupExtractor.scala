@@ -26,14 +26,14 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
       override def next(): ExtractedEntry = {
         val n = it.next()
         if (i == 0) {
-          logger.info(s"Starting extracting $url (${n.shop.city}) with cookies $cookies")
+          logger.debug(s"Starting extracting $url (${n.shop.city}) with cookies $cookies")
         }
         i += 1
         if (i % 50 == 0) {
           logger.info(s"Extracted $i entries (last category is ${n.category.name}}) from $url (${n.shop.city}) with cookies $cookies")
         }
         if (!it.hasNext) {
-          logger.info(s"Done extracting $url (${n.shop.city}) with cookies $cookies")
+          logger.debug(s"Done extracting $url (${n.shop.city}) with cookies $cookies")
         }
         n
       }
@@ -60,7 +60,7 @@ object JsoupPage extends LoggingHandling {
   def document(html: String): JsoupPage = JsoupPage(Jsoup.parse(html))
 
   def document(url: URL, cookies: Map[String, String] = Map(), city: Option[String] = None, history: List[URL] = List()): Option[JsoupPage] = {
-    logger.info(url.toString)
+    logger.debug(url.toString)
     handle(Try {
       if (!url.getProtocol.startsWith("http")) {
         JsoupPage(Jsoup.parse(url.openStream(), StandardCharsets.UTF_8.toString, url.toString), cookies, city, history)
