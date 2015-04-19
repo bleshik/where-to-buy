@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigResolveOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import wh.application.extractor.auchan.AuchanExtractor
+import wh.application.extractor.av.AvExtractor
 import wh.application.extractor.cont.ContExtractor
 import wh.application.extractor.dixy.DixyExtractor
 import wh.application.extractor.globusgurme.GlobusGurmeExtractor
@@ -62,6 +63,8 @@ object ExtractorApp extends LazyLogging {
 
   private def payload: List[Iterator[ExtractedEntry]] = {
     val all = List(
+      ("http://av.ru/food/all/", new AvExtractor),
+      ("http://av.ru/nonfood/", new AvExtractor),
       ("http://klg.metro-cc.ru", new MetroExtractor),
       ("http://www.auchan.ru", new AuchanExtractor),
       ("http://www.utkonos.ru/cat", new UtkonosExtractor),
