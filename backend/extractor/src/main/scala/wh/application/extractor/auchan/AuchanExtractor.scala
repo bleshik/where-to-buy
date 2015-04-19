@@ -11,24 +11,23 @@ import scala.collection.mutable
 import wh.application.extractor.JsoupPage._
 
 class AuchanExtractor extends AbstractJsoupExtractor {
-
-  override def extract(url: URL): Iterator[ExtractedEntry] = document(url).map { page =>
-    page.document.select("ul.city-list")
-      .asScala
-      .asInstanceOf[mutable.Buffer[Element]]
-      .headOption
-      .map { cities =>
+  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] = document(url).map { page =>
+      page.document.select("ul.city-list")
+        .asScala
+        .asInstanceOf[mutable.Buffer[Element]]
+        .headOption
+        .map { cities =>
         cities.getElementsByTag("a")
           .asScala
           .asInstanceOf[mutable.Buffer[Element]]
-          .iterator
           .map(_.attr("data-shop-id"))
-    }.map { cities =>
-      cities.flatMap { region =>
-        super.extract(url, Map(("user_shop_id", region)))
-      }
-    }.getOrElse(Iterator.empty)
-  }.getOrElse(Iterator.empty)
+          .toList
+      }.map { cities =>
+        cities.map { region =>
+         { () => extract(url, Map(("user_shop_id", region))) }
+        }
+      }.getOrElse(List.empty)
+    }.getOrElse(List.empty)
 
   override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
     val li = page.document.select("ul.sub-nav")
