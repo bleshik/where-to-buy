@@ -43,7 +43,7 @@ object ExtractorApp extends LazyLogging {
     val myPayload = payload
     logger.info(s"My payload contains ${myPayload.size} sources")
     while(true) {
-      payload.par.withMinThreads(Environment.minimumConcurrency).foreach { it =>
+      myPayload.par.withMinThreads(Environment.minimumConcurrency).foreach { it =>
         if (it.hasNext) {
           doUpload(it.next(), output)
         }
