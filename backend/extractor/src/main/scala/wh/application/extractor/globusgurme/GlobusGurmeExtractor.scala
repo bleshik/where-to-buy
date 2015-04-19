@@ -61,4 +61,7 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
         }
     }
   }
+
+  override protected def filterImage(image: URL): Boolean =
+    super.filterImage(image) && !image.toString.toLowerCase.contains("food158_158_thumb")
 }

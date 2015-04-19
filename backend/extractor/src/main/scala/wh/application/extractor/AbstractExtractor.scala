@@ -55,7 +55,7 @@ abstract class AbstractExtractor extends Extractor with LoggingHandling {
   }
 
   protected def filterImage(image: URL): Boolean = {
-    image != null || !Set("noimage", "notfound", "none").exists(image.toString.toLowerCase.contains)
+    image != null && !Set("noimage", "notfound", "none").exists(image.toString.toLowerCase.contains)
   }
 
   protected def srcToUrl(from: URL, src: String): URL = {
