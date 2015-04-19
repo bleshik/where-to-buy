@@ -1,6 +1,6 @@
 package wh.application.extractor
 
-import java.net.URL
+import java.net.{SocketTimeoutException, URL}
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
@@ -67,7 +67,7 @@ object JsoupPage extends LoggingHandling {
       } else {
         JsoupPage(Jsoup.connect(url.toString).cookies(cookies.asJava).get(), cookies, city, history)
       }
-    })
+    }, Set(classOf[SocketTimeoutException]))
   }
 
   def url(e: Element, attribute: String): Option[URL] = handle(Try(new URL(e.absUrl(attribute))))
