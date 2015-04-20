@@ -32,16 +32,13 @@ object ExtractorApp extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    while(true) {
-      upload(args.head)
-    }
+    upload(args.head)
 
     logger.info("Exiting...")
   }
 
   private def upload(output: String): Unit = {
     val myPayload = payload
-    logger.info(s"My payload contains ${myPayload.size} sources")
     while(true) {
       myPayload.par.withMinThreads(Environment.minimumConcurrency).foreach { it =>
         if (it.hasNext) {
@@ -62,7 +59,7 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def payload: List[Iterator[ExtractedEntry]] = {
-    val all = List(
+    val sources = part(List(
       ("http://av.ru/food/all/", new AvExtractor),
       ("http://av.ru/nonfood/", new AvExtractor),
       ("http://klg.metro-cc.ru", new MetroExtractor),
@@ -75,9 +72,15 @@ object ExtractorApp extends LazyLogging {
     ).filter { p =>
       Environment.shops.isEmpty || Environment.shops.get.exists { shop => p._1.toLowerCase.contains(shop.toLowerCase) }
     }.flatMap { p =>
-      p._2.parts(new URL(p._1)).map { part => Iterator.continually(part()).flatten } // make every extractor result infinite
-    }
+      p._2.parts(new URL(p._1))
+    })
+    logger.info(s"My payload contains ${sources.length} sources")
+    sources.grouped(Math.max(sources.length / Environment.minimumConcurrency, 1)).toList
+      .map { partsChunk => { () => partsChunk.flatMap(_()) } } // merge chunk into one part
+      .map { p => Iterator.continually(p()).flatten } // make every merged chunk result infinite
+  }
 
+  private def part[T](all: List[T]) =
     if (Environment.instance <= Environment.instances) {
       val part = all.size / Environment.instances
       val tail = all.takeRight(all.size % Environment.instances)
@@ -86,5 +89,4 @@ object ExtractorApp extends LazyLogging {
       logger.warn("Environment is not correct. The instance number is out of bounds. " + Environment.instance + "/" + Environment.instances)
       all
     }
-  }
 }
