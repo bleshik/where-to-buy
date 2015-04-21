@@ -14,6 +14,8 @@ ExecStart=/bin/sh -c 'journalctl -o short -f |\
           grep -v ".*OpenSSH.*" |\
           grep -v ".*Looking for failed units.*" |\
           grep -v ".*/run/coreos/motd.*" |\
+          grep -v ".*Nope, no updates for.*" |\
+          grep -v ".*Any updates for.*" |\
           awk \'{ print "${LOGENTRIES_TOKEN}", $0; fflush(); }\' |\
           ncat data.logentries.com 10000'
 Restart=always

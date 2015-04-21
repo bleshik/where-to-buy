@@ -1,6 +1,6 @@
 package repository.eventsourcing.mongodb
 
-import com.mongodb.{BasicDBObject, DB, DBObject}
+import com.mongodb._
 import eventstore.impl.{MongoDbEventStore, MongoDbSerializer}
 import repository.IdentifiedEntity
 import repository.eventsourcing.{EventSourcedEntity, EventSourcedRepository}
@@ -18,7 +18,16 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
   }
 
   override protected def saveSnapshot(entity: T): Unit = {
-    snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, entity.mutatedVersion == 1)
+    try {
+      snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, entity.unmutatedVersion == 0)
+    } catch {
+      case e: MongoCommandException =>
+        if (e.getErrorCode == 11000) {
+          // ignore duplicates, because this means that there is already a saved snapshot with higher version
+        } else {
+          throw e
+        }
+    }
   }
 
   protected def serialize(entity: T): DBObject = {
