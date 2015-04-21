@@ -24,6 +24,10 @@ object ExtractorApp extends LazyLogging {
       .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
       .resolve())
   }
+  private lazy val remote = {
+    logger.info(s"Extractor will upload entries to ${Environment.akkaEndpoint}")
+    extractorSystem.actorSelection(Environment.akkaEndpoint)
+  }
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
@@ -52,9 +56,7 @@ object ExtractorApp extends LazyLogging {
     output match {
       case "none" =>
       case "console" => println(entry)
-      case "akka"    =>
-        val remote = extractorSystem.actorSelection(Environment.akkaEndpoint)
-        remote ! entry
+      case "akka" => remote ! entry
     }
   }
 
@@ -76,7 +78,7 @@ object ExtractorApp extends LazyLogging {
     })
     logger.info(s"My payload contains ${sources.length} sources")
     sources.grouped(Math.max(sources.length / Environment.minimumConcurrency, 1)).toList
-      .map { partsChunk => { () => partsChunk.flatMap(_()) } } // merge chunk into one part
+      .map { partsChunk => { () => partsChunk.iterator.flatMap(_()) } } // merge chunk into one part
       .map { p => Iterator.continually(p()).flatten } // make every merged chunk result infinite
   }
 
