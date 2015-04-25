@@ -41,7 +41,7 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
   }
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Element): Option[ExtractedEntry] =
-    handle(Try(new URL(image.absUrl("src")))).flatMap(src => extractEntry(shop, city, name, price, category, src))
+    JsoupPage.url(image, "src").flatMap(src => extractEntry(shop, city, name, price, category, src))
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Elements): Option[ExtractedEntry] =
     extractEntry(shop, city, name, price, category, image.first())
@@ -70,5 +70,9 @@ object JsoupPage extends LoggingHandling {
     }, Set(classOf[SocketTimeoutException]))
   }
 
-  def url(e: Element, attribute: String): Option[URL] = handle(Try(new URL(e.absUrl(attribute))))
+  def url(e: Element, attribute: String): Option[URL] = handle(Try {
+    val absUrl = e.absUrl(attribute)
+    val urlString = if (absUrl == null || absUrl.isEmpty) e.attr("src") else absUrl
+    new URL((if (urlString.startsWith("//")) "http:" else "") + urlString)
+  })
 }
