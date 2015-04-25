@@ -42,9 +42,9 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def upload(output: String): Unit = {
-    val myPayload = payload
+    val myPayload = payload.par.withMinThreads(Environment.minimumConcurrency)
     while(true) {
-      myPayload.par.withMinThreads(Environment.minimumConcurrency).foreach { it =>
+      myPayload.foreach { it =>
         if (it.hasNext) {
           doUpload(it.next(), output)
         }
