@@ -53,6 +53,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
             mutatedEntity = mutatedEntity.apply(stream.events(i))
             i += 1
           }
+          stream.events.takeRight(stream.events.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
           mutatedEntity = mutatedEntity.commitChanges()
           changes.takeRight(changes.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
           Some(mutatedEntity)
@@ -67,14 +68,14 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     } else {
       try {
         eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
+        try {
+          saveSnapshot(entity)
+        } catch {
+          case e: Exception => logger.error("Couldn't save snapshot", e)
+        }
       } catch {
         case e: ConcurrentModificationException =>
           save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
-      }
-      try {
-        saveSnapshot(entity)
-      } catch {
-        case e: Exception => logger.error("Couldn't save snapshot", e)
       }
       entity
     }
