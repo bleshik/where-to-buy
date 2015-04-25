@@ -67,8 +67,8 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
 
   protected def migrate(): Unit = {}
 
-  protected def find(query: DBObject, orderBy: DBObject = new BasicDBObject(), limit: Int = 100, offset: Int = 0): Iterator[T] = {
-    snapshots.find(query).sort(orderBy).skip(offset).limit(limit).iterator().map(deserialize)
+  protected def find(query: DBObject, orderBy: DBObject = new BasicDBObject(), limit: Int = 100, offset: Int = 0, hint: DBObject = new BasicDBObject()): Iterator[T] = {
+    snapshots.find(query).sort(orderBy).hint(hint).skip(offset).limit(limit).iterator().map(deserialize)
   }
 
   protected def findOne(query: DBObject): Option[T] = {
