@@ -36,12 +36,12 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtract
 
   val dixyRegion = "dixy_region"
 
-  override def extract(url: URL): Iterator[ExtractedEntry] =
+  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] =
     regionToCity
       .filter(region => cities == null || cities.contains(region._1) || cities.contains(region._2))
-      .iterator
-      .flatMap { region =>
-      super.extract(url, Map((dixyRegion, region._1)))
+      .toList
+      .map { region =>
+      {() => super.extract(url, Map((dixyRegion, region._1)))}
     }
 
   override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
