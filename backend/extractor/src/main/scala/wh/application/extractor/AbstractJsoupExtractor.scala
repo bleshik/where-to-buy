@@ -29,7 +29,7 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
           logger.debug(s"Starting extracting $url (${n.shop.city}) with cookies $cookies")
         }
         i += 1
-        if (i % 50 == 0) {
+        if (i % 1000 == 0) {
           logger.info(s"Extracted $i entries (last category is ${n.category.name}}) from $url (${n.shop.city}) with cookies $cookies")
         }
         if (!it.hasNext) {

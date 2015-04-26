@@ -1,6 +1,7 @@
 package wh.application.extractor
 
 import java.net.URL
+import java.util.Collections
 
 import akka.actor.ActorSystem
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigResolveOptions, ConfigValueFactory}
@@ -61,6 +62,8 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def payload: List[Iterator[ExtractedEntry]] = {
+    val doneSources = Collections.synchronizedMap(new java.util.IdentityHashMap[Any, Any]())
+    @volatile var sourcesAmount = 0
     val sources = part(List(
       ("http://av.ru/food/all/", new AvExtractor),
       ("http://av.ru/nonfood/", new AvExtractor),
@@ -74,9 +77,33 @@ object ExtractorApp extends LazyLogging {
     ).filter { p =>
       Environment.shops.isEmpty || Environment.shops.get.exists { shop => p._1.toLowerCase.contains(shop.toLowerCase) }
     }.flatMap { p =>
-      p._2.parts(new URL(p._1))
+      p._2.parts(new URL(p._1)).map { itFn =>
+        () => {
+          val it = itFn()
+          new Iterator[ExtractedEntry] {
+            override def hasNext: Boolean = {
+              val n = it.hasNext
+              if (!n) {
+                if (!doneSources.containsKey(itFn)) {
+                  doneSources.put(itFn, "DONE")
+                  val done = doneSources.size
+                  if (done < sourcesAmount) {
+                    logger.info(s"Finished first round of extracting of a source: $done/$sourcesAmount")
+                  } else {
+                    logger.info(s"Finished first round of extracting of all $sourcesAmount sources")
+                  }
+                }
+              }
+              n
+            }
+
+            override def next(): ExtractedEntry = it.next()
+          }
+        }
+      }
     })
-    logger.info(s"My payload contains ${sources.length} sources")
+    sourcesAmount = sources.length
+    logger.info(s"My payload contains ${sourcesAmount} sources")
     sources.grouped(Math.max(sources.length / Environment.minimumConcurrency, 1)).toList
       .map { partsChunk => { () => partsChunk.iterator.flatMap(_()) } } // merge chunk into one part
       .map { p => Iterator.continually(p()).flatten } // make every merged chunk result infinite
