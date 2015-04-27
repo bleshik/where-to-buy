@@ -23,6 +23,7 @@ object ExtractorApp extends LazyLogging {
     val extractorAddress = Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")
     ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
       .withValue("hostname", ConfigValueFactory.fromAnyRef(extractorAddress))
+      .withValue("logDeadLetters", ConfigValueFactory.fromAnyRef(Environment.logDeadLetters))
       .resolve())
   }
   private lazy val remote = {
