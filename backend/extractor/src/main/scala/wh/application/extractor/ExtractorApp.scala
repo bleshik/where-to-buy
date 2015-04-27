@@ -62,6 +62,11 @@ object ExtractorApp extends LazyLogging {
     }
   }
 
+  private def intersperse[A](a : List[A], b : List[A]): List[A] = a match {
+    case first :: rest => first :: intersperse(b, rest)
+    case _             => b
+  }
+
   private def payload: List[Iterator[ExtractedEntry]] = {
     val doneSources = Collections.synchronizedMap(new java.util.IdentityHashMap[Any, Any]())
     @volatile var sourcesAmount = 0
@@ -77,7 +82,7 @@ object ExtractorApp extends LazyLogging {
       ("http://globusgurme.ru/catalog", new GlobusGurmeExtractor)
     ).filter { p =>
       Environment.shops.isEmpty || Environment.shops.get.exists { shop => p._1.toLowerCase.contains(shop.toLowerCase) }
-    }.flatMap { p =>
+    }.map { p =>
       p._2.parts(new URL(p._1)).map { itFn =>
         () => {
           val it = itFn()
@@ -102,7 +107,7 @@ object ExtractorApp extends LazyLogging {
           }
         }
       }
-    })
+    }.reduce { (a, b) => intersperse(a, b) })
     sourcesAmount = sources.length
     logger.info(s"My payload contains ${sourcesAmount} sources")
     sources.grouped(Math.max(sources.length / Environment.minimumConcurrency, 1)).toList
