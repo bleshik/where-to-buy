@@ -82,14 +82,16 @@ object ExtractorApp extends LazyLogging {
         () => {
           val it = itFn()
           new Iterator[ExtractedEntry] {
-            override def hasNext: Boolean = {
-              val n = it.hasNext
-              if (!n) {
+            override def hasNext: Boolean = it.hasNext
+
+            override def next(): ExtractedEntry = {
+              val n = it.next()
+              if (!it.hasNext) {
                 if (!doneSources.containsKey(itFn)) {
                   doneSources.put(itFn, "DONE")
                   val done = doneSources.size
                   if (done < sourcesAmount) {
-                    logger.info(s"Finished first round of extracting of a source: $done/$sourcesAmount")
+                    logger.info(s"Finished first round of extracting of a source ${n.shop}: $done/$sourcesAmount")
                   } else {
                     logger.info(s"Finished first round of extracting of all $sourcesAmount sources")
                   }
@@ -97,8 +99,6 @@ object ExtractorApp extends LazyLogging {
               }
               n
             }
-
-            override def next(): ExtractedEntry = it.next()
           }
         }
       }
