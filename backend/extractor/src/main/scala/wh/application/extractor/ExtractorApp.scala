@@ -18,6 +18,8 @@ import wh.application.extractor.utkonos.UtkonosExtractor
 import wh.extractor.domain.model.ExtractedEntry
 import wh.util.ConcurrencyUtil._
 
+import scala.concurrent.forkjoin.ForkJoinPool
+
 object ExtractorApp extends LazyLogging {
   private lazy val extractorSystem = {
     val extractorAddress = Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")
@@ -45,10 +47,13 @@ object ExtractorApp extends LazyLogging {
 
   private def upload(output: String): Unit = {
     val myPayload = payload.par.withMinThreads(Environment.minimumConcurrency)
-    while(true) {
+    while(myPayload.exists(_.hasNext)) {
       myPayload.foreach { it =>
         if (it.hasNext) {
-          doUpload(it.next(), output)
+          val n = it.next()
+          myPayload.tasksupport.environment.asInstanceOf[ForkJoinPool].execute(new Runnable {
+            override def run(): Unit = doUpload(n, output)
+          })
         }
       }
     }
@@ -111,8 +116,7 @@ object ExtractorApp extends LazyLogging {
     sourcesAmount = sources.length
     logger.info(s"My payload contains ${sourcesAmount} sources")
     sources.grouped(Math.max(sources.length / Environment.minimumConcurrency, 1)).toList
-      .map { partsChunk => { () => partsChunk.iterator.flatMap(_()) } } // merge chunk into one part
-      .map { p => Iterator.continually(p()).flatten } // make every merged chunk result infinite
+      .map { partsChunk => partsChunk.iterator.flatMap(_()) } // merge chunk into one part
   }
 
   private def part[T](all: List[T]) =
