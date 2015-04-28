@@ -19,6 +19,7 @@ import wh.extractor.domain.model.ExtractedEntry
 import wh.util.ConcurrencyUtil._
 
 import scala.concurrent.forkjoin.ForkJoinPool
+import scala.util.Try
 
 object ExtractorApp extends LazyLogging {
   private lazy val extractorSystem = {
@@ -73,6 +74,12 @@ object ExtractorApp extends LazyLogging {
   }
 
   private def payload: List[Iterator[ExtractedEntry]] = {
+    if (Environment.cities.nonEmpty) {
+      logger.info(s"Extract only for cities ${Environment.cities}")
+    }
+    if (Environment.shops.nonEmpty) {
+      logger.info(s"Extract only for shops ${Environment.shops}")
+    }
     val doneSources = Collections.synchronizedMap(new java.util.IdentityHashMap[Any, Any]())
     @volatile var sourcesAmount = 0
     val sources = part(List(
@@ -88,14 +95,26 @@ object ExtractorApp extends LazyLogging {
     ).filter { p =>
       Environment.shops.isEmpty || Environment.shops.get.exists { shop => p._1.toLowerCase.contains(shop.toLowerCase) }
     }.map { p =>
-      p._2.parts(new URL(p._1)).map { itFn =>
+      p._2.parts(new URL(p._1))
+        .par.withMinThreads(Environment.minimumConcurrency)
+        .filter { itFn =>
+          Environment.cities.isEmpty ||
+          Environment.cities.exists { city =>
+            Try(Some(itFn().next())).getOrElse(None).exists { i => i.shop.city.toLowerCase.contains(city.toLowerCase) }
+          }
+        }.map { itFn =>
         () => {
           val it = itFn()
           new Iterator[ExtractedEntry] {
+            @volatile var i = 0
             override def hasNext: Boolean = it.hasNext
 
             override def next(): ExtractedEntry = {
               val n = it.next()
+              i += 1
+              if (i % 100 == 0) {
+                logger.info(s"Extracted $i entries (last category is ${n.category.name}}) from ${p._1} (${n.shop.city})")
+              }
               if (!it.hasNext) {
                 if (!doneSources.containsKey(itFn)) {
                   doneSources.put(itFn, "DONE")
@@ -111,7 +130,7 @@ object ExtractorApp extends LazyLogging {
             }
           }
         }
-      }
+      }.toList
     }.reduce { (a, b) => intersperse(a, b) })
     sourcesAmount = sources.length
     logger.info(s"My payload contains ${sourcesAmount} sources")

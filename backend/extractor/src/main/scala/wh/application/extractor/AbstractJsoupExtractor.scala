@@ -16,29 +16,8 @@ import scala.util.Try
 abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging {
   override def extract(url: URL): Iterator[ExtractedEntry] = extract(url, Map())
 
-  def extract(url: URL, cookies: Map[String, String], city: Option[String] = None): Iterator[ExtractedEntry] = {
-    val it = JsoupPage.document(url, cookies, city).map(doExtract).getOrElse(Iterator.empty)
-    new Iterator[ExtractedEntry] {
-      @volatile var i = 0
-
-      override def hasNext: Boolean = it.hasNext
-
-      override def next(): ExtractedEntry = {
-        val n = it.next()
-        if (i == 0) {
-          logger.debug(s"Starting extracting $url (${n.shop.city}) with cookies $cookies")
-        }
-        i += 1
-        if (i % 1000 == 0) {
-          logger.info(s"Extracted $i entries (last category is ${n.category.name}}) from $url (${n.shop.city}) with cookies $cookies")
-        }
-        if (!it.hasNext) {
-          logger.debug(s"Done extracting $url (${n.shop.city}) with cookies $cookies")
-        }
-        n
-      }
-    }
-  }
+  def extract(url: URL, cookies: Map[String, String], city: Option[String] = None): Iterator[ExtractedEntry] =
+    JsoupPage.document(url, cookies, city).map(doExtract).getOrElse(Iterator.empty)
 
   protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Element): Option[ExtractedEntry] =
     JsoupPage.url(image, "src").flatMap(src => extractEntry(shop, city, name, price, category, src))
