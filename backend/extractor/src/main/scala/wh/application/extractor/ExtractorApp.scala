@@ -41,7 +41,9 @@ object ExtractorApp extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    upload(args.head)
+    while(true) {
+      upload(args.head)
+    }
 
     logger.info("Exiting...")
   }
@@ -120,9 +122,9 @@ object ExtractorApp extends LazyLogging {
                   doneSources.put(itFn, "DONE")
                   val done = doneSources.size
                   if (done < sourcesAmount) {
-                    logger.info(s"Finished first round of extracting of a source ${n.shop}: $done/$sourcesAmount")
+                    logger.info(s"Finished extracting a source ${n.shop}: $done/$sourcesAmount")
                   } else {
-                    logger.info(s"Finished first round of extracting of all $sourcesAmount sources")
+                    logger.info(s"Finished extracting all $sourcesAmount sources")
                   }
                 }
               }
