@@ -16,8 +16,10 @@ ExecStart=/bin/sh -c 'journalctl -o short -f |\
           grep -v ".*/run/coreos/motd.*" |\
           grep -v ".*Nope, no updates for.*" |\
           grep -v ".*Any updates for.*" |\
-          awk \'{ print "${LOGENTRIES_TOKEN}", $0; fflush(); }\' |\
-          ncat data.logentries.com 10000'
+          grep -v ".*update_engine.*" |\
+          grep -v ".*clientcursormon.*" |\
+          grep -v ".*locksmithd.*" |\
+          awk -v TOKEN="`etcdctl get /logentries.com/token`" \'{ print TOKEN, $0; fflush(); }\' | ncat data.logentries.com 10000'
 Restart=always
 
 [Install]
