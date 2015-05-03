@@ -27,5 +27,4 @@ Restart=always
 WantedBy=multi-user.target
 
 [X-Fleet]
-Conflicts=wh-extractor@*.service
 Conflicts=%p@*.service
