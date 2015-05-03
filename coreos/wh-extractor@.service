@@ -13,10 +13,10 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx1152m -Xms256m"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx256m -Xms256m"\
         -e "INSTANCE=%i"\
         -e "INSTANCES=1"\
-        -e "CONCURRENCY=50"\
+        -e "CONCURRENCY=9"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
@@ -31,10 +31,3 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-
-[X-Fleet]
-MachineMetadata="access=private"
-Conflicts=wh-extractor@*.service
-Conflicts=wh-api@*.service
-Conflicts=wh-web-app@*.service
-Conflicts=mongo@*.service
