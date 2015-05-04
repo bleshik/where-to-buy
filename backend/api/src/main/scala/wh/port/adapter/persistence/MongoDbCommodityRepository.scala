@@ -5,7 +5,7 @@ import com.mongodb.DB
 import com.mongodb.casbah.Imports._
 import com.typesafe.scalalogging.LazyLogging
 import repository.eventsourcing.mongodb.MongoDbEventSourcedRepository
-import wh.inventory.domain.model.{Shop, CommodityRepository, Commodity}
+import wh.inventory.domain.model._
 
 class MongoDbCommodityRepository(override val db: DB)
   extends MongoDbEventSourcedRepository[Commodity, String](db) with CommodityRepository with LazyLogging {
@@ -74,4 +74,15 @@ class MongoDbCommodityRepository(override val db: DB)
   }
 
   private val matcher = new CommodityMatcher
+
+  override def pricesHistory(commodityName: String, shop: Shop): List[(Long, Long)] = {
+    eventStore.stream(streamName(commodityName)).events.filter {
+      case e: CommodityArrived      => e.shop.equals(shop)
+      case e: CommodityPriceChanged => e.shop.equals(shop)
+      case _                        => false
+    }.map {
+      case e: CommodityArrived      => (e.occurredOn, e.price)
+      case e: CommodityPriceChanged => (e.occurredOn, e.price)
+    }
+  }
 }

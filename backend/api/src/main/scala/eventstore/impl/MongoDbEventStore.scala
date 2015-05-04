@@ -36,7 +36,11 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
   }
 
   def deserialize(mongoObject: DBObject): Event = {
-    serializer.deserialize(mongoObject)
+    val event = serializer.deserialize(mongoObject)
+    val occurredOn = classOf[Event].getDeclaredField("_occurredOn")
+    occurredOn.setAccessible(true)
+    occurredOn.setLong(event, mongoObject.get("occurredOn").asInstanceOf[Long])
+    event
   }
 
   def serialize(event: Event, streamName: String): DBObject = {

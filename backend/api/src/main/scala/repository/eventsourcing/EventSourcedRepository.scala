@@ -127,7 +127,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     c
   }
 
-  private def streamName(id: K): String = {
+  protected def streamName(id: K): String = {
      streamPrefix + id
   }
 
