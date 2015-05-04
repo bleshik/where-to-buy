@@ -57,8 +57,13 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
       })
       builder.execute()
     } catch {
-      case e: BulkWriteException  => throw new ConcurrentModificationException()
-      case e: com.mongodb.MongoException.DuplicateKey  => throw new ConcurrentModificationException()
+      case e: BulkWriteException =>
+        if (e.getWriteErrors.asScala.exists(_.getCode == 11000)) {
+          throw new ConcurrentModificationException(e)
+        } else {
+          throw e
+        }
+      case e: com.mongodb.MongoException.DuplicateKey  => throw new ConcurrentModificationException(e)
     }
   }
 
