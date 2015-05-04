@@ -1,5 +1,6 @@
 package eventstore.impl
 
+import java.util
 import java.util.ConcurrentModificationException
 
 import com.mongodb._
@@ -68,4 +69,14 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
   }
 
   override def streamNames: Set[String] = dbCollection.distinct("streamId").asInstanceOf[java.util.List[String]].asScala.toSet[String]
+
+  override def version(streamName: String): Long = dbCollection.aggregate(new util.ArrayList[DBObject](){{
+    add(new BasicDBObject("$match", new BasicDBObject("streamId", streamName)))
+    add(new BasicDBObject("$sort", new BasicDBObject("idx", -1)))
+    add(new BasicDBObject("$limit", 1))
+  }}).results()
+    .iterator()
+    .next()
+    .get("idx")
+    .asInstanceOf[Long]
 }

@@ -30,6 +30,10 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
     }
   }
 
+  override protected def removeSnapshot(id: K): Boolean = {
+    snapshots.remove(new BasicDBObject("id", id)).getN > 0
+  }
+
   protected def serialize(entity: T): DBObject = {
     val dbObject = serializer.serialize(entity)
     dbObject.put("id", entity.id)

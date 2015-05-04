@@ -29,4 +29,6 @@ class InMemoryEventStore extends EventStore {
   }
 
   override def streamNames: Set[String] = streams.keys.toSet
+
+  override def version(streamName: String): Long = streams.get(streamName).map(_.size.asInstanceOf[Long]).getOrElse(-1L)
 }
