@@ -12,10 +12,9 @@ ExecStart=/bin/sh -c "while [ 1 ] ; do \
               sed -e 's/\s\+us,\s\+/,CPU.system=/g' |\
               sed -e 's/\s\+sy,\s\+.*ni,\s\+/,CPU.idle=/g' |\
               sed -e 's/\s\+id.*//g' |\
-              sed -e 's/\.[0-9]\+/%/g'),$(free |\
-              grep 'Mem' |\
+              sed -e 's/\.[0-9]\+/%/g'),$(free | tr '\n' ' ' |\
               head -1 |\
-              sed -e 's/Mem:\s\+\([0-9]\+\)\s\+\([0-9]\+\)\s\+.*/Mem.total=\1,Mem.active=\2/g') |\
+              sed -e 's/[^M]*Mem:\s\+\([0-9]\+\)\s\+[^c]*cache:\s\+\([0-9]\+\)\s\+.*/Mem.total=\1,Mem.active=\2/g') |\
               awk '{ print \"${LOGENTRIES_TOKEN}\", $0; fflush(); }' |\
               ncat data.logentries.com 10000; \
           done;"
