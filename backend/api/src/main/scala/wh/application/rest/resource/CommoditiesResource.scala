@@ -10,11 +10,12 @@ import wh.application.rest.AbstractRestComponent
 import wh.images.domain.model.ImageRepository
 import wh.inventory.domain.model.{Commodity, CommodityRepository}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactory,
                                     val commodityRepository: CommodityRepository,
-                                    val imageRepository: ImageRepository)
+                                    val imageRepository: ImageRepository,
+                                    implicit val executionContext: ExecutionContext)
   extends AbstractRestComponent(actorRefFactory) {
 
   marshaller(`image/jpeg`, {

@@ -17,7 +17,6 @@ import scala.concurrent.ExecutionContext
 abstract class AbstractRestComponent(val actorRefFactory: ActorRefFactory) extends RestComponent {
 
   private val objectMapper = (new ObjectMapper() with ScalaObjectMapper).registerModule(DefaultScalaModule)
-  implicit val ec: ExecutionContext = actorRefFactory.dispatcher
 
   private var marshallers: Map[MediaType, (AnyRef) => HttpEntity] = Map()
   implicit var theMarshaller: Marshaller[AnyRef] = null
