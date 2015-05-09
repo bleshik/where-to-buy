@@ -1,19 +1,16 @@
 package wh.application.rest
 
-import java.nio.charset.StandardCharsets
-
 import akka.actor.ActorRefFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import repository.eventsourcing.EventSourcedEntity
 import shapeless.HNil
 import spray.http.CacheDirectives._
-import spray.http.HttpHeaders.{`Cache-Control`, Accept}
-import spray.http._
+import spray.http.HttpHeaders.{Accept, `Cache-Control`}
 import spray.http.MediaTypes._
+import spray.http._
 import spray.httpx.marshalling.Marshaller
-import spray.routing.{Route, MalformedHeaderRejection, Directive0}
+import spray.routing.{Directive0, MalformedHeaderRejection, Route}
 
 import scala.concurrent.ExecutionContext
 
@@ -44,7 +41,7 @@ abstract class AbstractRestComponent(val actorRefFactory: ActorRefFactory) exten
     cache(24L * 60L * 60L)
 
   def cacheImagesForDay: Directive0 =
-    accept(`image/jpeg`) & cacheForDay | pass
+    accept(`image/jpeg`) & cacheForDay
 
   def accept(mr: MediaRange*): Directive0 =
     extract(_.request.headers).flatMap[HNil] {

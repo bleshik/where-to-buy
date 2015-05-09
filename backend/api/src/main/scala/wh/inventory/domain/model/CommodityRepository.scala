@@ -19,10 +19,17 @@ trait CommodityRepository extends TemporalPersistenceOrientedRepository[Commodit
   def search(searchPattern: String, city: String, limit: Int, offset: Int): List[Commodity]
 
   /**
-   * Returns all prices a commodity had.
+   * Returns average prices for all shops a commodity had.
+   * @param commodityName name of a commodity.
+   * @return history.
+   */
+  def averagePrices(commodityName: String): Option[PricesHistory]
+
+  /**
+   * Returns for a specific shop a commodity had.
    * @param commodityName name of a commodity.
    * @param shop a shop.
-   * @return list of (timestamp, price) pairs ordered by timestamp.
+   * @return history.
    */
-  def pricesHistory(commodityName: String, shop: Shop): List[(Long, Long)]
+  def prices(commodityName: String, shop: Shop): Option[PricesHistory]
 }

@@ -34,7 +34,7 @@ class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepositor
             logger.trace(s"Found for $entry: $c")
             if (c.entry(entry.shop).isDefined) {
               if (!c.price(entry.shop).get.equals(entry.price)) {
-                isCommodityWeird = weird(commodityRepository.pricesHistory(c.name, entry.shop) :+ (System.currentTimeMillis(), entry.price))
+                isCommodityWeird = commodityRepository.prices(c.name, entry.shop).exists { p => weird(p.history :+ (System.currentTimeMillis(), entry.price)) }
                 c.changePrice(entry.shop, entry.price)
               } else {
                 c

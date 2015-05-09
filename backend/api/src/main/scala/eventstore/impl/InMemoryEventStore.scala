@@ -11,10 +11,13 @@ class InMemoryEventStore extends EventStore {
 
   override def close(): Unit = {}
 
-  override def streamSince(streamName: String, lastReceivedEvent: Long): EventStream = {
+  override def streamSince(streamName: String, lastReceivedEvent: Long): Option[EventStream] = {
     val allEvents = streams.getOrElse(streamName, List())
-    val events = allEvents.takeRight(allEvents.length - lastReceivedEvent.toInt)
-    new EventStream(allEvents.length, events)
+    if (allEvents.isEmpty) {
+      None
+    } else {
+      Some(new EventStream(allEvents.length, allEvents.takeRight(allEvents.length - lastReceivedEvent.toInt)))
+    }
   }
 
   override def append(streamName: String, currentVersion: Long, events: List[Event]): Unit = {
@@ -30,5 +33,5 @@ class InMemoryEventStore extends EventStore {
 
   override def streamNames: Set[String] = streams.keys.toSet
 
-  override def version(streamName: String): Long = streams.get(streamName).map(_.size.asInstanceOf[Long]).getOrElse(-1L)
+  override def version(streamName: String): Long = streams.get(streamName).map(_.size.asInstanceOf[Long]).getOrElse(0L)
 }

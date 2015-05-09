@@ -20,18 +20,20 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
 
   override def close(): Unit = {}
 
-  override def streamSince(streamName: String, lastReceivedEvent: Long): EventStream = {
+  override def streamSince(streamName: String, lastReceivedEvent: Long): Option[EventStream] = {
     val mongoEvents =
-      dbCollection.find(new BasicDBObject("streamId", streamName).append("idx", new BasicDBObject("$gt", lastReceivedEvent)))
+      dbCollection.find(new BasicDBObject("streamId", streamName).append("idx", new BasicDBObject("$gt", lastReceivedEvent - 1)))
         .sort(new BasicDBObject("occurredOn", 1))
         .toArray
         .asScala
         .toList
-    val deserializedEvents: List[Event] = mongoEvents.map(mongoObject => deserialize(mongoObject))
     if (mongoEvents.isEmpty) {
-      EventStream.empty
+      None
     } else {
-      EventStream(mongoEvents.last.get("idx").asInstanceOf[Long], deserializedEvents)
+      Some(EventStream(
+        mongoEvents.last.get("idx").asInstanceOf[Long],
+        mongoEvents.filter(!_.get("idx").asInstanceOf[Long].equals(lastReceivedEvent)).map(mongoObject => deserialize(mongoObject))
+      ))
     }
   }
 
@@ -79,8 +81,8 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
     add(new BasicDBObject("$sort", new BasicDBObject("idx", -1)))
     add(new BasicDBObject("$limit", 1))
   }}).results()
-    .iterator()
-    .next()
-    .get("idx")
-    .asInstanceOf[Long]
+    .asScala
+    .headOption
+    .map(_.get("idx").asInstanceOf[Long])
+    .getOrElse(0L)
 }

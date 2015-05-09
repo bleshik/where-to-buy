@@ -19,17 +19,18 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
   }
 
   private def getByStreamName(streamName: String, version: Long, snapshot: Option[T] = None): Option[T] = {
-    val stream = eventStore.streamSince(streamName, snapshot.map(e => e.unmutatedVersion).getOrElse(-1))
-    if (stream.events.isEmpty || stream.events.lastOption.exists(_.isInstanceOf[RemovedEvent[K]])) {
-      return snapshot
+    eventStore.streamSince(streamName, snapshot.map(e => e.unmutatedVersion).getOrElse(-1)).flatMap { stream =>
+      if (stream.events.isEmpty || stream.events.lastOption.exists(_.isInstanceOf[RemovedEvent[K]])) {
+        return snapshot
+      }
+      var entity = snapshot.getOrElse(init(stream.events.head))
+      var eventsRemaining = if (snapshot.isEmpty) stream.events.tail else stream.events
+      while (entity.unmutatedVersion != version && eventsRemaining.nonEmpty) {
+        entity = entity.apply(eventsRemaining.head)
+        eventsRemaining = eventsRemaining.tail
+      }
+      Some(entity.commitChanges())
     }
-    var entity = snapshot.getOrElse(init(stream.events.head))
-    var eventsRemaining = if (snapshot.isEmpty)stream.events.tail else stream.events
-    while(entity.unmutatedVersion != version && eventsRemaining.nonEmpty) {
-      entity = entity.apply(eventsRemaining.head)
-      eventsRemaining = eventsRemaining.tail
-    }
-    Some(entity.commitChanges())
   }
 
   protected def saveSnapshot(entity: T): Unit = {}
@@ -49,16 +50,17 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
       get(id, after) match {
         case Some(entity) =>
           var mutatedEntity = entity.asInstanceOf[T]
-          val stream = eventStore.streamSince(streamName(id), after)
-          var i: Int = 0
-          while (min(changes.length, stream.events.length) > i && changes(i).equals(stream.events(i))) {
-            mutatedEntity = mutatedEntity.apply(stream.events(i))
-            i += 1
+          eventStore.streamSince(streamName(id), after).flatMap { stream =>
+            var i: Int = 0
+            while (min(changes.length, stream.events.length) > i && changes(i).equals(stream.events(i))) {
+              mutatedEntity = mutatedEntity.apply(stream.events(i))
+              i += 1
+            }
+            stream.events.takeRight(stream.events.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
+            mutatedEntity = mutatedEntity.commitChanges()
+            changes.takeRight(changes.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
+            Some(mutatedEntity)
           }
-          stream.events.takeRight(stream.events.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
-          mutatedEntity = mutatedEntity.commitChanges()
-          changes.takeRight(changes.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
-          Some(mutatedEntity)
         case None => None
       }
     }

@@ -24,7 +24,8 @@ class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactor
 
   override def doGetRoute: Route = pathPrefix("commodities") {
     get {
-      path(Segment) { name: String =>
+      pathPrefix(Segment) { name: String =>
+        path("prices") { complete { Future { commodityRepository.averagePrices(name) } } } ~
         cacheImagesForDay { complete { Future { commodityRepository.get(name) } } }
       } ~
       parameter("q") { query: String =>
