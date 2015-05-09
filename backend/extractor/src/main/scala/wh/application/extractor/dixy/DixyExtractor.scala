@@ -2,15 +2,12 @@ package wh.application.extractor.dixy
 
 import java.net.URL
 
-import com.gargoylesoftware.htmlunit.html.{HtmlDivision, HtmlHeading5, HtmlPage}
-import com.gargoylesoftware.htmlunit.util.Cookie
-import wh.application.extractor.AbstractExtractor
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.ExtractedEntry
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 
-class DixyExtractor(val cities: Set[String] = null) extends AbstractExtractor {
+class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtractor {
   val regionToCity = Map(
     ("Архангельская область", "Архангельск"),
     ("Брянская область", "Брянск"),
@@ -39,45 +36,36 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractExtractor {
 
   val dixyRegion = "dixy_region"
 
-  override def extract(url: URL): Iterator[ExtractedEntry] =
+  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] =
     regionToCity
       .filter(region => cities == null || cities.contains(region._1) || cities.contains(region._2))
-      .iterator
-      .flatMap { region =>
-      client.getCookieManager.clearCookies()
-      client.getCookieManager.addCookie(new Cookie(url.getHost, dixyRegion, region._1))
-      super.extract(url)
-  }
+      .toList
+      .map { region =>
+      {() => super.extract(url, Map((dixyRegion, region._1)))}
+    }
 
-  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
-    page.getBody
-      .getOneHtmlElementByAttribute("div", "id", "flowpanes")
-      .asInstanceOf[HtmlDivision]
-      .getElementsByAttribute("div", "class", "fp-item")
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    val region = page.document.select("select#switch-region option[selected]").text
+    page.document.select("div#flowpanes div.fp-item")
       .asScala
-      .asInstanceOf[mutable.Buffer[HtmlDivision]]
       .flatMap { item =>
-      extractEntry(
-        "Дикси",
-        regionToCity.get(client.getCookieManager.getCookie(dixyRegion).getValue).get,
-        item.getOneHtmlElementByAttribute("div", "class", "prices-3")
-            .asInstanceOf[HtmlDivision]
-            .getTextContent
+      regionToCity.get(region).flatMap { city =>
+        extractEntry(
+          "Дикси",
+          city,
+          item.select("div.prices-3")
+            .text
             .replace("весовая", "")
             .replace("весовой", ""),
-        extractPrice(item.getElementsByAttribute("h5", "class", "price-now threedigit")
+          extractPrice(item.select("h5.price-now.threedigit")
             .asScala
             .headOption
-            .asInstanceOf[Option[HtmlHeading5]]
-            .getOrElse(item.getOneHtmlElementByAttribute("h5", "class", "price-now").asInstanceOf[HtmlHeading5])
-            .getTextContent),
-        null,
-        item.getElementsByTagName("img")
-          .asScala
-          .asInstanceOf[mutable.Buffer[HtmlDivision]]
-          .headOption
-          .orNull
-      )
+            .map(_.text)
+            .getOrElse(item.select("h5.price-now").text)),
+          null,
+          item.select("img")
+        )
+      }
     }.iterator
   }
 }

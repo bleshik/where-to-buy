@@ -6,10 +6,10 @@ import java.util.ConcurrentModificationException
 
 import com.typesafe.scalalogging.LazyLogging
 import eventstore.api.{Event, EventStore, InitialEvent}
-import repository.{IdentifiedEntity, PersistenceOrientedRepository}
+import repository.IdentifiedEntity
 
 abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEntity[K], K](val eventStore: EventStore)
-  extends PersistenceOrientedRepository[T, K] with LazyLogging {
+  extends TemporalPersistenceOrientedRepository[T, K] with LazyLogging {
   override def get(id: K): Option[T] = {
     get(id, -1)
   }
@@ -20,7 +20,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
 
   private def getByStreamName(streamName: String, version: Long, snapshot: Option[T] = None): Option[T] = {
     val stream = eventStore.streamSince(streamName, snapshot.map(e => e.unmutatedVersion).getOrElse(-1))
-    if (stream.events.isEmpty) {
+    if (stream.events.isEmpty || stream.events.lastOption.exists(_.isInstanceOf[RemovedEvent[K]])) {
       return snapshot
     }
     var entity = snapshot.getOrElse(init(stream.events.head))
@@ -33,6 +33,8 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
   }
 
   protected def saveSnapshot(entity: T): Unit = {}
+
+  protected def removeSnapshot(id: K): Boolean = { false }
 
   protected def snapshot(id: K, before: Long): Option[T] = { None }
 
@@ -53,6 +55,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
             mutatedEntity = mutatedEntity.apply(stream.events(i))
             i += 1
           }
+          stream.events.takeRight(stream.events.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
           mutatedEntity = mutatedEntity.commitChanges()
           changes.takeRight(changes.length - i).foreach { e => mutatedEntity = mutatedEntity.apply(e) }
           Some(mutatedEntity)
@@ -67,14 +70,14 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     } else {
       try {
         eventStore.append(streamName(entity.id), entity.unmutatedVersion, entity.changes)
+        try {
+          saveSnapshot(entity)
+        } catch {
+          case e: Exception => logger.error("Couldn't save snapshot", e)
+        }
       } catch {
         case e: ConcurrentModificationException =>
           save(getAndApply(entity.id, entity.unmutatedVersion, entity.changes).get)
-      }
-      try {
-        saveSnapshot(entity)
-      } catch {
-        case e: Exception => logger.error("Couldn't save snapshot", e)
       }
       entity
     }
@@ -96,6 +99,26 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
       .asInstanceOf[Class[T]]
   }
 
+  override def remove(id: K): Boolean = {
+    if (!contains(id)) {
+      return false
+    }
+    try {
+      eventStore.append(streamName(id), List(new RemovedEvent[K](id)))
+      removeSnapshot(id)
+      true
+    } catch {
+      case e: ConcurrentModificationException => remove(id)
+    }
+  }
+
+  /**
+   * Whether the repository had the given entity.
+   * @param id id of the entity.
+   * @return true, if it contained the entity.
+   */
+  override def contained(id: K): Boolean = eventStore.contains(streamName(id))
+
   private def constructor(eventClass: Class[_ <: Event]): Constructor[T] = {
     val c =  entityClass
       .getConstructor(eventClass)
@@ -104,7 +127,7 @@ abstract class EventSourcedRepository[T <: EventSourcedEntity[T] with Identified
     c
   }
 
-  private def streamName(id: K): String = {
+  protected def streamName(id: K): String = {
      streamPrefix + id
   }
 

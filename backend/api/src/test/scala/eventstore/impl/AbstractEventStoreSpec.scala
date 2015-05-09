@@ -3,10 +3,11 @@ package eventstore.impl
 import java.util.ConcurrentModificationException
 import java.util.concurrent.{TimeUnit, Executors, ExecutorService}
 
+import com.typesafe.scalalogging.LazyLogging
 import eventstore.api.{Event, EventStore}
 import org.scalatest.{Matchers, FlatSpec}
 
-class AbstractEventStoreSpec extends FlatSpec with Matchers {
+class AbstractEventStoreSpec extends FlatSpec with Matchers with LazyLogging {
   protected def stressTest(eventStore: EventStore, concurrencyLevel: Int = 10, eventsPerThread: Int = 10): Unit = {
     val pool: ExecutorService = Executors.newFixedThreadPool(concurrencyLevel)
     var exceptionAmount = 0

@@ -1,68 +1,51 @@
 package wh.application.extractor.cont
 
-import com.gargoylesoftware.htmlunit.html._
-import wh.application.extractor.{SupportedCity, AbstractExtractor}
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.util.Try
 
-class ContExtractor extends AbstractExtractor {
-  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
-    page.getBody
-      .getOneHtmlElementByAttribute("ul", "id", "categories")
-      .asInstanceOf[HtmlElement]
-      .getElementsByTagName("a")
+class ContExtractor extends AbstractJsoupExtractor {
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    page.document.select("ul#categories a")
       .asScala
-      .asInstanceOf[mutable.Buffer[HtmlAnchor]]
       .iterator
-      .flatMap(a => click(a).flatMap(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(a.getTextContent), null))))).getOrElse(Iterator.empty))
+      .flatMap(a => page.click(a).flatMap(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(a.text), null))))).getOrElse(Iterator.empty))
   }
 
-  private def extractFromCategoryList(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
-    page.getBody
-      .getElementsByAttribute("div", "id", "goodscategories")
+  private def extractFromCategoryList(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    page.document.select("div#goodscategories")
       .asScala
       .headOption
-      .asInstanceOf[Option[HtmlDivision]]
       .map { c =>
-        c.getElementsByTagName("a")
+        c.select("a")
           .asScala
-          .asInstanceOf[mutable.Buffer[HtmlAnchor]]
           .iterator
-          .flatMap(cp => click(cp).flatMap(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(cp.getTextContent), category))))).getOrElse(Iterator.empty))
+          .flatMap(cp => page.click(cp).flatMap(p => handle(Try(extractFromCategoryList(p, Category(cleanUpName(cp.text), category))))).getOrElse(Iterator.empty))
       }.getOrElse(
         extractFromEntryList(page, category)
-        // pages are not handled properly for some reason
-        /* ++
-        page.getBody
-          .getElementsByAttribute("div", "id", "pages")
-          .asScala
-          .asInstanceOf[mutable.Buffer[HtmlDivision]]
-          .headOption
-          .map(d => d.getElementsByTagName("a")
-            .asScala
-            .asInstanceOf[mutable.Buffer[HtmlAnchor]]
-            .flatMap(a => click(a).map(p => handle(Try(extractFromEntryList(_, category)))).getOrElse(Iterator.empty))
-          ).getOrElse(Iterator.empty)*/
+        ++
+        page.document.select("div#pages a").asScala.flatMap { a =>
+          page.click(a).flatMap { p =>
+            handle(Try(extractFromEntryList(p, category)))
+          }.getOrElse(Iterator.empty)
+        }
       )
   }
 
-  private def extractFromEntryList(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
-    page.getBody
-      .getElementsByAttribute("div", "class", "item")
+  private def extractFromEntryList(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    page.document.select("div.item")
       .asScala
       .iterator
-      .asInstanceOf[Iterator[HtmlDivision]]
       .flatMap { e =>
         extractEntry(
           "Седьмой Континент",
           SupportedCity.Moscow.name,
-          e.getOneHtmlElementByAttribute("div", "class", "title").asInstanceOf[HtmlDivision].getElementsByTagName("a").get(0).getTextContent,
-          e.getOneHtmlElementByAttribute("div", "class", "currentprice").asInstanceOf[HtmlDivision].getTextContent.trim.toLong,
+          e.select("div.title a").text,
+          extractPrice(e.select("div.currentprice").text, 1),
           category,
-          e.getElementsByTagName("img").get(0)
+          e.select("img")
         )
       }
   }

@@ -2,15 +2,14 @@ package wh.application.extractor.metro
 
 import java.net.URL
 
-import com.gargoylesoftware.htmlunit.html._
-import wh.application.extractor.AbstractExtractor
+import wh.application.extractor.JsoupPage._
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.util.Try
 
-class MetroExtractor extends AbstractExtractor {
+class MetroExtractor extends AbstractJsoupExtractor {
   protected def domains(url: URL): Map[String, URL] = {
     json[List[Map[String, Object]]](url.toURI.resolve("/index.php?route=store/store/getstores").toURL)
       .map(_.flatMap(_.get("tradecenter").asInstanceOf[Option[List[Map[String, Object]]]].getOrElse(List.empty)))
@@ -21,39 +20,35 @@ class MetroExtractor extends AbstractExtractor {
     }.getOrElse(Map())
   }
 
-  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
-    domains(page.getUrl).toStream.iterator.flatMap { domain =>
-      htmlPage(domain._2).map{page =>
-        page.getBody
-          .getElementsByAttribute("li", "class", "item __submenu")
+
+  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] =
+    domains(url).toList.map { d => () => extract(d._2, Map(), Some(d._1)) }
+
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    page.city.map { city =>
+      page.document.select("li.item.__submenu")
+        .asScala
+        .iterator
+        .filterNot(_.classNames().contains("__action"))
+        .flatMap { submenu =>
+        val rootCategory = Category(cleanUpName(submenu.child(0).text), null)
+        submenu.select("div.subcatalog_list")
           .asScala
-          .asInstanceOf[mutable.Buffer[HtmlListItem]]
-          .toStream
           .iterator
-          .flatMap { submenu =>
-          val rootCategory = Category(cleanUpName(submenu.getFirstChild.getTextContent), null)
-          submenu.getElementsByAttribute("div", "class", "subcatalog_list")
+          .flatMap { subcatalog =>
+          val category = Category(cleanUpName(subcatalog.child(0).text), rootCategory)
+          subcatalog.select("a.subcatalog_link")
             .asScala
-            .asInstanceOf[mutable.Buffer[HtmlDivision]]
-            .toStream
             .iterator
-            .flatMap { subcatalog =>
-            val category = Category(cleanUpName(subcatalog.getFirstChild.getTextContent), rootCategory)
-            subcatalog.getElementsByAttribute("a", "class", "subcatalog_link")
-              .asScala
-              .asInstanceOf[mutable.Buffer[HtmlAnchor]]
-              .toStream
-              .iterator
-              .flatMap { subcatalogLink =>
-              href(subcatalogLink).map { href =>
-                val subCategory = Category(cleanUpName(subcatalogLink.getTextContent), category)
-                handle(Try(extractCategoryEntries(domain._1, href, subCategory))).getOrElse(Iterator.empty)
-              }.getOrElse(Iterator.empty)
-            }
+            .flatMap { subcatalogLink =>
+            url(subcatalogLink, "href").map { href =>
+              val subCategory = Category(cleanUpName(subcatalogLink.text), category)
+              handle(Try(extractCategoryEntries(city, href, subCategory))).getOrElse(Iterator.empty)
+            }.getOrElse(Iterator.empty)
           }
         }
-      }.getOrElse(Iterator.empty)
-    }
+      }
+    }.getOrElse(Iterator.empty)
   }
 
   protected def entriesUrls(categoryUrl: URL): List[URL] = {
@@ -70,23 +65,20 @@ class MetroExtractor extends AbstractExtractor {
         }
       }.iterator
       .flatMap { json =>
-      json.map(_.get("data").asInstanceOf[Option[Map[String, Object]]])
-        .flatten
-        .map(_.get("items").asInstanceOf[Option[List[String]]])
-        .flatten.map { entries =>
-        entries.iterator.map(html).flatMap { entryPage =>
-          entryPage.getBody
-            .getElementsByAttribute("div", "class", "current")
+      json.flatMap(_.get("data").asInstanceOf[Option[Map[String, Object]]])
+        .flatMap(_.get("items").asInstanceOf[Option[List[String]]])
+        .map { entries =>
+        entries.iterator.map(document).flatMap { entryPage =>
+          entryPage.document.select("div.current")
             .asScala
-            .asInstanceOf[mutable.Buffer[HtmlDivision]]
             .headOption
             .map { price =>
-            val img = entryPage.getBody.getElementsByTagName("img").get(0)
+            val img = entryPage.document.select("img").first
             extractEntry(
               "Metro",
               city,
-              img.getAttribute("title"),
-              extractPrice(price.getTextContent, 1),
+              img.attr("title"),
+              extractPrice(price.text, 1),
               category,
               img
             )

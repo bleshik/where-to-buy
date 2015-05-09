@@ -7,6 +7,13 @@ import repository.eventsourcing.example.domain.{House, HouseRepository}
 class HouseRepositorySpec extends FlatSpec with Matchers with MongoDbSpec {
   val awesomeHouse = House.build("100500 Awesome str., Chicago, USA", 100500, "Alexey Balchunas")
 
+  "remove" should "remove object from repository" in {
+    List(
+      new EventSourcedHouseRepository(new InMemoryEventStore),
+      new MongoDbEventSourcedHouseRepository(db())
+    ).foreach(removeHouseScenario)
+  }
+
   "get" should "return previously put object" in {
     List(
       new EventSourcedHouseRepository(new InMemoryEventStore),
@@ -19,6 +26,15 @@ class HouseRepositorySpec extends FlatSpec with Matchers with MongoDbSpec {
       new EventSourcedHouseRepository(new InMemoryEventStore),
       new MongoDbEventSourcedHouseRepository(db())
     ).foreach(failedHouseScenario)
+  }
+
+  private def removeHouseScenario(houseRepository: HouseRepository): Unit = {
+    houseRepository.contained(awesomeHouse.address) should be(right = false)
+    houseRepository.save(awesomeHouse)
+    houseRepository.remove(awesomeHouse.address) should be(right = true)
+    houseRepository.get(awesomeHouse.address) should be(None)
+    houseRepository.contains(awesomeHouse.address) should be(right = false)
+    houseRepository.contained(awesomeHouse.address) should be(right = true)
   }
 
   private def successHouseScenario(houseRepository: HouseRepository): Unit = {

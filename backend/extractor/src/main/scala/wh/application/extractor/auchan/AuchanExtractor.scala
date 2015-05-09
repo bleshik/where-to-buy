@@ -2,89 +2,72 @@ package wh.application.extractor.auchan
 
 import java.net.URL
 
-import com.gargoylesoftware.htmlunit.html._
-import com.gargoylesoftware.htmlunit.util.Cookie
-import wh.util.ConcurrencyUtil._
-import wh.application.extractor.AbstractExtractor
+import org.jsoup.nodes.Element
+import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import wh.application.extractor.JsoupPage._
 
-class AuchanExtractor extends AbstractExtractor {
-
-  override def extract(url: URL): Iterator[ExtractedEntry] = htmlPage(url).map { page =>
-    page.getBody
-      .getElementsByAttribute("ul", "class", "city-list")
-      .asScala
-      .asInstanceOf[mutable.Buffer[HtmlElement]]
-      .headOption
-      .map { cities =>
-        cities.getElementsByTagName("a")
+class AuchanExtractor extends AbstractJsoupExtractor {
+  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] = document(url).map { page =>
+      page.document.select("ul.city-list")
+        .asScala
+        .asInstanceOf[mutable.Buffer[Element]]
+        .headOption
+        .map { cities =>
+        cities.getElementsByTag("a")
           .asScala
-          .asInstanceOf[mutable.Buffer[HtmlElement]]
-          .iterator
-          .map(_.getAttribute("data-shop-id"))
-    }.map { cities =>
-      cities.flatMap { region =>
-        client.getCookieManager.clearCookies()
-        client.getCookieManager.addCookie(new Cookie(url.getHost, "user_shop_id", region))
-        super.extract(url)
-      }
-    }.getOrElse(Iterator.empty)
-  }.getOrElse(Iterator.empty)
+          .asInstanceOf[mutable.Buffer[Element]]
+          .map(_.attr("data-shop-id"))
+          .toList
+      }.map { cities =>
+        cities.map { region =>
+         { () => extract(url, Map(("user_shop_id", region))) }
+        }
+      }.getOrElse(List.empty)
+    }.getOrElse(List.empty)
 
-  override def doExtract(page: HtmlPage): Iterator[ExtractedEntry] = {
-    val li = page.getBody
-      .getOneHtmlElementByAttribute("ul", "class", "sub-nav")
-      .asInstanceOf[HtmlElement]
-      .getChildNodes
+  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
+    val li = page.document.select("ul.sub-nav")
+      .first()
+      .children()
       .asScala
-      .takeRight(2)
-      .head
-    val rootCategory = Category(cleanUpName(li.getFirstChild.getTextContent), null)
-    val drop = li.getLastChild.asInstanceOf[HtmlDivision]
-    val categories = drop.getOneHtmlElementByAttribute("ul", "class", "drop-ul")
-      .asInstanceOf[HtmlElement]
-      .getElementsByTagName("a")
+      .filter { li => !li.attr("class").trim.equals("auction") }
+      .last
+    val rootCategory = Category(cleanUpName(li.child(0).text()), null)
+    val drop = li.children().last()
+    val categories = drop.select("ul.drop-ul a")
       .asScala
-      .asInstanceOf[mutable.Buffer[HtmlAnchor]]
-      .map(c => cleanUpName(c.getTextContent))
-    drop.getElementsByAttribute("div", "class", "drop2").asScala.asInstanceOf[mutable.Buffer[HtmlDivision]].zipWithIndex.par.withMinThreads(3).flatMap { case (subDrop, i) =>
+      .map(c => cleanUpName(c.text))
+    drop.select("div.drop2").asScala.zipWithIndex.iterator.flatMap { case (subDrop, i) =>
       val parentCategory = Category(categories(i), rootCategory)
-      subDrop.getHtmlElementsByTagName("a").asScala.asInstanceOf[mutable.Buffer[HtmlAnchor]].par.flatMap { category =>
-        click(category).map(page => extractCategory(page, Category(cleanUpName(category.getTextContent), parentCategory))).getOrElse(Iterator.empty)
+      subDrop.select("a").asScala.iterator.flatMap { category =>
+        page.click(category).map(page => extractCategory(page, Category(cleanUpName(category.text), parentCategory))).getOrElse(Iterator.empty)
       }
-    }.iterator
+    }
   }
 
-  private def extractCategory(page: HtmlPage, category: Category): Iterator[ExtractedEntry] = {
-    page.getBody
-      .getElementsByAttribute("div", "class", "city-box cf")
+  private def extractCategory(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+    page.document.select("div.city-box.cf li")
       .asScala
-      .asInstanceOf[mutable.Buffer[HtmlDivision]]
       .headOption
       .map { city =>
-        city.getElementsByTagName("li")
-          .get(0)
-          .getTextContent
+        city.text()
           .replace("г.", "")
           .trim
     }.map { city =>
-      page.getBody
-        .getOneHtmlElementByAttribute("ul", "class", "items-list")
-        .asInstanceOf[HtmlElement]
-        .getElementsByTagName("li")
+      page.document.select("ul.items-list li")
         .asScala
-        .asInstanceOf[mutable.Buffer[HtmlListItem]]
         .iterator
         .flatMap { item =>
-        val name = item.getOneHtmlElementByAttribute("div", "class", "head").asInstanceOf[HtmlDivision].getTextContent
-        val price = extractPrice(item.getOneHtmlElementByAttribute("div", "class", "price").asInstanceOf[HtmlDivision].getTextContent)
-        extractEntry("Ашан", city, name, price, category, item.getElementsByTagName("img").get(0))
+        val name = item.select("div.head").first().text
+        val price = extractPrice(item.select("div.price").text)
+        extractEntry("Ашан", city, name, price, category, item.select("img"))
       } ++
-        page.getBody.getElementsByAttribute("a", "class", "next").asScala.headOption.map { nextLink: HtmlAnchor =>
-          click(nextLink).map { next =>
+        page.document.select("a.next").asScala.headOption.map { nextLink =>
+          page.click(nextLink).map { next =>
             extractCategory(next, category)
           }.getOrElse(Iterator.empty)
         }.getOrElse(Iterator.empty)

@@ -1,5 +1,6 @@
 package wh.application.akka
 
+import java.util.concurrent.Executors
 import javax.inject.{Inject, Provider}
 
 import akka.actor._
@@ -10,6 +11,7 @@ import wh.application.extractor.EntryExtractingActor
 import wh.application.rest.RestActor
 import wh.infrastructure.Environment
 
+import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
 
 class AkkaModule extends ScalaModule {
@@ -17,6 +19,7 @@ class AkkaModule extends ScalaModule {
     val system = ActorSystem("WhereToBuySystem", ConfigFactory.load("api", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
       .withValue("hostname", ConfigValueFactory.fromAnyRef(Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")))
       .resolve())
+    bind[ExecutionContext].toInstance(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(Environment.workerPoolConcurrency)))
     bind[ActorSystem].toInstance(system)
     bind[ActorRefFactory].toInstance(system)
     actor[EntryExtractingActor]

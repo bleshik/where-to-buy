@@ -12,7 +12,7 @@ class MetroExtractorSpec extends FlatSpec with Matchers {
       override protected def domains(u: URL): Map[String, URL] = Map("Москва" -> u)
       override protected def entriesUrls(categoryUrl: URL): List[URL] = List(new URL(categoryUrl.toString.replace(".html", ".json")))
     }
-    extractor.extract(url).toSet should be (
+    extractor.parts(url).flatMap(_()).toSet should be (
       Set(
         ExtractedEntry(
           ExtractedShop("Metro", "Москва"),

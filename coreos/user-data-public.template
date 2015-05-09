@@ -2,7 +2,7 @@
 
 coreos:
   etcd:
-    discovery: https://discovery.etcd.io/560af03c88f86a739383314fefe050d9
+    discovery: https://discovery.etcd.io/34fe87d3790cae49a6b81249a36f5534
     addr: $private_ipv4:4001
     peer-addr: $private_ipv4:7001
   fleet:
@@ -12,6 +12,8 @@ coreos:
       command: start
     - name: fleet.service
       command: start
+    - name: iptables-restore.service
+      enable: true
 ssh_authorized_keys:
     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD1UU3jGKcD54o1QiIP0mC7rxRbhGQrVKMzZxxwc0vBfOCmhGu9Ud9N6SBgpqmglfpW4waKieIxXxfAJ/xRi2n2A+pXtCH77SELHdkcffoeQ18RHsWewOGYl2x2Nw8IY9cfMawsO9DNxvbA3AO5hwlY5uDVf5ck34FTtBrtik2Dc19V6rZn+b8jvN0xLQFqJRV6aU1BHAQn/CS11y7pfO69aOnbPOOH735nYZQ8IYoSqBbgVJHzJGWinRuRXxOj3FMSCSRanpdPF5qd6BWTnTla82DpNHWNSRSpOFNpZh8iDaIavNtlicrtKPcM+/9b72zLHnJIO9be48CAD8sXsTXD bleshik@Alexeys-MacBook-Pro.local
 write_files:
@@ -24,4 +26,4 @@ write_files:
     - path: /etc/fleet/fleet.conf
       permissions: 0644
       content: |
-        metadata="access=private"
+        metadata="access=public,db=true"

@@ -1,5 +1,6 @@
 package eventstore.impl
 
+import java.util
 import java.util.ConcurrentModificationException
 
 import com.mongodb._
@@ -35,7 +36,11 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
   }
 
   def deserialize(mongoObject: DBObject): Event = {
-    serializer.deserialize(mongoObject)
+    val event = serializer.deserialize(mongoObject)
+    val occurredOn = classOf[Event].getDeclaredField("_occurredOn")
+    occurredOn.setAccessible(true)
+    occurredOn.setLong(event, mongoObject.get("occurredOn").asInstanceOf[Long])
+    event
   }
 
   def serialize(event: Event, streamName: String): DBObject = {
@@ -57,10 +62,25 @@ class MongoDbEventStore(val dbCollection: DBCollection) extends EventStore {
       })
       builder.execute()
     } catch {
-      case e: BulkWriteException  => throw new ConcurrentModificationException()
-      case e: com.mongodb.MongoException.DuplicateKey  => throw new ConcurrentModificationException()
+      case e: BulkWriteException =>
+        if (e.getWriteErrors.asScala.exists(_.getCode == 11000)) {
+          throw new ConcurrentModificationException(e)
+        } else {
+          throw e
+        }
+      case e: com.mongodb.MongoException.DuplicateKey  => throw new ConcurrentModificationException(e)
     }
   }
 
   override def streamNames: Set[String] = dbCollection.distinct("streamId").asInstanceOf[java.util.List[String]].asScala.toSet[String]
+
+  override def version(streamName: String): Long = dbCollection.aggregate(new util.ArrayList[DBObject](){{
+    add(new BasicDBObject("$match", new BasicDBObject("streamId", streamName)))
+    add(new BasicDBObject("$sort", new BasicDBObject("idx", -1)))
+    add(new BasicDBObject("$limit", 1))
+  }}).results()
+    .iterator()
+    .next()
+    .get("idx")
+    .asInstanceOf[Long]
 }

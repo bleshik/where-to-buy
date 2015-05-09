@@ -16,5 +16,11 @@ object Environment extends Enumeration {
 
   def instances = Option(System.getenv("INSTANCES")).map(_.toInt).getOrElse(1)
 
-  def minimumConcurrency = Option(System.getenv("CONCURRENCY")).map(_.toInt).getOrElse(1)
+  def shops = Option(System.getenv("SHOPS")).map(_.split(',').toList)
+
+  def cities = Option(System.getenv("CITIES")).map(_.split(',').toList).getOrElse(List("Москва"))
+
+  def minimumConcurrency = Option(System.getenv("CONCURRENCY")).map(_.toInt).getOrElse(Runtime.getRuntime.availableProcessors())
+
+  def logDeadLetters = Option(System.getenv("LOG_DEAD_LETTERS")).map(_.toInt).getOrElse(10)
 }

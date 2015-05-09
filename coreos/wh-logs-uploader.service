@@ -1,11 +1,26 @@
 [Unit]
-Description=Updating Unit
+Description=Logs Uploading Unit
 
 [Service]
-Type=simple
 TimeoutStartSec=0
 EnvironmentFile=/etc/environment
-ExecStart=/bin/sh -c 'journalctl -o short -f | grep -v "^.*dockerd.*No such container.*$" | awk \'{ print "${LOGENTRIES_TOKEN}", $0; fflush(); }\' | ncat data.logentries.com 10000'
+ExecStart=/bin/sh -c 'journalctl -o short -f |\
+          grep -v ".*No such container.*" |\
+          grep -v ".*Fatal errors found in configuration.*" |\
+          grep -v \'.*docker.*level="info".*\' |\
+          grep -v ".*Running \'python /tmp/register.py\'.*" |\
+          grep -v ".*failed to .* one or more containers.*" |\
+          grep -v ".*sshd.*" |\
+          grep -v ".*OpenSSH.*" |\
+          grep -v ".*Looking for failed units.*" |\
+          grep -v ".*/run/coreos/motd.*" |\
+          grep -v ".*Nope, no updates for.*" |\
+          grep -v ".*Any updates for.*" |\
+          grep -v ".*update_engine.*" |\
+          grep -v ".*clientcursormon.*" |\
+          grep -v ".*locksmithd.*" |\
+          awk -v TOKEN="`etcdctl get /logentries.com/token`" \'{ print TOKEN, $0; fflush(); }\' | ncat data.logentries.com 10000'
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

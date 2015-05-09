@@ -1,3 +1,3 @@
 package wh.extractor.domain.model
 
-case class Category(name: String, parentCategory: Category)
+case class Category(name: String, parentCategory: Category = null)

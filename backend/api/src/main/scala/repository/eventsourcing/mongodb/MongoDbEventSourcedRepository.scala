@@ -1,6 +1,6 @@
 package repository.eventsourcing.mongodb
 
-import com.mongodb.{BasicDBObject, DB, DBObject}
+import com.mongodb._
 import eventstore.impl.{MongoDbEventStore, MongoDbSerializer}
 import repository.IdentifiedEntity
 import repository.eventsourcing.{EventSourcedEntity, EventSourcedRepository}
@@ -18,7 +18,20 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
   }
 
   override protected def saveSnapshot(entity: T): Unit = {
-    snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, entity.mutatedVersion == 1)
+    try {
+      snapshots.findAndModify(new BasicDBObject("version", entity.unmutatedVersion).append("id", entity.id), null, null, false, serialize(entity), false, entity.unmutatedVersion == 0)
+    } catch {
+      case e: MongoCommandException =>
+        if (e.getErrorCode == 11000) {
+          // ignore duplicates, because this means that there is already a saved snapshot with higher version
+        } else {
+          throw e
+        }
+    }
+  }
+
+  override protected def removeSnapshot(id: K): Boolean = {
+    snapshots.remove(new BasicDBObject("id", id)).getN > 0
   }
 
   protected def serialize(entity: T): DBObject = {
@@ -58,8 +71,8 @@ class MongoDbEventSourcedRepository[T <: EventSourcedEntity[T] with IdentifiedEn
 
   protected def migrate(): Unit = {}
 
-  protected def find(query: DBObject, orderBy: DBObject = new BasicDBObject(), limit: Int = 100, offset: Int = 0): Iterator[T] = {
-    snapshots.find(query).sort(orderBy).skip(offset).limit(limit).iterator().map(deserialize)
+  protected def find(query: DBObject, orderBy: DBObject = new BasicDBObject(), limit: Int = 100, offset: Int = 0, hint: DBObject = new BasicDBObject()): Iterator[T] = {
+    snapshots.find(query).sort(orderBy).hint(hint).skip(offset).limit(limit).iterator().map(deserialize)
   }
 
   protected def findOne(query: DBObject): Option[T] = {
