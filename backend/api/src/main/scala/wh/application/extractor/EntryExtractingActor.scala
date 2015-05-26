@@ -75,7 +75,5 @@ class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepositor
 
 object EntryExtractingActor {
   def weird(pricesHistory: List[(Long, Long)]): Boolean =
-    pricesHistory.size >= 4 && Stream.range(2, Math.min(pricesHistory.size / 2, 4) + 1).map(pricesHistory.map(_._2).grouped(_).toList).exists { g =>
-      g.groupBy(identity).mapValues(_.size).values.toList.max > g.size / 2
-    }
+    pricesHistory.size >= 4 && pricesHistory.map(_._2).distinct.size <= pricesHistory.size / 2
 }
