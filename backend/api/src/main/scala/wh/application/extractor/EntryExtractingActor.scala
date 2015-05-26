@@ -34,7 +34,7 @@ class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepositor
             logger.trace(s"Found for $entry: $c")
             if (c.entry(entry.shop).isDefined) {
               if (!c.price(entry.shop).get.equals(entry.price)) {
-                isCommodityWeird = weird(commodityRepository.pricesHistory(c.name, entry.shop) :+ (System.currentTimeMillis(), entry.price))
+                isCommodityWeird = commodityRepository.prices(c.name, entry.shop).exists { p => weird(p.history :+ (System.currentTimeMillis(), entry.price)) }
                 c.changePrice(entry.shop, entry.price)
               } else {
                 c
@@ -75,7 +75,5 @@ class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepositor
 
 object EntryExtractingActor {
   def weird(pricesHistory: List[(Long, Long)]): Boolean =
-    pricesHistory.size >= 4 && Stream.range(2, Math.min(pricesHistory.size / 2, 4) + 1).map(pricesHistory.map(_._2).grouped(_).toList).exists { g =>
-      g.groupBy(identity).mapValues(_.size).values.toList.max > g.size / 2
-    }
+    pricesHistory.size >= 4 && pricesHistory.map(_._2).distinct.size <= pricesHistory.size / 2
 }

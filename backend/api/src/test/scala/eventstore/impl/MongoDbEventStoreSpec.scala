@@ -12,8 +12,8 @@ class MongoDbEventStoreSpec extends AbstractEventStoreSpec with MongoDbSpec {
 
   it should "handle complex events" in {
     val eventStore = newEventStore
-    eventStore.append("complexEvents", 0, List(complexEvent))
-    eventStore.stream("complexEvents").events.head should be(complexEvent)
+    eventStore.append("complexEvents", List(complexEvent))
+    eventStore.stream("complexEvents").get.events.head should be(complexEvent)
   }
 
   it should "return all previously added streams" in {

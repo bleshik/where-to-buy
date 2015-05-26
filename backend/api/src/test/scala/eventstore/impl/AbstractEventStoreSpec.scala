@@ -19,9 +19,8 @@ class AbstractEventStoreSpec extends FlatSpec with Matchers with LazyLogging {
             val events = List(DummyEvent())
             var success = false
             while(!success) {
-              val eventStream = eventStore.stream(streamName)
               try {
-                eventStore.append(streamName, eventStream.version, events)
+                eventStore.append(streamName, events)
                 success = true
               } catch {
                 case e: ConcurrentModificationException => exceptionAmount += 1
@@ -34,7 +33,7 @@ class AbstractEventStoreSpec extends FlatSpec with Matchers with LazyLogging {
     pool.shutdown()
     try {
       if (pool.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
-        eventStore.stream("stream").version should be(concurrencyLevel * eventsPerThread)
+        eventStore.version("stream") should be(concurrencyLevel * eventsPerThread)
       } else {
         fail()
       }

@@ -75,14 +75,51 @@ class MongoDbCommodityRepository(override val db: DB)
 
   private val matcher = new CommodityMatcher
 
-  override def pricesHistory(commodityName: String, shop: Shop): List[(Long, Long)] = {
-    eventStore.stream(streamName(commodityName)).events.filter {
-      case e: CommodityArrived      => e.shop.equals(shop)
-      case e: CommodityPriceChanged => e.shop.equals(shop)
-      case _                        => false
-    }.map {
-      case e: CommodityArrived      => (e.occurredOn, e.price)
-      case e: CommodityPriceChanged => (e.occurredOn, e.price)
+  override def prices(commodityName: String, shop: Shop): Option[PricesHistory] = {
+    eventStore.stream(streamName(commodityName)).map { stream =>
+      PricesHistory(commodityName, stream.events.filter {
+        case e: CommodityArrived => e.shop.equals(shop)
+        case e: CommodityPriceChanged => e.shop.equals(shop)
+        case _ => false
+      }.map {
+        case e: CommodityArrived => (e.occurredOn, e.price)
+        case e: CommodityPriceChanged => (e.occurredOn, e.price)
+      })
+    }
+  }
+
+  override def averagePrices(commodityName: String): Option[PricesHistory] = {
+    eventStore.stream(streamName(commodityName)).map { stream =>
+      PricesHistory(commodityName, stream.events.filter {
+        case e: CommodityArrived => true
+        case e: CommodityPriceChanged => true
+        case _ => false
+      }.groupBy {
+        case e: CommodityArrived => e.shop
+        case e: CommodityPriceChanged => e.shop
+        case _ => false
+      }.mapValues {
+        _.map {
+          case e: CommodityArrived => (e.occurredOn, List(e.price))
+          case e: CommodityPriceChanged => (e.occurredOn, List(e.price))
+        }
+      }.values
+        .reduce((a, b) => aggregatePrices(a, b))
+        .map(price => (price._1, price._2.sum / price._2.length)))
+    }
+  }
+
+  private def aggregatePrices(a: List[(Long, List[Long])],
+                            b: List[(Long, List[Long])],
+                            aPrice: (Long, List[Long]) = null,
+                            bPrice: (Long, List[Long]) = null): List[(Long, List[Long])] = {
+    if (a.isEmpty) { b }
+    else if (b.isEmpty) { a }
+    else {
+      if (a.head._1 > b.head._1) { aggregatePrices(b, a, bPrice, aPrice) }
+      else {
+        (a.head._1, if (bPrice != null) a.head._2 ++ bPrice._2 else a.head._2) +: aggregatePrices(a.tail, b, a.head, bPrice)
+      }
     }
   }
 }
