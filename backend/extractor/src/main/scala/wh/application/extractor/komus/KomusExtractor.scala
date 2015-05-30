@@ -13,7 +13,7 @@ class KomusExtractor extends AbstractJsoupExtractor {
     page.document.select("a[title=подробно]")
       .asScala
       .headOption
-      .map(a => page.click(a).map(extractFromCategoryList(_, parentCategory)).getOrElse(Iterator.empty))
+      .map(a => page.click(a).map(extractFromProductList(_, parentCategory)).getOrElse(Iterator.empty))
       .getOrElse(
         extractFromProductList(page, parentCategory) ++
           page.document.select("div.pagination")
