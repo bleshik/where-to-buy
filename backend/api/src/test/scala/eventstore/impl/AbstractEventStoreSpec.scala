@@ -32,7 +32,7 @@ class AbstractEventStoreSpec extends FlatSpec with Matchers with LazyLogging {
     }
     pool.shutdown()
     try {
-      if (pool.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
+      if (pool.awaitTermination(20000, TimeUnit.MILLISECONDS)) {
         eventStore.version("stream") should be(concurrencyLevel * eventsPerThread)
       } else {
         fail()
