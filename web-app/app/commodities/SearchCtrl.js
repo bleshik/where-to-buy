@@ -1,9 +1,9 @@
-function SearchCtrl($rootScope, $scope, $timeout, $location, whereApi) {
+function SearchCtrl($rootScope, $scope, $timeout, $location, resources, rublesFilter) {
     this.$rootScope = $rootScope;
     this.$scope = $scope;
     this.$timeout = $timeout;
     this.$location = $location;
-    this.whereApi = whereApi;
+    this.resources = resources;
 
     this.$scope.city = this.$location.search().city;
     this.$scope.city = this.$scope.city != null ? this.$scope.city : "Москва";
@@ -32,7 +32,7 @@ SearchCtrl.prototype.loadMore = function(replace) {
     var offset = (this.$scope.commodities != null && replace !== true ? this.$scope.commodities.length : 0);
     var _this = this;
     var query = _this.$scope.query;
-    var commodities = _this.whereApi("commodities").query({query: _this.$scope.query, offset: offset, limit: limit}, function() {
+    this.resources.commodities().query({q: _this.$scope.query, offset: offset, limit: limit, city: this.$scope.city }, function(commodities) {
         commodities.forEach(function(c) {
             c.minPrice = _.min(_.map(c.entries.filter(function (e) { return e.shop.city === _this.$scope.city; }), function(e) { return e.price; }));
         });

@@ -6,8 +6,10 @@ angular.module('where', [
   'where.api',
   'where.filter',
   'where.directive',
-  'where.filter.currency'
+  'where.filter.currency',
+  'where.prices'
 ]).
 config(['$routeProvider', function($routeProvider) {
-  $routeProvider.otherwise({redirectTo: '/commodities'});
+  $routeProvider
+    .otherwise({redirectTo: '/commodities'});
 }]);

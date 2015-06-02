@@ -38,14 +38,10 @@ class MongoDbCommodityRepository(override val db: DB)
    * @return list of commodities.
    */
   override def search(searchPattern: String, city: String, limit: Int, offset: Int): List[Commodity] = {
-    if (searchPattern.isEmpty) {
-      List()
-    } else {
-      find(MongoDBObject(
-        "$and" -> matcher.sanitizeName(searchPattern).split("\\s+").distinct.toList.map(token => MongoDBObject("nameTokens" -> MongoDBObject("$regex" -> s"^$token.*"))),
-        "relevantCities" -> city
-      ), MongoDBObject("citiesRelevancy" -> -1, "name" -> 1), limit, offset).toList
-    }
+    find(MongoDBObject(
+      "$and" -> matcher.sanitizeName(searchPattern).split("\\s+").distinct.toList.map(token => MongoDBObject("nameTokens" -> MongoDBObject("$regex" -> s"^$token.*"))),
+      "relevantCities" -> city
+    ), MongoDBObject("citiesRelevancy" -> -1, "name" -> 1), limit, offset).toList
   }
 
   override protected def migrate(): Unit = {
@@ -88,11 +84,11 @@ class MongoDbCommodityRepository(override val db: DB)
     }
   }
 
-  override def averagePrices(commodityName: String): Option[PricesHistory] = {
+  override def averagePrices(commodityName: String, city: Option[String]): Option[PricesHistory] = {
     eventStore.stream(streamName(commodityName)).map { stream =>
       PricesHistory(commodityName, stream.events.filter {
-        case e: CommodityArrived => true
-        case e: CommodityPriceChanged => true
+        case e: CommodityArrived => !city.exists(!_.equals(e.shop.city))
+        case e: CommodityPriceChanged => !city.exists(!_.equals(e.shop.city))
         case _ => false
       }.groupBy {
         case e: CommodityArrived => e.shop
