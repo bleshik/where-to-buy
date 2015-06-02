@@ -16,7 +16,7 @@
   </div>
 </nav>
 <div class="container-fluid">
-    <div class="panel panel-default col-md-6 col-md-offset-3" style="margin-top: 20%;" ng-hide="landed">
+    <div class="panel panel-default col-md-6 col-md-offset-3" style="margin-top: 10%;" ng-hide="landed">
         <div class="panel-body">
             <div class="row">
                 <h3 class="title text-center">{{title}}</h3>
@@ -33,6 +33,11 @@
             </div>
         </div>
     </div>
+    <div class="panel panel-default col-md-6 col-md-offset-3" ng-hide="landed" ng-cloak="">
+        <div class="panel-body">
+            <wh-prices-chart></wh-prices-chart>
+        </div>
+    </div>
     <div ng-show="commodities != null && landed">
         <table class="borderless table table-hover title">
             <tr ng-hide="commodities.length > 0">
@@ -43,7 +48,7 @@
             <tr ng-repeat="commodity in commodities" class="row">
                 <td class="col-md-2">
                   <div>
-                    <a href="#" class="thumbnail">
+                    <a class="thumbnail">
                       <img ng-src="/api/commodities/{{commodity.name | escape}}.jpg" alt="{{commodity.name}}">
                     </a>
                   </div>

@@ -11,7 +11,9 @@ import wh.inventory.domain.model.{Commodity, CommodityRepository, Shop}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepository, val imageRepository: ImageRepository, implicit val executionContext: ExecutionContext)
+class EntryExtractingActor @Inject()(val commodityRepository: CommodityRepository,
+                                     val imageRepository: ImageRepository,
+                                     implicit val executionContext: ExecutionContext)
   extends Actor with LazyLogging {
   @volatile var i = 0
 

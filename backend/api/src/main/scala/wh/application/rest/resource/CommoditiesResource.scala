@@ -6,6 +6,7 @@ import akka.actor.ActorRefFactory
 import spray.http.HttpEntity
 import spray.http.MediaTypes._
 import spray.routing.Route
+import wh.application.commodity.CommodityService
 import wh.application.rest.AbstractRestComponent
 import wh.images.domain.model.ImageRepository
 import wh.inventory.domain.model.{Commodity, CommodityRepository}
@@ -15,6 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactory,
                                     val commodityRepository: CommodityRepository,
                                     val imageRepository: ImageRepository,
+                                    val commodityService: CommodityService,
                                     implicit val executionContext: ExecutionContext)
   extends AbstractRestComponent(actorRefFactory) {
 
@@ -24,15 +26,18 @@ class CommoditiesResource @Inject()(override val actorRefFactory: ActorRefFactor
   })
 
   override def doGetRoute: Route = pathPrefix("commodities") {
-    get {
-      pathPrefix(Segment) { name: String =>
-        path("prices") { complete { Future { commodityRepository.averagePrices(name) } } } ~
-        cacheImagesForDay { complete { Future { commodityRepository.get(name) } } }
-      } ~
-      parameter("q") { query: String =>
-        parameter("limit") { limit: String =>
-          parameter("offset") { offset: String =>
-            complete { Future { commodityRepository.search(query,  "Москва", limit.toInt, offset.toInt) } }
+    parameter("city" ? "Москва") { city: String =>
+      get {
+        path("prices") { complete { Future { commodityRepository.averagePrices(commodityService.randomInterestingCommodity(city).name, Some(city)) } } } ~
+        pathPrefix(Segment) { name: String =>
+          path("prices") { complete { Future { commodityRepository.averagePrices(name, Some(city)) } } } ~
+          cacheImagesForDay { complete { Future { commodityRepository.get(name) } } }
+        } ~
+        parameter("q") { query: String =>
+          parameter("limit") { limit: String =>
+            parameter("offset") { offset: String =>
+              complete { Future { commodityRepository.search(query, city, limit.toInt, offset.toInt) } }
+            }
           }
         }
       }

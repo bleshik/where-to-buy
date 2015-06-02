@@ -13,11 +13,11 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx384m -Xms384m -Dfile.encoding=UTF-8"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx640m -Xms640m -Dfile.encoding=UTF-8"\
         -e "INSTANCE=%i"\
         -e "INSTANCES=1"\
         -e "CITIES=Москва,Санкт-Петербург"\
-        -e "CONCURRENCY=12"\
+        -e "CONCURRENCY=3"\
         -e "ENVIRONMENT=production"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\

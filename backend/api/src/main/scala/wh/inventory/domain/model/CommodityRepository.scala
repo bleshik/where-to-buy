@@ -21,9 +21,10 @@ trait CommodityRepository extends TemporalPersistenceOrientedRepository[Commodit
   /**
    * Returns average prices for all shops a commodity had.
    * @param commodityName name of a commodity.
+   * @param city if None, it will use prices across the country.
    * @return history.
    */
-  def averagePrices(commodityName: String): Option[PricesHistory]
+  def averagePrices(commodityName: String, city: Option[String]): Option[PricesHistory]
 
   /**
    * Returns for a specific shop a commodity had.

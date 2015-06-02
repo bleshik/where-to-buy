@@ -9,5 +9,6 @@ class ApiModule extends ScalaModule {
     install(new AkkaModule)
     install(new PersistenceModule)
     install(new RestModule)
+    install(new ApplicationModule)
   }
 }
