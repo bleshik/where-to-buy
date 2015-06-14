@@ -9,11 +9,13 @@ import com.google.inject.{Guice, Key}
 import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
 import wh.infrastructure.Environment
+import wh.util.LoggingUtil
 
 import scala.concurrent.duration._
 
 object ApiApp extends App with LazyLogging {
   logger.debug(s"Starting Where To Buy app in ${Environment.current} environment")
+  LoggingUtil.logMemory("api")
   val injector = Guice.createInjector(Environment.stage, new ApiModule)
 
   implicit val system = injector.getInstance(classOf[ActorSystem])

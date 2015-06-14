@@ -21,5 +21,4 @@ trait LoggingHandling extends LazyLogging {
       }
     }
   }
-
 }
