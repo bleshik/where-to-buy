@@ -26,7 +26,6 @@ ExecStart=/bin/sh -c 'while [ 1 ] ; do\
                     fi\
                 fi\
             done;\
-            curl https://raw.githubusercontent.com/HardySimpson/docker-cleanup/c627f40367fdd718f7d705e9024f4bdbd99b5681/docker-cleanup.sh | bash -s;\
         fi;\
         sleep 60;\
     done'
