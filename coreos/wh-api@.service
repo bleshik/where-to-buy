@@ -14,7 +14,12 @@ ExecStartPre=-/usr/bin/docker stop wh-api
 ExecStartPre=-/usr/bin/docker rm wh-api
 ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx256m -Xms256m -Dfile.encoding=UTF-8"\
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx256m -Xms256m -Dfile.encoding=UTF-8 \
+                      -Dcom.sun.management.jmxremote \
+                      -Dcom.sun.management.jmxremote.port=9010 \
+                      -Dcom.sun.management.jmxremote.local.only=false \
+                      -Dcom.sun.management.jmxremote.authenticate=false \
+                      -Dcom.sun.management.jmxremote.ssl=false"\
         -e "ENVIRONMENT=production"\
         -e "T=Москва"\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\

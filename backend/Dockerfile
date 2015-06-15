@@ -6,5 +6,6 @@ RUN cd /api && sbt test && sbt stage
 WORKDIR /api
 EXPOSE 8080
 EXPOSE 9000
+EXPOSE 9010
 ENTRYPOINT [ "target/universal/stage/bin/wh-api" ]
 CMD []
