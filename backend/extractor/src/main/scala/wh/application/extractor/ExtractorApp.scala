@@ -17,13 +17,11 @@ import wh.application.extractor.metro.MetroExtractor
 import wh.application.extractor.utkonos.UtkonosExtractor
 import wh.extractor.domain.model.ExtractedEntry
 import wh.util.ConcurrencyUtil._
-import wh.util.LoggingUtil
 
 import scala.concurrent.forkjoin.ForkJoinPool
 import scala.util.Try
 
 object ExtractorApp extends LazyLogging {
-  LoggingUtil.logMemory("extractor")
   private lazy val extractorSystem = {
     val extractorAddress = Environment.balancerIp.orElse(Environment.privateIp).getOrElse("127.0.0.1")
     ActorSystem("ExtractorSystem", ConfigFactory.load("extractor", ConfigParseOptions.defaults(), ConfigResolveOptions.defaults.setAllowUnresolved(true))
