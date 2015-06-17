@@ -1,7 +1,8 @@
 var express = require('express'),
     httpProxy = require('http-proxy'),
-    path = require('path');
-
+    path = require('path'),
+    compression = require('compression');
+ 
 eval(require('fs').readFileSync('app/config/current.js', 'utf8'));
         
 var proxy = new httpProxy.createProxy();
@@ -17,8 +18,8 @@ proxy.on('error', function (error, req, res) {
 });
  
 var app = express();
- 
-app.use('/', express.static(path.join(__dirname, 'app/')));
+app.use(compression());
+app.use('/', express.static(path.join(__dirname, 'app/'), {maxAge: '1d'}));
  
 app.all('/api/*',  function (req, res) {
     req.url = req.url.slice(4);
