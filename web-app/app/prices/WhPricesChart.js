@@ -17,8 +17,8 @@ function WhPricesChart($timeout, rublesFilter){
                 }
                 scope.options = {
                     axes: {
-                        x: {key: '0', ticksFormat: '%-d.%m.%y', type: 'date', ticks: 3},
-                        y: {type: 'linear', ticksFormatter: rublesFilter, ticks: 3},
+                        x: {key: '0', ticksFormat: '%-d.%m.%y', type: 'date', ticks: 4},
+                        y: {type: 'linear', ticksFormatter: rublesFilter, ticks: 4},
                     },
                     margin: {
                         left: 75
