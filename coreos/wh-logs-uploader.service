@@ -8,9 +8,16 @@ ExecStart=/bin/sh -c 'journalctl -o short -f |\
           grep -v ".*No such container.*" |\
           grep -v ".*Fatal errors found in configuration.*" |\
           grep -v \'.*docker.*level="info".*\' |\
+          grep -v \'.*dockerd.*level=info.*\' |\
           grep -v ".*Running \'python /tmp/register.py\'.*" |\
-          grep -v ".*failed to .* one or more containers.*" |\
+          grep -v ".*failed to .* one or more.*" |\
+          grep -v ".*no such id:.*" |\
+          grep -v ".*docker0.*" |\
           grep -v ".*sshd.*" |\
+          grep -v ".* veth.*" |\
+          grep -v ".*systemd.*" |\
+          grep -v ".*Received event .* for container.*" |\
+          grep -v ".*register\.py.*" |\
           grep -v ".*OpenSSH.*" |\
           grep -v ".*Looking for failed units.*" |\
           grep -v ".*/run/coreos/motd.*" |\
