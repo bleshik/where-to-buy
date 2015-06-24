@@ -2,14 +2,14 @@
     <div class="row">
         <h5 class="title text-center">{{commodity.commodityName}}</h5>
     </div>
-    <div class="row" ng-show="commodity != null">
+    <div class="row" ng-if="commodity != null">
         <div class="col-md-3">
             <a class="thumbnail" ng-if="commodity.commodityName != null">
                 <img ng-src="/api/commodities/{{commodity.commodityName | escape}}.jpg" alt="{{commodity.commodityName}}">
             </a>
         </div>
         <div class="col-md-9">
-            <linechart data="commodity.history" options="options" width="475" height="160"></linechart>
+            <linechart data="commodity.history" options="options" height="160"></linechart>
         </div>
     </div>
 </div>
