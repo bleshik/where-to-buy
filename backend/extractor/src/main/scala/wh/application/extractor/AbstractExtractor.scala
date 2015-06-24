@@ -42,15 +42,24 @@ abstract class AbstractExtractor extends Extractor with LoggingHandling {
     }
   }
 
-  protected def extractPrice(str: String, multiplier: Int = 100): Long = {
-    (BigDecimal(cleanUpName(str.replace("р.", "").replace("руб.", "").replace(",", ".").replaceAll("[^0-9\\.]+", ""))) * multiplier).longValue()
+  protected def extractPrice(str: String, multiplier: Int = 100): Option[Long] = {
+    val extractedPrice = cleanUpName(str.replace("р.", "").replace("руб.", "").replace(",", ".").replaceAll("[^0-9\\.]+", ""))
+    try {
+      Some((BigDecimal(extractedPrice) * multiplier).longValue())
+    } catch {
+      case e: NumberFormatException =>
+        logger.warn(s"Couldn't parse a price in the string '$str', my attempt was '$extractedPrice'", e)
+        None
+    }
   }
 
-  protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: URL): Option[ExtractedEntry] = {
-    if (filterImage(image)) {
-      Some(ExtractedEntry(ExtractedShop(shop, city), cleanUpName(name), price, category, image))
-    } else {
-      None
+  protected def extractEntry(shop: String, city: String, name: String, price: Option[Long], category: Category, image: URL): Option[ExtractedEntry] = {
+    price.flatMap { price =>
+      if (filterImage(image)) {
+        Some(ExtractedEntry(ExtractedShop(shop, city), cleanUpName(name), price, category, image))
+      } else {
+        None
+      }
     }
   }
 

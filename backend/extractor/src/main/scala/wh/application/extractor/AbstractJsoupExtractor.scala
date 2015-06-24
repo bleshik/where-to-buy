@@ -19,10 +19,10 @@ abstract class AbstractJsoupExtractor extends AbstractExtractor with LazyLogging
   def extract(url: URL, cookies: Map[String, String], city: Option[String] = None): Iterator[ExtractedEntry] =
     JsoupPage.document(url, cookies, city).map(doExtract).getOrElse(Iterator.empty)
 
-  protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Element): Option[ExtractedEntry] =
+  protected def extractEntry(shop: String, city: String, name: String, price: Option[Long], category: Category, image: Element): Option[ExtractedEntry] =
     JsoupPage.url(image, "src").flatMap(src => extractEntry(shop, city, name, price, category, src))
 
-  protected def extractEntry(shop: String, city: String, name: String, price: Long, category: Category, image: Elements): Option[ExtractedEntry] =
+  protected def extractEntry(shop: String, city: String, name: String, price: Option[Long], category: Category, image: Elements): Option[ExtractedEntry] =
     extractEntry(shop, city, name, price, category, image.first())
 
   def doExtract(page: JsoupPage): Iterator[ExtractedEntry]

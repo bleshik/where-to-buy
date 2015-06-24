@@ -14,7 +14,7 @@ ExecStartPre=-/usr/bin/docker stop wh-api
 ExecStartPre=-/usr/bin/docker rm wh-api
 ExecStartPre=/usr/bin/docker pull bleshik/wh-api:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx256m -Xms256m -Dfile.encoding=UTF-8 \
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx128m -Xms128m -Dfile.encoding=UTF-8 \
                       -Dcom.sun.management.jmxremote \
                       -Dcom.sun.management.jmxremote.port=9010 \
                       -Dcom.sun.management.jmxremote.local.only=false \
@@ -28,6 +28,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         --name wh-api\
         --rm=true\
         -p 8080\
+        -p 9010\
         -p 9000\
         bleshik/wh-api:latest'
 ExecStop=-/usr/bin/docker stop wh-api
