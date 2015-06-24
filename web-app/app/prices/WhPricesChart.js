@@ -20,9 +20,6 @@ function WhPricesChart($timeout, rublesFilter){
                         x: {key: '0', ticksFormat: '%-d.%m.%y', type: 'date', ticks: 4},
                         y: {type: 'linear', ticksFormatter: rublesFilter, ticks: 4},
                     },
-                    margin: {
-                        left: 75
-                    },
                     series: [
                         {y: '1', color: 'green', thickness: '2px', type: 'area', striped: true, label: scope.commodity.commodityName},
                     ],
