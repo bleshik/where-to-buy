@@ -41,8 +41,10 @@ object ExtractorApp extends LazyLogging {
 
     logger.info("Started extractor with args: " + args.mkString(" "))
 
-    while(true) {
+    while(true) try {
       upload(args.head)
+    } catch {
+      case e: Exception => logger.error("Extractor failed", e)
     }
 
     logger.info("Exiting...")
