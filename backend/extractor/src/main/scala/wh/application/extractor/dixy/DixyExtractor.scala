@@ -55,13 +55,14 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtract
           city,
           item.select("div.prices-3")
             .text
+            .replace("весовые", "")
             .replace("весовая", "")
             .replace("весовой", ""),
-          extractPrice(item.select("h5.price-now.threedigit")
+          extractPrice(item.select(".price_now_n")
             .asScala
             .headOption
             .map(_.text)
-            .getOrElse(item.select("h5.price-now").text)),
+            .getOrElse(""), 1),
           null,
           item.select("img")
         )
