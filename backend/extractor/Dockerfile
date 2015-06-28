@@ -1,5 +1,6 @@
 FROM bleshik/scala:2.11.5
 MAINTAINER Alexey Balchunas <bleshik@gmail.com>
+RUN mkdir -p /var/log/dumps
 ADD / /extractor
 RUN cd /extractor && sbt test && sbt stage
 WORKDIR /extractor

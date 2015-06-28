@@ -13,7 +13,7 @@ ExecStartPre=-/usr/bin/docker stop wh-extractor
 ExecStartPre=-/usr/bin/docker rm wh-extractor
 ExecStartPre=/usr/bin/docker pull bleshik/wh-extractor:latest
 ExecStart=/bin/sh -c '/usr/bin/docker run\
-        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -Xmx512m -Xms512m -Dfile.encoding=UTF-8 \
+        -e "JAVA_OPTS=-XX:PermSize=96m -XX:MaxPermSize=96m -XX:HeapDumpPath=/var/log/dumps -Xmx256m -Xms256m -Dfile.encoding=UTF-8 \
                       -Dcom.sun.management.jmxremote \
                       -Dcom.sun.management.jmxremote.port=9010 \
                       -Dcom.sun.management.jmxremote.local.only=false \
@@ -27,6 +27,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run\
         -e "PRIVATE_IP=${COREOS_PRIVATE_IPV4}"\
         -e "BALANCER_IP=`fleetctl list-machines | grep public | cut -f2`"\
         -e "WH_API_AKKA_ENDPOINT=akka.tcp://WhereToBuySystem@`fleetctl list-machines | grep public | cut -f2`:9000/user/EntryExtractingActor"\
+        -v /var/log/dumps:/var/log/dumps\
         --name wh-extractor\
         --rm=true\
         -p 9010\
