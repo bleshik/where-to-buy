@@ -1,5 +1,8 @@
 package wh.application.extractor.infrastructure
 
+import actor.domain.model.Dispatcher
+import actor.port.adapter.local.LocalEventTransport
+
 object Environment extends Enumeration {
   type Environment = Value
   val DEV, PROD = Value
@@ -23,4 +26,6 @@ object Environment extends Enumeration {
   def minimumConcurrency = Option(System.getenv("CONCURRENCY")).map(_.toInt).getOrElse(Runtime.getRuntime.availableProcessors())
 
   def logDeadLetters = Option(System.getenv("LOG_DEAD_LETTERS")).map(_.toInt).getOrElse(10)
+
+  val dispatcher = new Dispatcher(new LocalEventTransport())
 }

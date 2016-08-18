@@ -7,10 +7,10 @@ import wh.extractor.domain.model.{ExtractedEntry, ExtractedShop}
 
 class DixyExtractorSpec extends FlatSpec with Matchers {
   "Dixy extractor" should "return right list of entries" in {
-    val extractor = new DixyExtractor(Set("Москва"))
+    val extractor = new DixyExtractor
     val page = getClass.getClassLoader.getResource("dixy/1.html")
     val shop = ExtractedShop("Дикси", "Москва")
-    extractor.extract(page).toList.distinct should be(List(
+    extractor.extract(page).filter { entry => entry.shop.city.equals(shop.city) }.toList.distinct should be(List(
         ExtractedEntry(shop, "АБРИКОСЫ 1 кг", 13990,null,new URL("http://dixy.ru/sites/default/files/imagecache/dixy_action_block/actions/apricots_all_320.jpg")),
         ExtractedEntry(shop, "ВИНОГРАД светлый 1 кг", 15990,null,new URL("http://dixy.ru/sites/default/files/imagecache/dixy_action_block/actions/grapes_320.jpg")),
         ExtractedEntry(shop, "ГРУША зеленая 1 кг", 8490,null,new URL("http://dixy.ru/sites/default/files/imagecache/dixy_action_block/actions/pear_green_320.jpg")),

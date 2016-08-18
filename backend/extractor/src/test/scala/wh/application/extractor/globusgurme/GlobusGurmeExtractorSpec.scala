@@ -11,7 +11,7 @@ class GlobusGurmeExtractorSpec extends FlatSpec with Matchers {
     val shop = ExtractedShop("Глобус Гурмэ", "Москва")
     val category = Category("Йогурты", Category("Молочные продукты, яйцо", Category("Продовольственные товары",null)))
     val page = getClass.getClassLoader.getResource("globusgurme/1.html")
-    extractor.extract(page).toSet should be (
+    extractor.extract(page).filter { entry => entry.shop.city.equals(shop.city) }.toSet should be (
       Set(
         ExtractedEntry(shop, "Биойогурт Данон Активиа питьевой ананас 290г Россия", 4800, category, new URL("file:/upload/iblock/92c/92cc3c5017de43562d1e7644bc73dd39158_158_thumb.png")),
         ExtractedEntry(shop, "Айва Узбекистан 1 шт", 15645, category, new URL("file:/upload/iblock/45b/45b262440e089d1517287acf5ba78de5158_158_thumb.png")),

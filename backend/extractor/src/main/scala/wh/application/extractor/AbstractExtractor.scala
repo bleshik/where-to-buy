@@ -1,16 +1,19 @@
 package wh.application.extractor
 
+import wh.application.extractor.infrastructure.Environment
+import actor.domain.model.Actor
+import actor.domain.model.Dispatcher
+import java.util.concurrent.LinkedBlockingQueue
+import wh.util.WaitingBlockingQueueIterator
 import java.net.URL
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
 import wh.util.LoggingHandling
-
 import scala.io.Source
 import scala.util.Try
 
-abstract class AbstractExtractor extends Extractor with LoggingHandling {
+abstract class AbstractExtractor extends Actor with Extractor with LoggingHandling {
   protected lazy val json  = {
     val mapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
@@ -67,11 +70,17 @@ abstract class AbstractExtractor extends Extractor with LoggingHandling {
     image != null && !Set("noimage", "notfound", "none").exists(image.toString.toLowerCase.contains)
   }
 
-  protected def srcToUrl(from: URL, src: String): URL = {
-    if (!src.contains("://")) {
-      from.toURI.resolve(src).toURL
-    } else {
-      new URL(src)
-    }
+  def extract(url: URL): Iterator[ExtractedEntry] = {
+    val queue = new LinkedBlockingQueue[ExtractedEntry]()
+    extract(url, (entry) => queue.add(entry));
+    new WaitingBlockingQueueIterator(queue)
+  }
+
+  override def extract(url: URL, callback: (ExtractedEntry) => Unit): Unit = {
+    Environment.dispatcher.send(this.getClass(), Extract(url, callback))
+  }
+
+  protected def when(e: Extract): Unit = {
+    extract(e.url).foreach(e.callback)
   }
 }

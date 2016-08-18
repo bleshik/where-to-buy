@@ -1,14 +1,16 @@
 package wh.application.extractor.globusgurme
 
 import java.net.URL
+import java.util.concurrent.LinkedBlockingQueue
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
 import wh.application.extractor.ExtractCity
+import wh.application.extractor.JsoupPage._
+import wh.util.WaitingBlockingQueueIterator
 import wh.application.extractor.{AbstractJsoupExtractor, JsoupPage}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
 import scala.collection.JavaConverters._
-import wh.application.extractor.JsoupPage._
 
 class GlobusGurmeExtractor extends AbstractJsoupExtractor {
 
@@ -37,8 +39,8 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
             .asScala
             .headOption
             .map { pager =>
-              pager.select("a").asScala.flatMap(url(_, "href")).map { url =>
-                extractEntries(ExtractCategory(c, e.withUrl(url)), document(e.withUrl(url)))
+              pager.select("a").asScala.flatMap(url(pager, "href")).map { url =>
+                extractEntries(ExtractCategory(c, e.withUrl(url), document(e.withUrl(url))))
               }
             }
             extractEntries(ExtractCategory(c, e.withUrl(page.url)), Some(page))
@@ -53,14 +55,14 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
     }
   }
 
-  private def extractEntries(e: ExtractCategory, page: Option[JsoupPage]): Unit = {
-    page.map { page: JsoupPage =>
+  private def extractEntries(e: ExtractCategory, page: Option[JsoupPage]): Iterator[ExtractedEntry] = {
+    page.flatMap { page: JsoupPage =>
       page.document.select("div.product-list-item")
         .asScala
-        .foreach { item =>
+        .flatMap { item =>
         item.select("div.price-item")
           .asScala
-          .foreach { priceDiv => extractPrice(priceDiv.text)
+          .flatMap { priceDiv => extractPrice(priceDiv.text)
             val img = item.select("img")
             val name = cleanUpName(item.select("div.product-list-head a").text)
             val quantity =
@@ -70,20 +72,12 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
                 "1 шт"
               else
                 ""
-            extractEntry(
-              "Глобус Гурмэ",
-              e.extractCity.city,
-              name + " " + quantity,
-              extractPrice(priceDiv.text),
-              e.category,
-              img
-            ).map { entry => e.extractCity.extract.callback(entry) }
-        }
+            extractEntry("Глобус Гурмэ", e.extractCity.city, name + " " + quantity, extractPrice(priceDiv.text), e.category, img)
+        }.iterator
       }
-    }
+    }.foreach { entry => e.extractCity.extract.callback(entry) }
   }
 
   override protected def filterImage(image: URL): Boolean =
     super.filterImage(image) && !image.toString.toLowerCase.contains("food158_158_thumb")
-
 }

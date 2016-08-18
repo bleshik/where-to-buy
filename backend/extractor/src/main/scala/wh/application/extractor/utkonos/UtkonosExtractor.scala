@@ -1,20 +1,27 @@
 package wh.application.extractor.utkonos
 
 import java.net.URL
-
+import wh.application.extractor.Extract
+import wh.application.extractor.ExtractCategory
+import wh.application.extractor.ExtractCity
 import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
-
 import scala.collection.JavaConverters._
+import wh.application.extractor.JsoupPage._
 
 class UtkonosExtractor extends AbstractJsoupExtractor {
-  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
-    extractFromCategory(page, null)
-  }
 
-  private def extractFromCategory(page: JsoupPage, category: Category): Iterator[ExtractedEntry] = {
+  override protected def when(e: Extract): Unit =
+    document(e).map(extractFromCategory(_, None, ExtractCity("Москва", e)))
+
+  protected def when(e: ExtractCategory): Unit =
+    document(e).map(extractFromCategory(_, Some(e.category), e.extractCity))
+
+  private def extractFromCategory(page: JsoupPage, category: Option[Category], extractCity: ExtractCity): Unit = {
+
     page.document.select("div.goods_container.goods_view_box").asScala.headOption.map { goods =>
-      goods.select("div.goods_view").asScala.flatMap { entry =>
+
+      goods.select("div.goods_view").asScala.foreach { entry =>
         entry.select("div.price.color_black")
           .asScala
           .headOption
@@ -26,28 +33,31 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
               .map(_.ownText)
           ).map(extractPrice(_))
         .flatMap { price =>
-          extractEntry(
-            "Утконос",
-            SupportedCity.Moscow.name,
-            entry.select("a").first.text,
-            price,
-            category,
-            entry.select("img"))
-        }
-      }.iterator ++ page.document.select("div.el_paginate").asScala.headOption.map { pagination =>
+          category.flatMap { c =>
+            extractEntry("Утконос", "Москва", entry.select("a").first.text, price, c, entry.select("img"))
+          }
+        }.map { entry => extractCity.extract.callback(entry) }
+      }
+
+      page.document.select("div.el_paginate").asScala.headOption.map { pagination =>
         pagination.select("a").asScala.lastOption.map { lastLink =>
           if (cleanUpName(lastLink.text).equals("Вперед"))
-            page.click(lastLink).map(extractFromCategory(_, category)).getOrElse(Iterator.empty)
-          else
-            Iterator.empty
-        }.getOrElse(Iterator.empty)
-      }.getOrElse(Iterator.empty)
-    }.getOrElse(Iterator.empty) ++ page.document.select("a.align_center.cat_preview")
-      .asScala
-      .iterator
-      .flatMap { a =>
-        page.click(a).map(extractFromCategory(_, Category(cleanUpName(a.text), category))).getOrElse(Iterator.empty)
+            url(lastLink).flatMap(document(_)).map(extractFromCategory(_, category, extractCity))
+        }
       }
+
+    }
+
+    page.document.select("a.align_center.cat_preview")
+      .asScala
+      .foreach { a =>
+        url(a).map( url =>
+          sendToMyself(
+            ExtractCategory(Category(cleanUpName(a.text), category.getOrElse(null)), extractCity).withUrl(url)
+          )
+        )
+      }
+
   }
 
   override def filterImage(image: URL): Boolean = !image.toString.contains("empty.gif")

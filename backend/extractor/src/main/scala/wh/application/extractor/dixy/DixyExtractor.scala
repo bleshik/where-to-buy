@@ -1,13 +1,17 @@
 package wh.application.extractor.dixy
 
 import java.net.URL
-
+import wh.application.extractor.Extract
+import wh.application.extractor.ExtractCategory
+import wh.application.extractor.ExtractCity
 import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.ExtractedEntry
 
 import scala.collection.JavaConverters._
+import wh.application.extractor.JsoupPage._
 
-class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtractor {
+class DixyExtractor extends AbstractJsoupExtractor {
+
   val regionToCity = Map(
     ("Архангельская область", "Архангельск"),
     ("Брянская область", "Брянск"),
@@ -36,37 +40,31 @@ class DixyExtractor(val cities: Set[String] = null) extends AbstractJsoupExtract
 
   val dixyRegion = "dixy_region"
 
-  override def parts(url: URL): List[() => Iterator[ExtractedEntry]] =
-    regionToCity
-      .filter(region => cities == null || cities.contains(region._1) || cities.contains(region._2))
-      .toList
-      .map { region =>
-      {() => super.extract(url, Map((dixyRegion, region._1)))}
-    }
+  override protected def when(e: Extract): Unit =
+    regionToCity.map { region => sendToMyself(ExtractCity(region._2, e, Map((dixyRegion, region._1)))) }
 
-  override def doExtract(page: JsoupPage): Iterator[ExtractedEntry] = {
-    val region = page.document.select("select#switch-region option[selected]").text
-    page.document.select("div#flowpanes div.fp-item")
-      .asScala
-      .flatMap { item =>
-      regionToCity.get(region).flatMap { city =>
-        extractEntry(
-          "Дикси",
-          city,
-          item.select("div.prices-3")
-            .text
-            .replace("весовые", "")
-            .replace("весовая", "")
-            .replace("весовой", ""),
-          extractPrice(item.select(".price_now_n")
-            .asScala
-            .headOption
-            .map(_.text)
-            .getOrElse(""), 1),
-          null,
-          item.select("img")
-        )
-      }
-    }.iterator
+  protected def when(e: ExtractCity): Unit = {
+    document(e).map { page =>
+      page.document.select("div#flowpanes div.fp-item")
+        .asScala
+        .foreach { item =>
+          extractEntry(
+            "Дикси",
+            e.city,
+            item.select("div.prices-3")
+              .text
+              .replace("весовые", "")
+              .replace("весовая", "")
+              .replace("весовой", ""),
+            extractPrice(item.select(".price_now_n")
+              .asScala
+              .headOption
+              .map(_.text)
+              .getOrElse(""), 1),
+            null,
+            item.select("img")
+          ).map { entry => e.extract.callback(entry) }
+        }
+    }
   }
 }

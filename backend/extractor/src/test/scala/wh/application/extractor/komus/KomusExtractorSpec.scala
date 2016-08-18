@@ -13,8 +13,8 @@ class KomusExtractorSpec extends FlatSpec with Matchers {
     val root = page.toURI.resolve("./").toString
     extractor.extract(page).toList should be (
       List(
-        ExtractedEntry(ExtractedShop("Komus", "Москва"), "Бумага туалетная «Островская» (1-слойная, натуральный цвет)", 660, category, new URL("http://www.komus.ru/photo/_normal/168190_1.jpg")),
-        ExtractedEntry(ExtractedShop("Komus", "Москва"), "Бумага туалетная 54 метра «Мягкий знак» (однослойная, белая с тиснением)", 942, category, new URL("http://www.komus.ru/photo/_normal/214165_1.jpg"))
+        ExtractedEntry(ExtractedShop("Komus", "Москва"),"Гуашь Disney Феи 6 цветов",8051,Category("Гуашь",null),new URL("file:/medias/sys_master/root/h1a/hf1/8904566964254.jpg")),
+        ExtractedEntry(ExtractedShop("Komus", "Москва"),"Гуашь Луч желтая светлая",18100,Category("Гуашь",null),new URL("file:/medias/sys_master/root/hcf/h7a/8932587405342.jpg"))
       )
     )
   }
