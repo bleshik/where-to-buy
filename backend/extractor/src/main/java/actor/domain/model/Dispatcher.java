@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.*;
 
@@ -108,6 +109,13 @@ public final class Dispatcher {
         } catch (IllegalAccessException|InvocationTargetException ex) {
             throw new ActorException("Actor handle failed", ex);
         }
+    }
+
+    public void awaitTermination() {
+        try {
+            pool.shutdown();
+            while (!pool.awaitTermination(10, TimeUnit.SECONDS)) {}
+        } catch (InterruptedException e) { }
     }
 
 }

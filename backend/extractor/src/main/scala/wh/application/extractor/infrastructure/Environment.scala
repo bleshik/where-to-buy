@@ -1,5 +1,7 @@
 package wh.application.extractor.infrastructure
 
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import actor.domain.model.Dispatcher
 import actor.domain.model.EventTransport
 import actor.port.adapter.local.LocalEventTransport
@@ -7,6 +9,7 @@ import actor.port.adapter.local.FilteringEventTransport
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
 import wh.application.extractor.ExtractRegion
+import wh.extractor.domain.model.ExtractedRegion
 import scala.compat.java8.FunctionConverters._
 
 object Environment extends Enumeration {
@@ -37,9 +40,25 @@ object Environment extends Enumeration {
     new LocalEventTransport(),
     { (event: EventTransport.Event)  =>
         if (event.payload.isInstanceOf[ExtractRegion]) {
-          cities.contains(event.payload.asInstanceOf[ExtractRegion].region)
+          ExtractedRegion(event.payload.asInstanceOf[ExtractRegion].region)
+            .city
+            .map { cities.contains(_) }
+            .getOrElse(false)
         } else if (event.payload.isInstanceOf[ExtractCategory]) {
-          cities.contains(event.payload.asInstanceOf[ExtractCategory].extractRegion.region)
+          ExtractedRegion(event.payload.asInstanceOf[ExtractCategory].extractRegion.region)
+            .city
+            .map { cities.contains(_) }
+            .getOrElse(false)
         } else { true }
+    }.asJava,
+    { (event: EventTransport.Event)  =>
+        if (event.payload.isInstanceOf[ExtractRegion]) {
+          LoggerFactory.getLogger(event.actorClass).info("Started extracting " +
+            event.payload.asInstanceOf[ExtractRegion].region)
+        } else if (event.payload.isInstanceOf[ExtractCategory]) {
+          LoggerFactory.getLogger(event.actorClass).info("Started extracting " +
+            event.payload.asInstanceOf[ExtractCategory].category)
+        }
+        true
     }.asJava))
 }

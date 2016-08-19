@@ -34,6 +34,8 @@ object ExtractorApp extends LazyLogging {
     } catch {
       case e: Exception => logger.error("Extractor failed", e)
     }
+
+    logger.info("Exiting...");
   }
 
   private def extract(output: String): Unit = {
@@ -58,6 +60,8 @@ object ExtractorApp extends LazyLogging {
     }.foreach { e =>
       e._2.extract(new URL(e._1), (entry) => doUpload(entry, output))
     }
+    Thread.sleep(1000)
+    Environment.dispatcher.awaitTermination()
   }
 
   private def doUpload(entry: ExtractedEntry, output: String): Unit = {
