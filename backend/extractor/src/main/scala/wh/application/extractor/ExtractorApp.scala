@@ -34,8 +34,6 @@ object ExtractorApp extends LazyLogging {
     } catch {
       case e: Exception => logger.error("Extractor failed", e)
     }
-
-    logger.info("Exiting...")
   }
 
   private def extract(output: String): Unit = {
@@ -51,9 +49,9 @@ object ExtractorApp extends LazyLogging {
       ("http://klg.metro-cc.ru", new MetroExtractor),
       ("http://www.auchan.ru", new AuchanExtractor),
       ("http://www.utkonos.ru/cat", new UtkonosExtractor),
-      ("http://www.komus.ru/catalog/6311/", new KomusExtractor),
+      ("http://www.komus.ru", new KomusExtractor),
       ("http://www.7cont.ru", new ContExtractor),
-      ("http://dixy.ru", new DixyExtractor),
+      ("https://dixy.ru/promo/", new DixyExtractor),
       ("http://globusgurme.ru/catalog", new GlobusGurmeExtractor)
     ).filter { e =>
       Environment.shops.isEmpty || Environment.shops.get.exists { shop => e._1.toLowerCase.contains(shop.toLowerCase) }

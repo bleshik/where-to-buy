@@ -26,6 +26,8 @@ libraryDependencies += "org.slf4j" % "jcl-over-slf4j" % "1.7.12"
 
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.12"
 
+libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0"
+
 libraryDependencies ++= {
   val akkaV = "2.4-SNAPSHOT"
   Seq(

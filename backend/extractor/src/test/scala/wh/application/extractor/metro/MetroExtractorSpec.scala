@@ -12,7 +12,7 @@ class MetroExtractorSpec extends FlatSpec with Matchers {
     extractor.extract(url).toSet should be (
       Set(
         ExtractedEntry(
-          ExtractedShop("Metro", "Москва"),
+          new ExtractedShop("Metro", "Москва"),
           "Вино Bordeaux Reserve Des Princes красное сухое, 12,5% 0,75л",
           40001,
           Category("Вино", Category("Алкогольная продукция", Category("Продукты", null))),

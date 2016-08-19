@@ -8,7 +8,7 @@ import wh.extractor.domain.model.{Category, ExtractedShop, ExtractedEntry}
 
 class AvExtractorSpec extends FlatSpec with Matchers {
   val extractor = new AvExtractor
-  val shop = ExtractedShop("Азбука Вкуса", SupportedCity.Moscow.name)
+  val shop = new ExtractedShop("Азбука Вкуса", SupportedCity.Moscow.name)
 
   "Av extractor" should "return right list of entries for flat category list" in {
     val page = getClass.getClassLoader.getResource("av/flat/1.html")

@@ -8,7 +8,7 @@ import wh.extractor.domain.model.{Category, ExtractedShop, ExtractedEntry}
 class GlobusGurmeExtractorSpec extends FlatSpec with Matchers {
   "Globus Gurme extractor" should "return right list of entries" in {
     val extractor = new GlobusGurmeExtractor
-    val shop = ExtractedShop("Глобус Гурмэ", "Москва")
+    val shop = new ExtractedShop("Глобус Гурмэ", "Москва")
     val category = Category("Йогурты", Category("Молочные продукты, яйцо", Category("Продовольственные товары",null)))
     val page = getClass.getClassLoader.getResource("globusgurme/1.html")
     extractor.extract(page).filter { entry => entry.shop.city.equals(shop.city) }.toSet should be (

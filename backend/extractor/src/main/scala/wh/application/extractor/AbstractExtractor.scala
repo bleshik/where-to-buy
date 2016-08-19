@@ -59,7 +59,7 @@ abstract class AbstractExtractor extends Actor with Extractor with LoggingHandli
   protected def extractEntry(shop: String, city: String, name: String, price: Option[Long], category: Category, image: URL): Option[ExtractedEntry] = {
     price.flatMap { price =>
       if (filterImage(image)) {
-        Some(ExtractedEntry(ExtractedShop(shop, city), cleanUpName(name), price, category, image))
+        Some(ExtractedEntry(new ExtractedShop(shop, city), cleanUpName(name), price, category, image))
       } else {
         None
       }

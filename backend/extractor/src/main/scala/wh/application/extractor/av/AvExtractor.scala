@@ -2,7 +2,7 @@ package wh.application.extractor.av
 
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
-import wh.application.extractor.ExtractCity
+import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{AbstractJsoupExtractor, JsoupPage, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
@@ -28,12 +28,12 @@ class AvExtractor extends AbstractJsoupExtractor {
           .map { price =>
             extractEntry(
               "Азбука Вкуса",
-              e.extractCity.city,
+              e.extractRegion.region,
               item.select(".item_title").text,
               price,
               e.category,
               item.select("img")
-            ).map { entry => e.extractCity.extract.callback(entry) }
+            ).map { entry => e.extractRegion.extract.callback(entry) }
         }
       }
       page.document.select(".pagination_item.right a").asScala.foreach { link =>
@@ -53,7 +53,7 @@ class AvExtractor extends AbstractJsoupExtractor {
           .foreach { subCategory =>
             JsoupPage.url(subCategory, "href").map { url =>
               sendToMyself(
-                ExtractCategory(Category(cleanUpName(subCategory.text), null), ExtractCity("Москва", e)).withUrl(url)
+                ExtractCategory(Category(cleanUpName(subCategory.text), null), ExtractRegion("Москва", e)).withUrl(url)
               )
             }
           }
@@ -72,7 +72,7 @@ class AvExtractor extends AbstractJsoupExtractor {
           .foreach { subCategory =>
             JsoupPage.url(subCategory, "href").map { url =>
               sendToMyself(
-                ExtractCategory(Category(cleanUpName(subCategory.text), parent), ExtractCity("Москва", e)).withUrl(url)
+                ExtractCategory(Category(cleanUpName(subCategory.text), parent), ExtractRegion("Москва", e)).withUrl(url)
               )
             }
         }

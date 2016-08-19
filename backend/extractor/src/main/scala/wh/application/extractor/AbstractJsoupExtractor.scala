@@ -36,9 +36,9 @@ object JsoupPage extends LoggingHandling {
 
   def document(e: Extract): Option[JsoupPage] = document(e.url)
 
-  def document(e: ExtractCity): Option[JsoupPage] = document(e.extract.url, e.attributes)
+  def document(e: ExtractRegion): Option[JsoupPage] = document(e.extract.url, e.attributes)
 
-  def document(e: ExtractCategory): Option[JsoupPage] = document(e.extractCity)
+  def document(e: ExtractCategory): Option[JsoupPage] = document(e.extractRegion)
 
   def document(html: String): JsoupPage = JsoupPage(Jsoup.parse(html))
 

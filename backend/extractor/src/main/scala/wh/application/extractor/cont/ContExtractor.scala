@@ -2,7 +2,7 @@ package wh.application.extractor.cont
 
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
-import wh.application.extractor.ExtractCity
+import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
@@ -17,7 +17,7 @@ class ContExtractor extends AbstractJsoupExtractor {
       .asScala
       .foreach(a =>
         JsoupPage.url(a, "href").map { url =>
-          sendToMyself(ExtractCategory(Category(cleanUpName(a.text), null), ExtractCity("Москва", e)).withUrl(url))
+          sendToMyself(ExtractCategory(Category(cleanUpName(a.text), null), ExtractRegion("Москва", e)).withUrl(url))
         }
       )
     }
@@ -55,12 +55,12 @@ class ContExtractor extends AbstractJsoupExtractor {
       .foreach { item =>
         extractEntry(
           "Седьмой Континент",
-          SupportedCity.Moscow.name,
+          "Москва",
           item.select("div.title a").text,
           extractPrice(item.select("div.currentprice").text, 1),
           e.category,
           item.select("img")
-        ).map { entry => e.extractCity.extract.callback(entry) }
+        ).map { entry => e.extractRegion.extract.callback(entry) }
       }
   }
 }

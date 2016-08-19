@@ -3,7 +3,7 @@ package wh.application.extractor.globusgurme
 import java.net.URL
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
-import wh.application.extractor.ExtractCity
+import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{AbstractJsoupExtractor, JsoupPage}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 
@@ -16,16 +16,16 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
     "Москва" -> "%CC%EE%F1%EA%E2%E0",
     "Санкт-Петербург" -> "%D1%E0%ED%EA%F2-%CF%E5%F2%E5%F0%E1%F3%F0%E3"
   ).foreach { city =>
-    sendToMyself(ExtractCity(city._1, Extract(new URL(e.url.toString + "?city=" + city._2), e.callback)))
+    sendToMyself(ExtractRegion(city._1, Extract(new URL(e.url.toString + "?city=" + city._2), e.callback)))
   }
 
-  protected def when(e: ExtractCity): Unit =
+  protected def when(e: ExtractRegion): Unit =
     extractFromCategories(e, document(e), None)
 
   protected def when(e: ExtractCategory): Unit =
-    extractFromCategories(e.extractCity, document(e), Some(e.category))
+    extractFromCategories(e.extractRegion, document(e), Some(e.category))
 
-  private def extractFromCategories(e: ExtractCity, page: Option[JsoupPage], category: Option[Category]): Unit = {
+  private def extractFromCategories(e: ExtractRegion, page: Option[JsoupPage], category: Option[Category]): Unit = {
     page.map { page: JsoupPage =>
       if (category.exists(_.name.toLowerCase.trim.contains("подарочные наборы"))) {
         return
@@ -72,12 +72,12 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
                 ""
             extractEntry(
               "Глобус Гурмэ",
-              e.extractCity.city,
+              e.extractRegion.region,
               name + " " + quantity,
               extractPrice(priceDiv.text),
               e.category,
               img
-            ).map { entry => e.extractCity.extract.callback(entry) }
+            ).map { entry => e.extractRegion.extract.callback(entry) }
         }
       }
     }

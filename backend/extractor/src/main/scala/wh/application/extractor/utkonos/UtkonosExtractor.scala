@@ -3,7 +3,7 @@ package wh.application.extractor.utkonos
 import java.net.URL
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
-import wh.application.extractor.ExtractCity
+import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 import scala.collection.JavaConverters._
@@ -12,12 +12,12 @@ import wh.application.extractor.JsoupPage._
 class UtkonosExtractor extends AbstractJsoupExtractor {
 
   override protected def when(e: Extract): Unit =
-    document(e).map(extractFromCategory(_, None, ExtractCity("Москва", e)))
+    document(e).map(extractFromCategory(_, None, ExtractRegion("Москва", e)))
 
   protected def when(e: ExtractCategory): Unit =
-    document(e).map(extractFromCategory(_, Some(e.category), e.extractCity))
+    document(e).map(extractFromCategory(_, Some(e.category), e.extractRegion))
 
-  private def extractFromCategory(page: JsoupPage, category: Option[Category], extractCity: ExtractCity): Unit = {
+  private def extractFromCategory(page: JsoupPage, category: Option[Category], extractRegion: ExtractRegion): Unit = {
 
     page.document.select("div.goods_container.goods_view_box").asScala.headOption.map { goods =>
 
@@ -36,13 +36,13 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
           category.flatMap { c =>
             extractEntry("Утконос", "Москва", entry.select("a").first.text, price, c, entry.select("img"))
           }
-        }.map { entry => extractCity.extract.callback(entry) }
+        }.map { entry => extractRegion.extract.callback(entry) }
       }
 
       page.document.select("div.el_paginate").asScala.headOption.map { pagination =>
         pagination.select("a").asScala.lastOption.map { lastLink =>
           if (cleanUpName(lastLink.text).equals("Вперед"))
-            url(lastLink).flatMap(document(_)).map(extractFromCategory(_, category, extractCity))
+            url(lastLink).flatMap(document(_)).map(extractFromCategory(_, category, extractRegion))
         }
       }
 
@@ -53,7 +53,7 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
       .foreach { a =>
         url(a).map( url =>
           sendToMyself(
-            ExtractCategory(Category(cleanUpName(a.text), category.getOrElse(null)), extractCity).withUrl(url)
+            ExtractCategory(Category(cleanUpName(a.text), category.getOrElse(null)), extractRegion).withUrl(url)
           )
         )
       }

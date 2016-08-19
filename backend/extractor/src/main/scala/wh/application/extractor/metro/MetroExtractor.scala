@@ -4,7 +4,7 @@ import java.net.URL
 import java.util.concurrent.LinkedBlockingQueue
 import wh.application.extractor.Extract
 import wh.application.extractor.ExtractCategory
-import wh.application.extractor.ExtractCity
+import wh.application.extractor.ExtractRegion
 import wh.application.extractor.JsoupPage._
 import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
@@ -24,9 +24,9 @@ class MetroExtractor extends AbstractJsoupExtractor {
   }
 
   override protected def when(e: Extract): Unit = 
-    domains(e.url).foreach { d => sendToMyself(ExtractCity(d._1, Extract(d._2, e.callback))) }
+    domains(e.url).foreach { d => sendToMyself(ExtractRegion(d._1, Extract(d._2, e.callback))) }
 
-  protected def when(e: ExtractCity): Unit = {
+  protected def when(e: ExtractRegion): Unit = {
     document(e).foreach { page =>
       page.document.select("li.item.__submenu")
         .asScala
@@ -43,7 +43,7 @@ class MetroExtractor extends AbstractJsoupExtractor {
             url(subcatalogLink, "href").map { href =>
               ExtractCategory(
                 Category(cleanUpName(subcatalogLink.text), category),
-                ExtractCity(e.city, Extract(href, e.extract.callback))
+                ExtractRegion(e.region, Extract(href, e.extract.callback))
               )
             }
           }
@@ -53,7 +53,7 @@ class MetroExtractor extends AbstractJsoupExtractor {
   }
 
   protected def when(e: ExtractCategory): Unit =
-    entriesUrls(e.extractCity.extract.url)
+    entriesUrls(e.extractRegion.extract.url)
     .map { url => json[Map[String, Object]](url) }
     .takeWhile { json =>
       json.isDefined && !json.get.get("data").asInstanceOf[Option[Map[String, Object]]].exists { d =>
@@ -72,12 +72,12 @@ class MetroExtractor extends AbstractJsoupExtractor {
             val img = entryPage.document.select("img").first
             extractEntry(
               "Metro",
-              e.extractCity.city,
+              e.extractRegion.region,
               img.attr("title"),
               extractPrice(price.text, 1),
               e.category,
               img
-            ).map { entry => e.extractCity.extract.callback(entry) }
+            ).map { entry => e.extractRegion.extract.callback(entry) }
           }
         }
       }
