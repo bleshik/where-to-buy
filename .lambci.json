@@ -1,0 +1,3 @@
+{
+    "cmd": "cd backend/extractor && sbt test"
+}

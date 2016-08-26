@@ -27,4 +27,10 @@ public class FilteringEventTransport implements EventTransport {
     public void listen(Consumer<EventTransport.Event> consumer) {
         wrapped.listen(consumer);
     }
+
+    @Override
+    public void close() {
+        wrapped.close();
+    }
+
 }

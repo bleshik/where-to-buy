@@ -1,17 +1,18 @@
 package wh.application.extractor
 
-import wh.application.extractor.infrastructure.Environment
 import actor.domain.model.Actor
 import actor.domain.model.Dispatcher
-import java.util.concurrent.LinkedBlockingQueue
-import wh.util.WaitingBlockingQueueIterator
-import java.net.URL
+import actor.port.adapter.local.LocalEventTransport
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
-import wh.util.LoggingHandling
+import java.net.URL
+import java.util.concurrent.LinkedBlockingQueue
 import scala.io.Source
 import scala.util.Try
+import wh.application.extractor.infrastructure.Environment
+import wh.extractor.domain.model.{Category, ExtractedEntry, ExtractedShop, Extractor}
+import wh.util.LoggingHandling
+import wh.util.WaitingBlockingQueueIterator
 
 abstract class AbstractExtractor extends Actor with Extractor with LoggingHandling {
   protected lazy val json  = {
@@ -77,7 +78,7 @@ abstract class AbstractExtractor extends Actor with Extractor with LoggingHandli
   }
 
   override def extract(url: URL, callback: (ExtractedEntry) => Unit): Unit = {
-    Environment.dispatcher.send(this.getClass(), Extract(url, callback))
+    new Dispatcher(new LocalEventTransport()).send(this.getClass(), Extract(url, callback))
   }
 
   protected def when(e: Extract): Unit = {

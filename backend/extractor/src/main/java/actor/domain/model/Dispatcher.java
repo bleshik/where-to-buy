@@ -11,13 +11,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.*;
 
-public final class Dispatcher {
+public final class Dispatcher implements AutoCloseable {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final Function<Class<? extends Actor>, Actor> actors;
     private final EventTransport eventTransport;
     static ThreadLocal<Class<? extends Actor>> sender = new ThreadLocal<>();
@@ -71,15 +69,13 @@ public final class Dispatcher {
 
 
     public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
-        pool.execute(() -> {
-            try {
-                sender.set(senderClass);
-                dispatcher.set(this);
-                eventTransport.send(senderClass, actorClass, payload);
-            } catch (Exception ex) {
-                logger.error("Actor failed", ex);
-            }
-        });
+        try {
+            sender.set(senderClass);
+            dispatcher.set(this);
+            eventTransport.send(senderClass, actorClass, payload);
+        } catch (Exception ex) {
+            logger.error("Actor failed", ex);
+        }
     }
 
     public void send(Class<? extends Actor> actorClass, Object payload) {
@@ -111,11 +107,9 @@ public final class Dispatcher {
         }
     }
 
-    public void awaitTermination() {
-        try {
-            pool.shutdown();
-            while (!pool.awaitTermination(10, TimeUnit.SECONDS)) {}
-        } catch (InterruptedException e) { }
+    @Override
+    public void close() {
+        eventTransport.close();
     }
 
 }

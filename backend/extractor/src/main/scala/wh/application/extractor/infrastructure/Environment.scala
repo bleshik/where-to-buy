@@ -1,17 +1,5 @@
 package wh.application.extractor.infrastructure
 
-import org.slf4j.LoggerFactory
-import org.slf4j.Logger
-import actor.domain.model.Dispatcher
-import actor.domain.model.EventTransport
-import actor.port.adapter.local.LocalEventTransport
-import actor.port.adapter.local.FilteringEventTransport
-import wh.application.extractor.Extract
-import wh.application.extractor.ExtractCategory
-import wh.application.extractor.ExtractRegion
-import wh.extractor.domain.model.ExtractedRegion
-import scala.compat.java8.FunctionConverters._
-
 object Environment extends Enumeration {
   type Environment = Value
   val DEV, PROD = Value
@@ -28,7 +16,7 @@ object Environment extends Enumeration {
 
   def instances = Option(System.getenv("INSTANCES")).map(_.toInt).getOrElse(1)
 
-  def shops = Option(System.getenv("SHOPS")).map(_.split(',').toList)
+  def shops = Option(System.getenv("SHOPS")).map(_.split(',').toList).orElse(Some(List("Dixy")))
 
   def cities = Option(System.getenv("CITIES")).map(_.split(',').toList).getOrElse(List("Москва"))
 
@@ -36,29 +24,4 @@ object Environment extends Enumeration {
 
   def logDeadLetters = Option(System.getenv("LOG_DEAD_LETTERS")).map(_.toInt).getOrElse(10)
 
-  val dispatcher = new Dispatcher(new FilteringEventTransport(
-    new LocalEventTransport(),
-    { (event: EventTransport.Event)  =>
-        if (event.payload.isInstanceOf[ExtractRegion]) {
-          ExtractedRegion(event.payload.asInstanceOf[ExtractRegion].region)
-            .city
-            .map { cities.contains(_) }
-            .getOrElse(false)
-        } else if (event.payload.isInstanceOf[ExtractCategory]) {
-          ExtractedRegion(event.payload.asInstanceOf[ExtractCategory].extractRegion.region)
-            .city
-            .map { cities.contains(_) }
-            .getOrElse(false)
-        } else { true }
-    }.asJava,
-    { (event: EventTransport.Event)  =>
-        if (event.payload.isInstanceOf[ExtractRegion]) {
-          LoggerFactory.getLogger(event.actorClass).info("Started extracting " +
-            event.payload.asInstanceOf[ExtractRegion].region)
-        } else if (event.payload.isInstanceOf[ExtractCategory]) {
-          LoggerFactory.getLogger(event.actorClass).info("Started extracting " +
-            event.payload.asInstanceOf[ExtractCategory].category)
-        }
-        true
-    }.asJava))
 }

@@ -19,3 +19,5 @@ current.js
 
 *.log
 .tags
+
+AwsCredentials.properties
