@@ -1,0 +1,5 @@
+{
+  "lambci": {
+    "cmd": "date && . ~/init/java 1.8 && date && . ./init-sbt.sh && date && cd backend/extractor && sbt test && date"
+  }
+}
