@@ -1,0 +1,5 @@
+FROM scala:2.11.2
+
+ADD . /tmp
+
+RUN cd /tmp/backend/extractor && sbt test
