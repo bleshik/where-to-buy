@@ -1,4 +1,4 @@
 language: scala
 
 script:
-   - sbt ++$TRAVIS_SCALA_VERSION test
+   - cd backend/extractor && sbt ++$TRAVIS_SCALA_VERSION test
