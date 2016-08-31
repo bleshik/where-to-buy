@@ -54,6 +54,8 @@ lambdaHandlers := Seq(
   "ExtractorLambda" -> "wh.application.extractor.aws.ExtractorLambda::extract"
 )
 
+test in assembly := {}
+
 s3Bucket := Some("wh-prod")
 
 awsLambdaTimeout := Some(30)

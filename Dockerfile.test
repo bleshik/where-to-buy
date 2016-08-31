@@ -1,5 +1,4 @@
 FROM bleshik/scala:2.11.5
-
 ADD . /tmp
-
-RUN cd /tmp/backend/extractor && sbt test
+RUN (echo "accessKey = $AWS_ACCESS_KEY_ID" ; echo "secretKey = $AWS_SECRET_ACCESS_KEY") >> /tmp/backend/extractor/src/main/resources/AwsCredentials.properties
+RUN cd /tmp/backend/extractor && sbt test && (sbt updateLambda || sbt createLambda)
