@@ -10,6 +10,7 @@ object ExtractorLambda {
   private val logger: Logger = LoggerFactory.getLogger(this.getClass())
   def main(args: Array[String]): Unit = extract
   def extract: Unit = {
+    logger.info("Starting extracting")
     ExtractorApp.extract(new SnsEventTransport("ExtractorLambda"), (entry) => println(entry))
   }
 }
