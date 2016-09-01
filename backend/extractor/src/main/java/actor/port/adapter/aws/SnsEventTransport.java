@@ -27,20 +27,22 @@ import javax.xml.bind.DatatypeConverter;
 
 public class SnsEventTransport implements EventTransport, RequestHandler<SNSEvent, Object>  {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     private final Region region = Region.getRegion(
         Optional.ofNullable(System.getenv("AWS_DEFAULT_REGION")).map(Regions::fromName).orElse(Regions.EU_CENTRAL_1)
     );
-    private final AmazonIdentityManagementClient iamClient =
-        new AmazonIdentityManagementClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
-    private final String accountId = iamClient.getUser().getUser().getArn().split(":")[4];
-    private final AmazonSNSClient snsClient =
-        new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+    private final AmazonSNSClient snsClient; 
     private String topicArn;
     private Consumer<Event> consumer;
 
     public SnsEventTransport(String topicName) {
+        this();
         logger.info("Using topic " + topicName);
+        logger.info("Initializing iamClient");
+        AmazonIdentityManagementClient iamClient =
+            new AmazonIdentityManagementClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+        logger.info("Getting accountId");
+        String accountId = iamClient.getUser().getUser().getArn().split(":")[4];
+        logger.info("Creating/getting the topicArn");
         topicArn = snsClient.createTopic(topicName).getTopicArn();
         String lambdaArn = "arn:aws:lambda:" + region.getName() + ":" + accountId + ":function:" + topicName;
         logger.info("Checking subscribtion for lambda " + lambdaArn);
@@ -48,7 +50,10 @@ public class SnsEventTransport implements EventTransport, RequestHandler<SNSEven
         logger.info("Initialized successfully");
     }
 
-    private SnsEventTransport() {}
+    private SnsEventTransport() {
+        logger.info("Initializing snsClient");
+        snsClient = new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+    }
 
     @Override
     public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
