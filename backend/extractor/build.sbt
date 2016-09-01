@@ -11,11 +11,7 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 initialize := {
   val required = "1.8"
   val current  = sys.props("java.specification.version")
-  //assert(current == required, s"Unsupported JDK: java.specification.version $current != $required")
-  val environmentVars = System.getenv().asScala
-  for ((k,v) <- environmentVars) println(s"$k = $v")
-  val properties = System.getProperties().asScala
-  for ((k,v) <- properties) println(s"$k = $v")
+  assert(current == required, s"Unsupported JDK: java.specification.version $current != $required")
 }
 
 enablePlugins(JavaAppPackaging)
