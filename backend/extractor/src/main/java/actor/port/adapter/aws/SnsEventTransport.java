@@ -6,7 +6,6 @@ import actor.domain.model.*;
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SNSEvent;
@@ -34,14 +33,9 @@ public class SnsEventTransport implements EventTransport, RequestHandler<SNSEven
     private String topicArn;
     private Consumer<Event> consumer;
 
-    public SnsEventTransport(String topicName) {
+    public SnsEventTransport(String topicName, String accountId) {
         this();
         logger.info("Using topic " + topicName);
-        logger.info("Initializing iamClient");
-        AmazonIdentityManagementClient iamClient =
-            new AmazonIdentityManagementClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
-        logger.info("Getting accountId");
-        String accountId = iamClient.getUser().getUser().getArn().split(":")[4];
         logger.info("Creating/getting the topicArn");
         topicArn = snsClient.createTopic(topicName).getTopicArn();
         String lambdaArn = "arn:aws:lambda:" + region.getName() + ":" + accountId + ":function:" + topicName;
