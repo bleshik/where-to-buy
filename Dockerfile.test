@@ -1,10 +1,4 @@
 FROM bleshik/scala:2.11.5
 ADD . /tmp
 RUN (echo "accessKey = $AWS_ACCESS_KEY_ID" ; echo "secretKey = $AWS_SECRET_ACCESS_KEY") >> /tmp/backend/extractor/src/main/resources/AwsCredentials.properties
-ENV PATH="$JAVA_HOME/bin:${PATH}"
-RUN echo $PATH
-RUN echo $JAVA_HOME
-RUN which java
-RUN java -version
-RUN echo | sbt console
-CMD mkdir -p ~/.aws && (ehco "[default]" ; echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" ; echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY") >> ~/.aws/credentials && cd /tmp/backend/extractor && sbt test && (sbt updateLambda || sbt createLambda)
+CMD mkdir -p ~/.aws && (echo "[default]" ; echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" ; echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY") >> ~/.aws/credentials && cd /tmp/backend/extractor && sbt test && (sbt updateLambda || sbt createLambda)
