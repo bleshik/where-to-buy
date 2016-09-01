@@ -53,7 +53,8 @@ libraryDependencies += "com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0"
 enablePlugins(AwsLambdaPlugin)
 
 lambdaHandlers := Seq(
-  "ExtractorLambda" -> "wh.application.extractor.aws.ExtractorLambda::extract"
+  "ExtractorLambda" -> "wh.application.extractor.aws.ExtractorLambda::extract",
+  "SnsEventTransport" -> "actor.port.adapter.aws.SnsEventTransport"
 )
 
 test in assembly := {}
