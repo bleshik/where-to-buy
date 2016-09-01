@@ -1,4 +1,3 @@
 FROM bleshik/scala:2.11.5
 ADD . /tmp
-ENV PATH="$JAVA_HOME/bin:${PATH}"
-ENTRYPOINT cd /tmp/backend/extractor && (echo "accessKey = $AWS_ACCESS_KEY_ID" ; echo "secretKey = $AWS_SECRET_ACCESS_KEY") >> ./src/main/resources/AwsCredentials.properties && sbt test && (sbt updateLambda || sbt createLambda)
+ENTRYPOINT export PATH=$JAVA_HOME/bin:$PATH && cd /tmp/backend/extractor && (echo "accessKey = $AWS_ACCESS_KEY_ID" ; echo "secretKey = $AWS_SECRET_ACCESS_KEY") >> ./src/main/resources/AwsCredentials.properties && sbt test && (sbt updateLambda || sbt createLambda)
