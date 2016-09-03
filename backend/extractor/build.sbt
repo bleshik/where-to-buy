@@ -18,6 +18,8 @@ enablePlugins(JavaAppPackaging)
 
 mainClass in Compile := Some("wh.application.extractor.aws.ExtractorLambda")
 
+resolvers += "S3 cache" at "https://s3-eu-central-1.amazonaws.com/global-tmp/maven-cache"
+
 libraryDependencies += "org.jsoup" % "jsoup" % "1.8.1"
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.7.5"
