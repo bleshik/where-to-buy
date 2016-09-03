@@ -1,0 +1,12 @@
+set -x
+
+if [ ! `which pip &> /dev/null` ] ; then
+    pip install --user awscli
+    export PATH=$PATH:$HOME/.local/bin
+fi
+
+T=`mktemp /tmp/build-cache.XXXX`
+#curl http://s3-$AWS_REGION.amazonaws.com/lambci-buildresults-vzaqx6i7gqi6/gh/bleshik/where-to-buy/cache/build-cache.tar.gz > $T
+aws s3 cp "s3://lambci-buildresults-vzaqx6i7gqi6/gh/bleshik/where-to-buy/cache/build-cache.tar.gz" "$T" --region "$AWS_REGION"
+
+tar xfz $T -C / && rm $T && find ~/.ivy2 -name *.lock | xargs rm -f

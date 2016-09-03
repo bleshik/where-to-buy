@@ -11,7 +11,7 @@ object ExtractorLambda {
   def extract(context: Context): Unit = {
     logger.info("Starting extracting")
     ExtractorApp.extract(
-      new SnsEventTransport("SnsEventTransport", context.getInvokedFunctionArn().split(":")(4)),
+      new SnsEventTransport("SnsEventTransport"),
       (entry) => println(entry)
     )
   }

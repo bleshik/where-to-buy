@@ -1,0 +1,5 @@
+set -x
+
+T=`mktemp /tmp/build-cache.XXXX`
+
+tar cfz $T ~/ `find /tmp/build -name "target" | xargs echo` --remove-files && aws s3 cp $T s3://lambci-buildresults-vzaqx6i7gqi6/gh/bleshik/where-to-buy/cache/build-cache.tar.gz --region $AWS_DEFAULT_REGION

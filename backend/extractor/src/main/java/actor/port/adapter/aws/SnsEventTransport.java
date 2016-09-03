@@ -17,6 +17,7 @@ import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Subscription;
 import com.amazonaws.services.sns.model.Topic;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,15 +27,19 @@ import javax.xml.bind.DatatypeConverter;
 
 public class SnsEventTransport implements EventTransport, RequestHandler<SNSEvent, Object>  {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final Region region = Region.getRegion(
         Optional.ofNullable(System.getenv("AWS_DEFAULT_REGION")).map(Regions::fromName).orElse(Regions.EU_CENTRAL_1)
     );
-    private final AmazonSNSClient snsClient; 
+    private final AmazonIdentityManagementClient iamClient =
+        new AmazonIdentityManagementClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+    private final String accountId = iamClient.getUser().getUser().getArn().split(":")[4];
+    private final AmazonSNSClient snsClient =
+        new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
     private String topicArn;
     private Consumer<Event> consumer;
 
-    public SnsEventTransport(String topicName, String accountId) {
-        this();
+    public SnsEventTransport(String topicName) {
         logger.info("Using topic " + topicName);
         logger.info("Creating/getting the topicArn");
         topicArn = snsClient.createTopic(topicName).getTopicArn();
@@ -44,10 +49,7 @@ public class SnsEventTransport implements EventTransport, RequestHandler<SNSEven
         logger.info("Initialized successfully");
     }
 
-    private SnsEventTransport() {
-        logger.info("Initializing snsClient");
-        snsClient = new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
-    }
+    public SnsEventTransport() {}
 
     @Override
     public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
@@ -57,47 +59,21 @@ public class SnsEventTransport implements EventTransport, RequestHandler<SNSEven
         ));
     }
 
-    /*
-    // TODO: make more efficient? see http://stackoverflow.com/questions/36721014/aws-sns-how-to-get-topic-arn-by-topic-name
-    private Optional<Topic> getTopic(String name) {
-        Optional<ListTopicsRequest> request = Optional.of(new ListTopicsRequest());
-        Optional<Topic> topic = Optional.empty();
-        while (request.isPresent() && !topic.isPresent()) {
-            ListTopicsResult listTopicsResult = snsClient.listTopics(request.get());
-            String nextToken = listTopicsResult.getNextToken();
-            topic = listTopicsResult.getTopics().stream().filter((t) -> t.getTopicArn().endsWith(name)).findAny();
-            request = Optional.ofNullable(listTopicsResult.getNextToken())
-                .map((token) -> new ListTopicsResult().withNextToken(token));
-        }
-        return topic;
-    }
-
-    private Optional<Subscription> getSubscription() {
-        Optional<ListSubscriptionsByTopicRequest> request = Optional.of(new ListSubscriptionsByTopicRequest(topicArn));
-        Optional<Subscription> subscription = Optional.empty();
-        while (request.isPresent() && !subscription.isPresent()) {
-            ListSubscriptionsByTopicResult result = snsClient.listSubscriptionsByTopic(request.get());
-            String nextToken = result.getNextToken();
-            subscription = result.getSubscriptions()
-                .stream()
-                .filter((t) -> { System.out.println(t); return t.getEndpoint().contains(this.getClass().getSimpleName());})
-                .findAny();
-            request = Optional.ofNullable(result.getNextToken())
-                .map((token) -> new ListSubscriptionsByTopicRequest(topicArn).withNextToken(token));
-        }
-        return subscription;
-    }
-    */
-
     @Override
     public Object handleRequest(SNSEvent event, Context context) {
+        logger.info("Got sns event " + event);
         for (SNSEvent.SNSRecord record : event.getRecords()) {
             Event parsedEvent = Event.fromByteArray(
                 DatatypeConverter.parseHexBinary(record.getSNS().getMessage())
             );
             topicArn = record.getSNS().getTopicArn();
+            logger.info("Topic arn " + topicArn);
             if (consumer != null) {
+                logger.info("Handling the event " + parsedEvent);
                 consumer.accept(parsedEvent);
+                logger.info("Handled the event " + parsedEvent);
+            } else {
+                logger.info("Noop");
             }
         }
         return null;

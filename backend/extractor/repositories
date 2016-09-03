@@ -1,4 +1,0 @@
-[repositories]
-  local
-  S3 cache: https://s3-eu-central-1.amazonaws.com/global-tmp/maven-cache
-  maven-central: http://repo1.maven.org

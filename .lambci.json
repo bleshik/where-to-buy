@@ -1,0 +1,3 @@
+{
+    "cmd": ". ~/init/java 1.8 && . ./init-sbt.sh && ./backend/extractor/build-and-deploy.sh"
+}
