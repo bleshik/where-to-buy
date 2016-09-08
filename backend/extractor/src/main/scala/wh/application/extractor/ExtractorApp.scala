@@ -2,8 +2,10 @@ package wh.application.extractor
 
 import actor.domain.model.Dispatcher
 import actor.domain.model.EventTransport
+import actor.port.adapter.aws.SnsEventTransport
 import actor.port.adapter.local.FilteringEventTransport
 import actor.port.adapter.local.LocalEventTransport
+import com.amazonaws.services.lambda.runtime.Context;
 import com.typesafe.scalalogging.LazyLogging
 import java.net.URL
 import java.util.Collections
@@ -25,12 +27,21 @@ import wh.extractor.domain.model.ExtractedEntry
 import wh.extractor.domain.model.ExtractedRegion
 import wh.util.ConcurrencyUtil._
 
+class ExtractorApp extends SnsEventTransport {
+  override protected def initializeDispatcher(context: Context): Dispatcher = ExtractorApp.createDispatcher(this)
+  override protected def onEmptyMessage(context: Context): Unit = {
+    initializeTopic("Extractor")
+    ExtractorApp.extract(dispatcher, (e) => println(e))
+  }
+}
+
 object ExtractorApp extends LazyLogging {
   def main(args: Array[String]): Unit = {
     logger.info("Started extractor with args: " + args.mkString(" "))
 
     try {
-      val dispatcher = extract(new LocalEventTransport(), (entry) => println(entry))
+      val dispatcher = createDispatcher(new LocalEventTransport())
+      extract(dispatcher, (entry) => println(entry))
       Thread.sleep(1000)
       dispatcher.close()
     } catch {
@@ -40,8 +51,8 @@ object ExtractorApp extends LazyLogging {
     logger.info("Exiting...");
   }
 
-  def extract(eventTransport: EventTransport, callback: (ExtractedEntry) => Unit): Dispatcher = {
-    val dispatcher = new Dispatcher(new FilteringEventTransport(
+  def createDispatcher(eventTransport: EventTransport): Dispatcher = {
+    new Dispatcher(new FilteringEventTransport(
       eventTransport,
       { (event: EventTransport.Event)  =>
           if (event.payload.isInstanceOf[ExtractRegion]) {
@@ -67,6 +78,9 @@ object ExtractorApp extends LazyLogging {
           true
       }.asJava
     ))
+  }
+
+  def extract(dispatcher: Dispatcher, callback: (ExtractedEntry) => Unit): Unit = {
     if (Environment.cities.nonEmpty) {
       logger.info(s"Extract only for cities ${Environment.cities}")
     }
@@ -90,6 +104,5 @@ object ExtractorApp extends LazyLogging {
       logger.info("Sending " + extractMsg + " to " + e._2)
       dispatcher.send(e._2, extractMsg)
     }
-    dispatcher
   }
 }

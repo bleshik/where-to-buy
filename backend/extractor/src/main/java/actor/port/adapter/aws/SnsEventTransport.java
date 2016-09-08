@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.xml.bind.DatatypeConverter;
 
-public class SnsEventTransport implements EventTransport, RequestHandler<SNSEvent, Object>  {
+public abstract class SnsEventTransport implements EventTransport, RequestHandler<SNSEvent, Object>  {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Region region = Region.getRegion(
@@ -37,19 +37,8 @@ public class SnsEventTransport implements EventTransport, RequestHandler<SNSEven
     private final AmazonSNSClient snsClient =
         new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
     private String topicArn;
-    private Consumer<Event> consumer;
-
-    public SnsEventTransport(String topicName) {
-        logger.info("Using topic " + topicName);
-        logger.info("Creating/getting the topicArn");
-        topicArn = snsClient.createTopic(topicName).getTopicArn();
-        String lambdaArn = "arn:aws:lambda:" + region.getName() + ":" + accountId + ":function:" + topicName;
-        logger.info("Checking subscribtion for lambda " + lambdaArn);
-        snsClient.subscribe(topicArn, "lambda", lambdaArn);
-        logger.info("Initialized successfully");
-    }
-
-    public SnsEventTransport() {}
+    protected Dispatcher dispatcher;
+    private Consumer<EventTransport.Event> consumer;
 
     @Override
     public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
@@ -59,28 +48,50 @@ public class SnsEventTransport implements EventTransport, RequestHandler<SNSEven
         ));
     }
 
+    protected abstract Dispatcher initializeDispatcher(Context context);
+
+    protected abstract void onEmptyMessage(Context context);
+
+    protected void initializeTopic(String topicName) {
+        logger.info("Using topic " + topicName);
+        logger.info("Creating/getting the topicArn");
+        topicArn = snsClient.createTopic(topicName).getTopicArn();
+        String lambdaArn = "arn:aws:lambda:" + region.getName() + ":" + accountId + ":function:" + topicName;
+        logger.info("Checking subscribtion for lambda " + lambdaArn);
+        snsClient.subscribe(topicArn, "lambda", lambdaArn);
+        logger.info("Initialized successfully");
+    }
+
     @Override
     public Object handleRequest(SNSEvent event, Context context) {
-        logger.info("Got sns event " + event);
-        for (SNSEvent.SNSRecord record : event.getRecords()) {
-            Event parsedEvent = Event.fromByteArray(
-                DatatypeConverter.parseHexBinary(record.getSNS().getMessage())
-            );
-            topicArn = record.getSNS().getTopicArn();
-            logger.info("Topic arn " + topicArn);
-            if (consumer != null) {
-                logger.info("Handling the event " + parsedEvent);
-                consumer.accept(parsedEvent);
-                logger.info("Handled the event " + parsedEvent);
-            } else {
-                logger.info("Noop");
+        if (dispatcher == null) {
+            dispatcher = initializeDispatcher(context);
+            listen((e) -> dispatcher.handle(e.senderClass, e.actorClass, e.payload));
+        }
+        if (event == null || event.getRecords() == null) {
+            onEmptyMessage(context);
+        } else {
+            logger.info("Got sns event " + event);
+            for (SNSEvent.SNSRecord record : event.getRecords()) {
+                Event parsedEvent = Event.fromByteArray(
+                    DatatypeConverter.parseHexBinary(record.getSNS().getMessage())
+                );
+                topicArn = record.getSNS().getTopicArn();
+                logger.info("Topic arn " + topicArn);
+                if (consumer != null) {
+                    logger.info("Handling the event " + parsedEvent);
+                    consumer.accept(parsedEvent);
+                    logger.info("Handled the event " + parsedEvent);
+                } else {
+                    logger.info("Noop");
+                }
             }
         }
         return null;
     }
 
     @Override
-    public void listen(Consumer<Event> consumer) {
+    public void listen(Consumer<EventTransport.Event> consumer) {
         this.consumer = consumer;
     }
 

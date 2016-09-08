@@ -16,7 +16,7 @@ initialize := {
 
 enablePlugins(JavaAppPackaging)
 
-mainClass in Compile := Some("wh.application.extractor.aws.ExtractorLambda")
+mainClass in Compile := Some("wh.application.extractor.ExtractorApp")
 
 resolvers += "S3 cache" at "https://s3-eu-central-1.amazonaws.com/global-tmp/maven-cache"
 
@@ -36,8 +36,6 @@ libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.21"
 
 libraryDependencies += "log4j" % "log4j" % "1.2.17"
 
-//libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.12"
-
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0"
 
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.1.0" exclude("commons-logging", "commons-logging")
@@ -50,13 +48,10 @@ libraryDependencies += "com.amazonaws" % "aws-lambda-java-events" % "1.3.0" excl
 
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0"
 
-//retrieveManaged := true
-
 enablePlugins(AwsLambdaPlugin)
 
 lambdaHandlers := Seq(
-  "ExtractorLambda" -> "wh.application.extractor.aws.ExtractorLambda::extract",
-  "SnsEventTransport" -> "actor.port.adapter.aws.SnsEventTransport"
+  "Extractor" -> "wh.application.extractor.ExtractorApp"
 )
 
 test in assembly := {}
