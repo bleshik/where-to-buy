@@ -1,4 +1,5 @@
 FROM bleshik/scala:2.11.5
+RUN apt-get update -y --fix-missing
 RUN apt-get install -y python-pip zip
 RUN pip install awscli
 ADD . /tmp/build/bleshik/where-to-buy
