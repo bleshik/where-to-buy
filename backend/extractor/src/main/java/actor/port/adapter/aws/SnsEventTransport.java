@@ -1,11 +1,14 @@
 package actor.port.adapter.aws;
 
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import actor.domain.model.*;
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.lambda.model.AddPermissionRequest;
+import com.amazonaws.services.lambda.model.AddPermissionResult;
+import com.amazonaws.services.lambda.model.ResourceConflictException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SNSEvent;
@@ -17,25 +20,30 @@ import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Subscription;
 import com.amazonaws.services.sns.model.Topic;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.xml.bind.DatatypeConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class SnsEventTransport implements EventTransport, RequestHandler<SNSEvent, Object>  {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Region region = Region.getRegion(
-        Optional.ofNullable(System.getenv("AWS_DEFAULT_REGION")).map(Regions::fromName).orElse(Regions.EU_CENTRAL_1)
+        Optional.ofNullable(System.getenv("AWS_REGION")).map(Regions::fromName).orElse(
+            Optional.ofNullable(System.getenv("AWS_DEFAULT_REGION")).map(Regions::fromName).orElse(Regions.EU_CENTRAL_1)
+        )
     );
     private final AmazonIdentityManagementClient iamClient =
         new AmazonIdentityManagementClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
     private final String accountId = iamClient.getUser().getUser().getArn().split(":")[4];
     private final AmazonSNSClient snsClient =
         new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+    private final AWSLambdaClient lambdaClient =
+        new AWSLambdaClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
     private String topicArn;
     protected Dispatcher dispatcher;
     private Consumer<EventTransport.Event> consumer;
@@ -59,6 +67,18 @@ public abstract class SnsEventTransport implements EventTransport, RequestHandle
         String lambdaArn = "arn:aws:lambda:" + region.getName() + ":" + accountId + ":function:" + topicName;
         logger.info("Checking subscribtion for lambda " + lambdaArn);
         snsClient.subscribe(topicArn, "lambda", lambdaArn);
+        try {
+            AddPermissionRequest addPermissionRequest = new AddPermissionRequest()
+                .withFunctionName(topicName)
+                .withAction("lambda:InvokeFunction")
+                .withStatementId("allow_sns_to_call_lambda")
+                .withPrincipal("sns.amazonaws.com")
+                .withSourceArn(topicArn);
+            AddPermissionResult addPermissionResult = lambdaClient.addPermission(addPermissionRequest);
+            logger.info("Added permission " + addPermissionResult.toString());
+        } catch (ResourceConflictException e) {
+            logger.info("Seems like the permission was already added: " + e.getMessage());
+        }
         logger.info("Initialized successfully");
     }
 

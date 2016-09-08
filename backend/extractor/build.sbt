@@ -40,6 +40,8 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0
 
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.1.0" exclude("commons-logging", "commons-logging")
 
+libraryDependencies += "com.amazonaws" % "aws-java-sdk-lambda" % "1.11.32" exclude("commons-logging", "commons-logging")
+
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-sns" % "1.11.28" exclude("commons-logging", "commons-logging")
 
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-iam" % "1.11.29" exclude("commons-logging", "commons-logging")
