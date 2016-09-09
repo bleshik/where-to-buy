@@ -91,7 +91,7 @@ public abstract class SnsEventTransport implements EventTransport, RequestHandle
         if (event == null || event.getRecords() == null) {
             onEmptyMessage(context);
         } else {
-            logger.info("Got sns event " + event);
+            logger.debug("Got sns event " + event);
             for (SNSEvent.SNSRecord record : event.getRecords()) {
                 Event parsedEvent = Event.fromByteArray(
                     DatatypeConverter.parseHexBinary(record.getSNS().getMessage())
@@ -99,11 +99,11 @@ public abstract class SnsEventTransport implements EventTransport, RequestHandle
                 topicArn = record.getSNS().getTopicArn();
                 logger.info("Topic arn " + topicArn);
                 if (consumer != null) {
-                    logger.info("Handling the event " + parsedEvent);
+                    logger.debug("Handling the event " + parsedEvent);
                     consumer.accept(parsedEvent);
-                    logger.info("Handled the event " + parsedEvent);
+                    logger.debug("Handled the event " + parsedEvent);
                 } else {
-                    logger.info("Noop");
+                    logger.warn("Noop");
                 }
             }
         }

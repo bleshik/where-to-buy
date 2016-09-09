@@ -11,7 +11,7 @@ import scala.util.Try
 import wh.application.extractor.JsoupPage._
 
 class ContExtractor extends AbstractJsoupExtractor {
-  override protected def when(e: Extract): Unit = {
+  protected def when(e: Extract): Unit = {
     document(e).map { page =>
       page.document.select("ul#categories a")
       .asScala
@@ -50,9 +50,9 @@ class ContExtractor extends AbstractJsoupExtractor {
   }
 
   private def extractFromEntryList(page: JsoupPage, e: ExtractCategory): Unit = {
-    page.document.select("div.item")
+    e.extractRegion.extract.callback(page.document.select("div.item")
       .asScala
-      .foreach { item =>
+      .flatMap { item =>
         extractEntry(
           "Седьмой Континент",
           "Москва",
@@ -60,7 +60,8 @@ class ContExtractor extends AbstractJsoupExtractor {
           extractPrice(item.select("div.currentprice").text, 1),
           e.category,
           item.select("img")
-        ).map { entry => e.extractRegion.extract.callback(entry) }
+        )
       }
+    )
   }
 }

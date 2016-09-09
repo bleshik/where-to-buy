@@ -15,7 +15,7 @@ import wh.application.extractor.JsoupPage._
 
 class AuchanExtractor extends AbstractJsoupExtractor {
 
-  override protected def when(e: Extract): Unit = {
+  protected def when(e: Extract): Unit = {
     document(e).map { page =>
       page.document.select("ul.city-list")
         .asScala
@@ -65,15 +65,15 @@ class AuchanExtractor extends AbstractJsoupExtractor {
 
   protected def when(e: ExtractCategory): Unit = {
     document(e).foreach { page =>
-      page.document.select("ul.items-list li")
-        .asScala
-        .foreach { item =>
-        val name = item.select("div.head").first().text
-        val price = extractPrice(item.select("div.price").text)
-        extractEntry("Ашан", e.extractRegion.region, name, price, e.category, item.select("img")).foreach { entry =>
-          e.extractRegion.extract.callback(entry)
+      e.extractRegion.extract.callback(
+        page.document.select("ul.items-list li")
+          .asScala
+          .flatMap { item =>
+          val name = item.select("div.head").first().text
+          val price = extractPrice(item.select("div.price").text)
+          extractEntry("Ашан", e.extractRegion.region, name, price, e.category, item.select("img"))
         }
-      }
+      )
       page.document.select("a.next").asScala.headOption.map { nextLink =>
         JsoupPage.url(nextLink, "href").map { url =>
           sendToMyself(e.withUrl(url))

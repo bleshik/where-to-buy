@@ -23,7 +23,7 @@ class MetroExtractor extends AbstractJsoupExtractor {
     }.getOrElse(Map())
   }
 
-  override protected def when(e: Extract): Unit = 
+  protected def when(e: Extract): Unit = 
     domains(e.url).foreach { d => sendToMyself(ExtractRegion(d._1, Extract(d._2, e.callback))) }
 
   protected def when(e: ExtractRegion): Unit = {
@@ -53,22 +53,22 @@ class MetroExtractor extends AbstractJsoupExtractor {
   }
 
   protected def when(e: ExtractCategory): Unit =
-    entriesUrls(e.extractRegion.extract.url)
+    e.extractRegion.extract.callback(entriesUrls(e.extractRegion.extract.url)
     .map { url => json[Map[String, Object]](url) }
     .takeWhile { json =>
       json.isDefined && !json.get.get("data").asInstanceOf[Option[Map[String, Object]]].exists { d =>
         d.get("items").asInstanceOf[Option[List[String]]].exists(_.isEmpty)
       }
     }
-    .foreach { json =>
+    .flatMap { json =>
       json.flatMap(_.get("data").asInstanceOf[Option[Map[String, Object]]])
         .flatMap(_.get("items").asInstanceOf[Option[List[String]]])
         .map { entries =>
-        entries.map(document).map { entryPage =>
+        entries.map(document).flatMap { entryPage =>
           entryPage.document.select("div.current")
             .asScala
             .headOption
-            .map { price =>
+            .flatMap { price =>
             val img = entryPage.document.select("img").first
             extractEntry(
               "Metro",
@@ -77,11 +77,11 @@ class MetroExtractor extends AbstractJsoupExtractor {
               extractPrice(price.text, 1),
               e.category,
               img
-            ).map { entry => e.extractRegion.extract.callback(entry) }
+            )
           }
         }
       }
-    }
+    }.flatten)
 
   protected def entriesUrls(categoryUrl: URL): List[URL] = {
     1.to(50).map(page => new URL(categoryUrl.toString + s"?price_from=0&price_to=300000&brands=&attrs=&sorting=0&limit=20&page=$page&format=j")).toList

@@ -80,7 +80,7 @@ object ExtractorApp extends LazyLogging {
     ))
   }
 
-  def extract(dispatcher: Dispatcher, callback: (ExtractedEntry) => Unit): Unit = {
+  def extract(dispatcher: Dispatcher, callback: (Seq[ExtractedEntry]) => Unit): Unit = {
     if (Environment.cities.nonEmpty) {
       logger.info(s"Extract only for cities ${Environment.cities}")
     }

@@ -11,21 +11,21 @@ import wh.application.extractor.JsoupPage._
 
 class AvExtractor extends AbstractJsoupExtractor {
 
-  override protected def when(e: Extract): Unit = {
+  protected def when(e: Extract): Unit = {
     extractFromFlatMenu(e)
     extractFromNestedMenu(e)
   }
 
   protected def when(e: ExtractCategory): Unit = {
     document(e).map { page =>
-      page.document.select(".category_page_catalog_item_plate")
+      e.extractRegion.extract.callback(page.document.select(".category_page_catalog_item_plate")
         .asScala
-        .foreach { item =>
+        .flatMap { item =>
         item.select(".item_price")
           .asScala
           .headOption
           .map { price => extractPrice(price.ownText + "," + price.select(".price_postfix").text) }
-          .map { price =>
+          .flatMap { price =>
             extractEntry(
               "Азбука Вкуса",
               e.extractRegion.region,
@@ -33,9 +33,9 @@ class AvExtractor extends AbstractJsoupExtractor {
               price,
               e.category,
               item.select("img")
-            ).map { entry => e.extractRegion.extract.callback(entry) }
-        }
-      }
+            )
+          }
+        })
       page.document.select(".pagination_item.right a").asScala.foreach { link =>
         JsoupPage.url(link, "href").map { url => sendToMyself(e.withUrl(url)) }
       }

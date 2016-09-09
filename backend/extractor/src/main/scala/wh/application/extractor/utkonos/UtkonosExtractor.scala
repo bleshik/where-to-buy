@@ -11,7 +11,7 @@ import wh.application.extractor.JsoupPage._
 
 class UtkonosExtractor extends AbstractJsoupExtractor {
 
-  override protected def when(e: Extract): Unit =
+  protected def when(e: Extract): Unit =
     document(e).map(extractFromCategory(_, None, ExtractRegion("Москва", e)))
 
   protected def when(e: ExtractCategory): Unit =
@@ -21,7 +21,7 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
 
     page.document.select("div.goods_container.goods_view_box").asScala.headOption.map { goods =>
 
-      goods.select("div.goods_view").asScala.foreach { entry =>
+      extractRegion.extract.callback(goods.select("div.goods_view").asScala.flatMap { entry =>
         entry.select("div.price.color_black")
           .asScala
           .headOption
@@ -36,8 +36,8 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
           category.flatMap { c =>
             extractEntry("Утконос", "Москва", entry.select("a").first.text, price, c, entry.select("img"))
           }
-        }.map { entry => extractRegion.extract.callback(entry) }
-      }
+        }
+      })
 
       page.document.select("div.el_paginate").asScala.headOption.map { pagination =>
         pagination.select("a").asScala.lastOption.map { lastLink =>

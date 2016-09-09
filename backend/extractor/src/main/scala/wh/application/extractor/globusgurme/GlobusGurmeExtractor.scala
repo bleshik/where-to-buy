@@ -12,7 +12,7 @@ import wh.application.extractor.JsoupPage._
 
 class GlobusGurmeExtractor extends AbstractJsoupExtractor {
 
-  override protected def when(e: Extract): Unit = Map(
+  protected def when(e: Extract): Unit = Map(
     "Москва" -> "%CC%EE%F1%EA%E2%E0",
     "Санкт-Петербург" -> "%D1%E0%ED%EA%F2-%CF%E5%F2%E5%F0%E1%F3%F0%E3"
   ).foreach { city =>
@@ -55,12 +55,12 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
 
   private def extractEntries(e: ExtractCategory, page: Option[JsoupPage]): Unit = {
     page.map { page: JsoupPage =>
-      page.document.select("div.product-list-item")
+      e.extractRegion.extract.callback(page.document.select("div.product-list-item")
         .asScala
-        .foreach { item =>
+        .flatMap { item =>
         item.select("div.price-item")
           .asScala
-          .foreach { priceDiv => extractPrice(priceDiv.text)
+          .flatMap { priceDiv => extractPrice(priceDiv.text)
             val img = item.select("img")
             val name = cleanUpName(item.select("div.product-list-head a").text)
             val quantity =
@@ -77,9 +77,9 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
               extractPrice(priceDiv.text),
               e.category,
               img
-            ).map { entry => e.extractRegion.extract.callback(entry) }
-        }
-      }
+            )
+          }
+      })
     }
   }
 

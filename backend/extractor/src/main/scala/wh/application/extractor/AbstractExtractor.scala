@@ -73,15 +73,11 @@ abstract class AbstractExtractor extends Actor with Extractor with LoggingHandli
 
   def extract(url: URL): Iterator[ExtractedEntry] = {
     val queue = new LinkedBlockingQueue[ExtractedEntry]()
-    extract(url, (entry) => queue.add(entry));
+    extract(url, (e) => e.foreach(queue.add(_)));
     new WaitingBlockingQueueIterator(queue)
   }
 
-  override def extract(url: URL, callback: (ExtractedEntry) => Unit): Unit = {
+  override def extract(url: URL, callback: (Seq[ExtractedEntry]) => Unit): Unit = {
     new Dispatcher(new LocalEventTransport()).send(this.getClass(), Extract(url, callback))
-  }
-
-  protected def when(e: Extract): Unit = {
-    extract(e.url).foreach(e.callback)
   }
 }

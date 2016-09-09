@@ -41,14 +41,14 @@ class DixyExtractor extends AbstractJsoupExtractor {
 
   val dixyRegion = "dixy_region"
 
-  override protected def when(e: Extract): Unit =
+  protected def when(e: Extract): Unit =
     regions.foreach { region => sendToMyself(ExtractRegion(region, e, Map((dixyRegion, region)))) }
 
   protected def when(e: ExtractRegion): Unit = {
     document(e).map { page =>
-      page.document.select("div.product")
+      e.extract.callback(page.document.select("div.product")
         .asScala
-        .foreach { item =>
+        .flatMap { item =>
           extractEntry(
             "Дикси",
             e.region,
@@ -64,8 +64,9 @@ class DixyExtractor extends AbstractJsoupExtractor {
               .getOrElse(""), 1),
             Category(cleanUpName(item.select("div.product-category").text)),
             item.select("img")
-          ).map { entry => e.extract.callback(entry) }
+          )
         }
+      )
     }
   }
 }

@@ -10,7 +10,7 @@ import wh.application.extractor.JsoupPage._
 
 class KomusExtractor extends AbstractJsoupExtractor {
 
-  override protected def when(e: Extract): Unit =
+  protected def when(e: Extract): Unit =
     document(e).map { page => extractFromCategoryList(page, None, ExtractRegion("Москва", e)) }
 
   protected def when(e: ExtractCategory): Unit =
@@ -49,23 +49,21 @@ class KomusExtractor extends AbstractJsoupExtractor {
         .getOrElse(Iterator(page.url))
         .foreach { url =>
           (if (page.url.equals(url)) Some(page) else document(url)).map { page =>
-            extractFromProductList(page, parentCategory).foreach { entry =>
-              extractRegion.extract.callback(entry)
-            }
+            extractRegion.extract.callback(extractFromProductList(page, parentCategory))
           }
         }
     }
   }
 
-  private def extractFromProductList(page: JsoupPage, category: Option[Category]): Iterator[ExtractedEntry] = {
+  private def extractFromProductList(page: JsoupPage, category: Option[Category]): Seq[ExtractedEntry] = {
     category.map { c =>
       val entries = page.document.select("li.b-productList__item").asScala
-      entries.iterator.flatMap { entry =>
+      entries.flatMap { entry =>
         val name = entry.select("a.b-productList__item__descr--title").text
         val price = extractPrice(entry.select("span.b-price").text)
         val image = entry.select("img")
         extractEntry("Komus", SupportedCity.Moscow.name, name, price, c, image)
       }
-    }.getOrElse(Iterator.empty)
+    }.getOrElse(Seq.empty)
   }
 }
