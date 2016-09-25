@@ -45,7 +45,7 @@ class CommodityMatcher(val split: Double = 1) {
     data = source.getDataSet
     data.setClassIndex(data.numAttributes() - 1)
     classifier.buildClassifier(data)
-    val same = Commodity.arrived(Shop("Same", "Same"), "Same", 1)
+    val same = new Commodity(Shop("Same", "Same"), "Same", 1)
     normalization = classifier.distributionForInstance(
       new Instance(0, scores(same, same).toArray) {
         setDataset(data)
@@ -282,8 +282,7 @@ class CommodityMatcher(val split: Double = 1) {
     def extractCommodities(reader: CsvListReader): Stream[Commodity] = {
       val row: java.util.List[String] = reader.read()
       if (row != null) {
-
-        Commodity.arrived(Shop(row.get(0).trim, "Москва"), row.get(1).trim, row.get(2).trim.toInt) #:: extractCommodities(reader)
+        new Commodity(Shop(row.get(0).trim, "Москва"), row.get(1).trim, row.get(2).trim.toInt) #:: extractCommodities(reader)
       } else {
         Stream.empty
       }

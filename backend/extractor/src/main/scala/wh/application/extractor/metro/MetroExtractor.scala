@@ -40,11 +40,11 @@ class MetroExtractor extends AbstractJsoupExtractor {
           subcatalog.select("a.subcatalog_link")
             .asScala
             .flatMap { subcatalogLink =>
-            url(subcatalogLink, "href").map { href =>
-              ExtractCategory(
+            url(subcatalogLink, "href").flatMap { href =>
+              handle(Try(ExtractCategory(
                 Category(cleanUpName(subcatalogLink.text), category),
                 ExtractRegion(e.region, Extract(href, e.extract.callback))
-              )
+              )))
             }
           }
         }

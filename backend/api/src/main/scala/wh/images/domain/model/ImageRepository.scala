@@ -1,6 +1,6 @@
 package wh.images.domain.model
 
-import repository.PersistenceOrientedRepository
+import ddd.repository.PersistenceOrientedRepository
 
 trait ImageRepository extends PersistenceOrientedRepository[Image, String] {
 

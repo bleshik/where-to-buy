@@ -3,7 +3,8 @@ package wh.images.domain.model
 import java.io.ByteArrayOutputStream
 import java.net.URL
 
-case class LazyImage(name: String, link: String) extends Image(LazyImageCreated(name, link)) {
+case class ImageLink(override val name: String, link: String) extends Image(name) {
+
   override def data: Array[Byte] = {
     val bytes = new ByteArrayOutputStream
     val input = new URL(link).openStream()
@@ -11,11 +12,6 @@ case class LazyImage(name: String, link: String) extends Image(LazyImageCreated(
     bytes.toByteArray
   }
 
-  def download: Image = {
-    apply(ImageDownloaded(name, link))
-  }
+  def download: InMemoryImage = InMemoryImage(name, link, data)
 
-  protected def when(imageDownloaded: ImageDownloaded): DownloadedImage = {
-    imageDownloaded.initializedObject()
-  }
 }

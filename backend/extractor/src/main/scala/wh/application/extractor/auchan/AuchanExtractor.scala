@@ -12,6 +12,7 @@ import wh.util.WaitingBlockingQueueIterator
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import wh.application.extractor.JsoupPage._
+import scala.util.Try
 
 class AuchanExtractor extends AbstractJsoupExtractor {
 
@@ -51,12 +52,12 @@ class AuchanExtractor extends AbstractJsoupExtractor {
         val parentCategory = Category(categories(i), rootCategory)
         subDrop.select("a").asScala.foreach { category =>
           JsoupPage.url(category, "href").map(url =>
-            sendToMyself(
+            handle(Try(sendToMyself(
               ExtractCategory(
                 Category(cleanUpName(category.text), parentCategory),
                 e.withUrl(url)
               )
-            )
+            )))
           )
         }
       }

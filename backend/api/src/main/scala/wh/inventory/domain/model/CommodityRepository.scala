@@ -1,8 +1,10 @@
 package wh.inventory.domain.model
 
-import repository.eventsourcing.TemporalPersistenceOrientedRepository
+import ddd.repository.PersistenceOrientedRepository
+import ddd.repository.TemporalRepository
 
-trait CommodityRepository extends TemporalPersistenceOrientedRepository[Commodity, String] {
+trait CommodityRepository
+  extends PersistenceOrientedRepository[Commodity, String] with TemporalRepository[Commodity, String] {
   /**
    * Returns the most similar commodity.
    * @param commodity commodity to compare with.
@@ -16,7 +18,7 @@ trait CommodityRepository extends TemporalPersistenceOrientedRepository[Commodit
    * @param city a city where to look for commodities.
    * @return list of commodities.
    */
-  def search(searchPattern: String, city: String, limit: Int, offset: Int): List[Commodity]
+  def search(searchPattern: String, city: String, limit: Int, lastSeenCommodityName: Option[String]): List[Commodity]
 
   /**
    * Returns average prices for all shops a commodity had.

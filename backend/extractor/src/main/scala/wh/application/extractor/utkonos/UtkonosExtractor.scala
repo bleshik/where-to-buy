@@ -8,6 +8,7 @@ import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCit
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 import scala.collection.JavaConverters._
 import wh.application.extractor.JsoupPage._
+import scala.util.Try
 
 class UtkonosExtractor extends AbstractJsoupExtractor {
 
@@ -52,9 +53,11 @@ class UtkonosExtractor extends AbstractJsoupExtractor {
       .asScala
       .foreach { a =>
         url(a).map( url =>
-          sendToMyself(
-            ExtractCategory(Category(cleanUpName(a.text), category.getOrElse(null)), extractRegion).withUrl(url)
-          )
+          handle(Try(
+            sendToMyself(
+                ExtractCategory(Category(cleanUpName(a.text), category.getOrElse(null)), extractRegion).withUrl(url)
+            )
+          ))
         )
       }
 

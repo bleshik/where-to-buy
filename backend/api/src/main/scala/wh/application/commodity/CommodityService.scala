@@ -8,6 +8,6 @@ import scala.util.Random
 
 class CommodityService @Inject()(commodityRepository: CommodityRepository) {
   def randomInterestingCommodity(city: String) = {
-    Random.shuffle(commodityRepository.search("", city, 100, 0)).head
+    Random.shuffle(commodityRepository.search("", city, 100, null)).head
   }
 }

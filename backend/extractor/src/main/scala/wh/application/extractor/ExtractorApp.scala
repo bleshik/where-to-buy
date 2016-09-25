@@ -36,18 +36,10 @@ class ExtractorApp extends SnsEventTransport {
 }
 
 object ExtractorApp extends LazyLogging {
+
   def main(args: Array[String]): Unit = {
     logger.info("Started extractor with args: " + args.mkString(" "))
-
-    try {
-      val dispatcher = createDispatcher(new LocalEventTransport())
-      extract(dispatcher, (entry) => println(entry))
-      Thread.sleep(1000)
-      dispatcher.close()
-    } catch {
-      case e: Exception => logger.error("Extractor failed", e)
-    }
-
+    extractLocally((entries) => entries.foreach(println))
     logger.info("Exiting...");
   }
 
@@ -78,6 +70,17 @@ object ExtractorApp extends LazyLogging {
           true
       }.asJava
     ))
+  }
+
+  def extractLocally(callback: (Seq[ExtractedEntry]) => Unit): Unit = {
+    try {
+      val dispatcher = createDispatcher(new LocalEventTransport())
+      extract(dispatcher, callback)
+      Thread.sleep(1000)
+      dispatcher.close()
+    } catch {
+      case e: Exception => logger.error("Extractor failed", e)
+    }
   }
 
   def extract(dispatcher: Dispatcher, callback: (Seq[ExtractedEntry]) => Unit): Unit = {

@@ -1,0 +1,3 @@
+[submodule "backend/ddd"]
+	path = backend/ddd
+	url = git@github.com:bleshik/ddd.git

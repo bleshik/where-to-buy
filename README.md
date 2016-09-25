@@ -21,14 +21,14 @@ The *Extractor* module extracts data from grocery web sites using [web scraping]
 
 Currently it is able to send extracted entries to [Akka Remote System](http://doc.akka.io/docs/akka/snapshot/scala/remoting.html) or standard output.
 
-For uploading data to the akka remote system actor located at "akka.tcp://WhereToBuySystem@127.0.0.1:9000/user/EntryExtractingActor":
+For uploading data to the akka remote system actor located at "akka.tcp://WhereToBuySystem@127.0.0.1:9000/user/ExtractedEntryHandler":
 ```
 sbt "run akka"
 ```
 
 Alternatively you can specify the system:
 ```
-WH_API_AKKA_ENDPOINT="akka.tcp://WhereToBuySystem@127.0.0.1:9000/user/EntryExtractingActor" sbt "run akka"
+WH_API_AKKA_ENDPOINT="akka.tcp://WhereToBuySystem@127.0.0.1:9000/user/ExtractedEntryHandler" sbt "run akka"
 ```
 
 Or simply to console

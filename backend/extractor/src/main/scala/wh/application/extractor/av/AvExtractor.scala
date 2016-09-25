@@ -5,6 +5,7 @@ import wh.application.extractor.ExtractCategory
 import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{AbstractJsoupExtractor, JsoupPage, SupportedCity}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
+import scala.util.Try
 
 import scala.collection.JavaConverters._
 import wh.application.extractor.JsoupPage._
@@ -52,9 +53,9 @@ class AvExtractor extends AbstractJsoupExtractor {
           .asScala
           .foreach { subCategory =>
             JsoupPage.url(subCategory, "href").map { url =>
-              sendToMyself(
+              handle(Try(sendToMyself(
                 ExtractCategory(Category(cleanUpName(subCategory.text), null), ExtractRegion("Москва", e)).withUrl(url)
-              )
+              )))
             }
           }
         }
@@ -71,9 +72,9 @@ class AvExtractor extends AbstractJsoupExtractor {
           .asScala
           .foreach { subCategory =>
             JsoupPage.url(subCategory, "href").map { url =>
-              sendToMyself(
+              handle(Try(sendToMyself(
                 ExtractCategory(Category(cleanUpName(subCategory.text), parent), ExtractRegion("Москва", e)).withUrl(url)
-              )
+              )))
             }
         }
       }

@@ -6,6 +6,7 @@ import wh.application.extractor.ExtractCategory
 import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{AbstractJsoupExtractor, JsoupPage}
 import wh.extractor.domain.model.{Category, ExtractedEntry}
+import scala.util.Try
 
 import scala.collection.JavaConverters._
 import wh.application.extractor.JsoupPage._
@@ -46,7 +47,11 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
       } else {
         categories.asScala.flatMap { categoryLink =>
           JsoupPage.url(categoryLink, "href").map { nextPage =>
-            sendToMyself(ExtractCategory(Category(cleanUpName(categoryLink.ownText), category.getOrElse(null)), e.withUrl(nextPage)))
+            sendToMyself(handle(Try(
+              ExtractCategory(
+                Category(cleanUpName(categoryLink.ownText), category.getOrElse(null)), e.withUrl(nextPage))
+              )
+            ))
           }
         }
       }

@@ -2,7 +2,6 @@ package wh.application.extractor.dixy
 
 import java.net.URL
 import wh.application.extractor.Extract
-import wh.application.extractor.ExtractCategory
 import wh.application.extractor.ExtractRegion
 import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor}
 import wh.extractor.domain.model.ExtractedEntry
@@ -57,11 +56,12 @@ class DixyExtractor extends AbstractJsoupExtractor {
               .replace("весовые", "")
               .replace("весовая", "")
               .replace("весовой", ""),
-            extractPrice(item.select("div.product-price")
+            extractPrice(item.select("div.price")
               .asScala
               .headOption
-              .map(_.text)
-              .getOrElse(""), 1),
+              .flatMap((p1) =>
+                  item.select("div.fract").asScala.headOption.map((p2) => s"${p1.text}${p2.text}")
+              ).getOrElse(""), 1),
             Category(cleanUpName(item.select("div.product-category").text)),
             item.select("img")
           )

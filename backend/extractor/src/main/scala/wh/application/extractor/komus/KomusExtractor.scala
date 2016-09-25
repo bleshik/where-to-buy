@@ -7,6 +7,7 @@ import wh.application.extractor.{JsoupPage, AbstractJsoupExtractor, SupportedCit
 import wh.extractor.domain.model.{Category, ExtractedEntry}
 import scala.collection.JavaConverters._
 import wh.application.extractor.JsoupPage._
+import scala.util.Try
 
 class KomusExtractor extends AbstractJsoupExtractor {
 
@@ -26,12 +27,12 @@ class KomusExtractor extends AbstractJsoupExtractor {
         category.select("a").asScala.headOption
       }
     ).flatMap { a =>
-      JsoupPage.url(a).map { url =>
-        ExtractCategory(
+      JsoupPage.url(a).flatMap { url =>
+        handle(Try(ExtractCategory(
           Category(cleanUpName(parentCategory.map { _ => a.ownText }.getOrElse(a.text)),
           parentCategory.getOrElse(null)),
           extractRegion.withUrl(url)
-        )
+        )))
       }
     }.toSet
 

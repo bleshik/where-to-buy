@@ -14,8 +14,6 @@ initialize := {
   assert(current == required, s"Unsupported JDK: java.specification.version $current != $required")
 }
 
-enablePlugins(JavaAppPackaging)
-
 mainClass in Compile := Some("wh.application.extractor.ExtractorApp")
 
 resolvers += "S3 cache" at "https://s3-eu-central-1.amazonaws.com/global-tmp/maven-cache"

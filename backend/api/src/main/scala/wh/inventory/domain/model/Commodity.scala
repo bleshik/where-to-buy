@@ -1,9 +1,14 @@
 package wh.inventory.domain.model
 
-import repository.eventsourcing.IdentifiedEventSourcedEntity
+import ddd.repository.eventsourcing.IdentifiedEventSourcedEntity
 
 case class Commodity private(name: String, entries: List[Entry], tags: Set[String])
-  extends IdentifiedEventSourcedEntity[Commodity, String](CommodityArrived(entries.head.shop, name, entries.head.price, tags)) {
+  extends IdentifiedEventSourcedEntity[Commodity, String](name, CommodityArrived(entries.head.shop, name, entries.head.price, tags)) {
+
+  def this(event: CommodityArrived) = this(event.name, List(Entry(event.shop, event.name, event.price)), event.tags)
+
+  def this(shop: Shop, name: String, price: Long, tags: Set[String] = Set.empty) =
+    this(CommodityArrived(shop, name, price, tags))
 
   def id: String = name
 
@@ -52,11 +57,5 @@ case class Commodity private(name: String, entries: List[Entry], tags: Set[Strin
 
   protected def when(tagged: CommodityTagged): Commodity = {
     copy(tags = tags + tagged.tag)
-  }
-}
-
-object Commodity {
-  def arrived(shop: Shop, name: String, price: Long, tags: Set[String] = Set.empty): Commodity = {
-    new Commodity(name, List(Entry(shop, name, price)), tags)
   }
 }

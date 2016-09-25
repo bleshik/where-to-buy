@@ -1,34 +1,34 @@
 package wh.application
 
-import javax.inject.Singleton
-
+import actor.port.adapter.aws.AwsUtil
+import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.google.inject.Provides
-import com.mongodb.DB
+import eventstore.util.dynamodb.LocalAmazonDynamoDbClient
+import javax.inject.Singleton
 import net.codingwell.scalaguice.ScalaModule
 import wh.images.domain.model.ImageRepository
 import wh.infrastructure.Environment
-import wh.infrastructure.mongodb.{EtcdMongoClientProvider, LocalMongoClientProvider, MongoClientDbProvider, MongoClientProvider}
 import wh.inventory.domain.model.CommodityRepository
-import wh.port.adapter.persistence.{MongoDbCommodityRepository, MongoDbImageRepository}
+import wh.port.adapter.persistence.DynamoDbCommodityRepository
+import wh.port.adapter.persistence.DynamoDbImageRepository
 
 class PersistenceModule extends ScalaModule {
   override def configure(): Unit = {
     if (Environment.current == Environment.DEV) {
-      bind[MongoClientProvider].to[LocalMongoClientProvider]
+      bind[AmazonDynamoDBClient].to[LocalAmazonDynamoDbClient]
     } else {
-      bind[MongoClientProvider].toInstance(new EtcdMongoClientProvider("where"))
+      val client = new AmazonDynamoDBClient(new ClasspathPropertiesFileCredentialsProvider())
+      client.setRegion(AwsUtil.REGION)
+      bind[AmazonDynamoDBClient].toInstance(client)
     }
   }
 
   @Provides @Singleton
-  def db(mongoClientProvider: MongoClientProvider): DB =
-    new MongoClientDbProvider(mongoClientProvider, "where").get
+  def commodityRepository(db: AmazonDynamoDBClient): CommodityRepository =
+    new DynamoDbCommodityRepository(db)
 
   @Provides @Singleton
-  def commodityRepository(db: DB): CommodityRepository =
-    new MongoDbCommodityRepository(db)
-
-  @Provides @Singleton
-  def imageRepository(db: DB): ImageRepository =
-    new MongoDbImageRepository(db)
+  def imageRepository(db: AmazonDynamoDBClient): ImageRepository =
+    new DynamoDbImageRepository(db)
 }

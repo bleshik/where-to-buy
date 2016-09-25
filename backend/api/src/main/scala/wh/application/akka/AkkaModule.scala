@@ -7,7 +7,7 @@ import akka.actor._
 import com.google.inject.Injector
 import com.typesafe.config._
 import net.codingwell.scalaguice.ScalaModule
-import wh.application.extractor.EntryExtractingActor
+import wh.application.extractor.ExtractedEntryHandler
 import wh.application.rest.RestActor
 import wh.infrastructure.Environment
 
@@ -22,7 +22,7 @@ class AkkaModule extends ScalaModule {
     bind[ExecutionContext].toInstance(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(Environment.workerPoolConcurrency)))
     bind[ActorSystem].toInstance(system)
     bind[ActorRefFactory].toInstance(system)
-    actor[EntryExtractingActor]
+    bind[ExtractedEntryHandler]
     actor[RestActor]
   }
 

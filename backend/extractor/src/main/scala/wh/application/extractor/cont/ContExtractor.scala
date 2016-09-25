@@ -34,7 +34,7 @@ class ContExtractor extends AbstractJsoupExtractor {
             .asScala
             .foreach(cp =>
               JsoupPage.url(cp, "href").map { url =>
-                sendToMyself(e.copy(category = Category(cleanUpName(cp.text), e.category)).withUrl(url))
+                handle(Try(sendToMyself(e.copy(category = Category(cleanUpName(cp.text), e.category)).withUrl(url))))
               }
             )
         }

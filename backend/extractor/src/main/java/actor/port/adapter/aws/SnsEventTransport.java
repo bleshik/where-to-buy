@@ -29,21 +29,15 @@ import javax.xml.bind.DatatypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static actor.port.adapter.aws.AwsUtil.REGION;
+import static actor.port.adapter.aws.AwsUtil.ACCOUNT_ID;
+
 public abstract class SnsEventTransport implements EventTransport, RequestHandler<SNSEvent, Object>  {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    private final Region region = Region.getRegion(
-        Optional.ofNullable(System.getenv("AWS_REGION")).map(Regions::fromName).orElse(
-            Optional.ofNullable(System.getenv("AWS_DEFAULT_REGION")).map(Regions::fromName).orElse(Regions.EU_CENTRAL_1)
-        )
-    );
-    private final AmazonIdentityManagementClient iamClient =
-        new AmazonIdentityManagementClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
-    private final String accountId = iamClient.getUser().getUser().getArn().split(":")[4];
     private final AmazonSNSClient snsClient =
-        new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+        new AmazonSNSClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(REGION); }};
     private final AWSLambdaClient lambdaClient =
-        new AWSLambdaClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(region); }};
+        new AWSLambdaClient(new ClasspathPropertiesFileCredentialsProvider()) {{ setRegion(REGION); }};
     private String topicArn;
     protected Dispatcher dispatcher;
     private Consumer<EventTransport.Event> consumer;
@@ -64,7 +58,7 @@ public abstract class SnsEventTransport implements EventTransport, RequestHandle
         logger.info("Using topic " + topicName);
         logger.info("Creating/getting the topicArn");
         topicArn = snsClient.createTopic(topicName).getTopicArn();
-        String lambdaArn = "arn:aws:lambda:" + region.getName() + ":" + accountId + ":function:" + topicName;
+        String lambdaArn = "arn:aws:lambda:" + REGION.getName() + ":" + ACCOUNT_ID + ":function:" + topicName;
         logger.info("Checking subscribtion for lambda " + lambdaArn);
         snsClient.subscribe(topicArn, "lambda", lambdaArn);
         try {

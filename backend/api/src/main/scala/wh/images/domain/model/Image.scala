@@ -1,11 +1,7 @@
 package wh.images.domain.model
 
-import eventstore.api.InitialEvent
-import repository.eventsourcing.IdentifiedEventSourcedEntity
+import ddd.repository.AbstractIdentifiedEntity
 
-abstract class Image(override val initialEvent: InitialEvent[Image])
-  extends IdentifiedEventSourcedEntity[Image, String](initialEvent) {
-  def id = name
-  def name: String
+abstract class Image(val name: String) extends AbstractIdentifiedEntity[String](name) {
   def data: Array[Byte]
 }
