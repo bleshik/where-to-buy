@@ -7,10 +7,9 @@ import com.google.gson.{Gson, TypeAdapter, TypeAdapterFactory}
 import com.google.gson.GsonBuilder
 import eventstore.util.dynamodb.DynamoDbObjectMapper
 import eventstore.util.dynamodb.GsonDynamoDbObjectMapper
-import cz.augi.gsonscala._
 
 case class ScalaGsonDynamoDbObjectMapper() extends GsonDynamoDbObjectMapper(
-  new GsonBuilder().registerBasicConverters()
+  new GsonBuilder()
     .registerTypeAdapterFactory(ScalaCollectionTypeAdapterFactory)
     .create()) {}
 

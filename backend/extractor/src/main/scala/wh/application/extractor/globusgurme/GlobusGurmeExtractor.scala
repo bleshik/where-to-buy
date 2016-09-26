@@ -47,11 +47,11 @@ class GlobusGurmeExtractor extends AbstractJsoupExtractor {
       } else {
         categories.asScala.flatMap { categoryLink =>
           JsoupPage.url(categoryLink, "href").map { nextPage =>
-            sendToMyself(handle(Try(
+            handle(Try(sendToMyself(
               ExtractCategory(
-                Category(cleanUpName(categoryLink.ownText), category.getOrElse(null)), e.withUrl(nextPage))
+                Category(cleanUpName(categoryLink.ownText), category.getOrElse(null)), e.withUrl(nextPage)
               )
-            ))
+            )))
           }
         }
       }

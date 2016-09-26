@@ -42,23 +42,40 @@ public abstract class SnsEventTransport implements EventTransport, RequestHandle
     protected Dispatcher dispatcher;
     private Consumer<EventTransport.Event> consumer;
 
+    public void send(Class<? extends Actor> senderClass, String actorClass, Object payload, String otherTopicName) {
+        String otherTopicArn = snsClient.createTopic(otherTopicName).getTopicArn();
+        doSend(senderClass, actorClass, payload, otherTopicArn);
+    }
+
     @Override
-    public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+    public void send(Class<? extends Actor> senderClass, String actorClass, Object payload) {
+        doSend(senderClass, actorClass, payload, topicArn);
+    }
+
+    public void send(String actorClass, Object payload, String otherTopicName) {
+        send(NoopActor.class, actorClass, payload, otherTopicName);
+    }
+
+    private void doSend(Class<? extends Actor> senderClass, String actorClass, Object payload, String topicArn) {
         snsClient.publish(new PublishRequest(
             topicArn,
             DatatypeConverter.printHexBinary(new Event(senderClass, actorClass, payload).toByteArray())
         ));
     }
 
-    protected abstract Dispatcher initializeDispatcher(Context context);
+    protected Dispatcher initializeDispatcher(Context context) { return new Dispatcher(this); }
 
     protected abstract void onEmptyMessage(Context context);
 
     protected void initializeTopic(String topicName) {
+        initializeTopic(topicName, topicName);
+    }
+
+    protected void initializeTopic(String topicName, String lambdaName) {
         logger.info("Using topic " + topicName);
         logger.info("Creating/getting the topicArn");
         topicArn = snsClient.createTopic(topicName).getTopicArn();
-        String lambdaArn = "arn:aws:lambda:" + REGION.getName() + ":" + ACCOUNT_ID + ":function:" + topicName;
+        String lambdaArn = "arn:aws:lambda:" + REGION.getName() + ":" + ACCOUNT_ID + ":function:" + lambdaName;
         logger.info("Checking subscribtion for lambda " + lambdaArn);
         snsClient.subscribe(topicArn, "lambda", lambdaArn);
         try {

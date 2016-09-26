@@ -4,15 +4,18 @@ import _root_.akka.actor.{ActorRef, ActorSystem}
 import _root_.akka.io.IO
 import _root_.akka.pattern.ask
 import _root_.akka.util.Timeout
+import actor.port.adapter.aws.SnsEventTransport
+import com.amazonaws.services.lambda.runtime.Context
 import com.google.inject.Injector
 import com.google.inject.name.Names
 import com.google.inject.{Guice, Key}
 import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration._
 import spray.can.Http
-import wh.infrastructure.Environment
-import wh.application.extractor.ExtractorApp
 import wh.application.extractor.ExtractedEntryHandler
+import wh.application.extractor.ExtractorApp
+import wh.extractor.domain.model.ExtractedEntries
+import wh.infrastructure.Environment
 
 object ApiApp extends LazyLogging {
 
@@ -35,4 +38,10 @@ object ApiApp extends LazyLogging {
     }
   }
 
+}
+
+class ExtractedEntryHandlerHelper extends SnsEventTransport {
+  protected def when(event: ExtractedEntries): Unit =
+    event.entries.foreach((entry) => ApiApp.injector.getInstance(classOf[ExtractedEntryHandler]).handle(entry))
+  override protected def onEmptyMessage(context: Context): Unit = initializeTopic("ExtractedEntryHandler")
 }

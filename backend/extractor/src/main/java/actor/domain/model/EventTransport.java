@@ -9,16 +9,28 @@ import java.io.Serializable;
 import java.util.function.Consumer;
 
 public interface EventTransport extends AutoCloseable {
-    void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload);
+    void send(Class<? extends Actor> senderClass, String actorClass, Object payload);
+    default void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+        send(senderClass, actorClass.getCanonicalName(), payload);
+    }
+    default void send(String actorClass, Object payload) {
+        send(NoopActor.class, actorClass, payload);
+    }
+
     void listen(Consumer<Event> consumer);
     void close();
 
     public static class Event implements Serializable {
-        public final Class<? extends Actor> senderClass;
-        public final Class<? extends Actor> actorClass;
+        public final String senderClass;
+        public final String actorClass;
         public final Object payload;
+
         public Event(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) { 
-            this.senderClass = senderClass;
+            this(senderClass, actorClass.getCanonicalName(), payload);
+        }
+
+        public Event(Class<? extends Actor> senderClass, String actorClass, Object payload) { 
+            this.senderClass = senderClass.getCanonicalName();
             this.actorClass = actorClass;
             this.payload = payload;
         }

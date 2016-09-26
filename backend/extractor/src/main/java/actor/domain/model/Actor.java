@@ -11,11 +11,19 @@ public interface Actor {
     }
 
     default void handle(Class<? extends Actor> actor, Object payload) {
+        handle(actor.getCanonicalName(), payload);
+    }
+
+    default void handle(String actor, Object payload) {
         Dispatcher.dispatcher.get().handle(this.getClass(), actor, payload);
     }
 
-    default void send(Class<? extends Actor> actor, Object payload) {
+    default void send(String actor, Object payload) {
         Dispatcher.dispatcher.get().send(this.getClass(), actor, payload);
+    }
+
+    default void send(Class<? extends Actor> actor, Object payload) {
+        send(actor.getCanonicalName(), payload);
     }
 
 }

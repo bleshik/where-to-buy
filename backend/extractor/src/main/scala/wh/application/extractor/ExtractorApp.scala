@@ -26,12 +26,14 @@ import wh.application.extractor.utkonos.UtkonosExtractor
 import wh.extractor.domain.model.ExtractedEntry
 import wh.extractor.domain.model.ExtractedRegion
 import wh.util.ConcurrencyUtil._
+import wh.extractor.domain.model.ExtractedEntries
 
 class ExtractorApp extends SnsEventTransport {
   override protected def initializeDispatcher(context: Context): Dispatcher = ExtractorApp.createDispatcher(this)
   override protected def onEmptyMessage(context: Context): Unit = {
     initializeTopic("Extractor")
-    ExtractorApp.extract(dispatcher, (e) => println(e))
+    ExtractorApp.extract(dispatcher, (e) =>
+        send("wh.application.ExtractedEntryHandlerHelper", ExtractedEntries(e), "ExtractedEntryHandler"))
   }
 }
 

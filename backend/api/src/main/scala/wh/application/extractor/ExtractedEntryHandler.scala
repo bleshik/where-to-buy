@@ -16,7 +16,7 @@ class ExtractedEntryHandler @Inject()(val commodityRepository: CommodityReposito
   @volatile var i = 0
 
   def handle(entry: ExtractedEntry): Unit = {
-      logger.info(s"Received entry $entry")
+      logger.debug(s"Received entry $entry")
       if (entry.shop.city.isDefined) {
         val start = System.currentTimeMillis()
         if (!commodityRepository.removed(entry.name)) {
@@ -62,7 +62,7 @@ class ExtractedEntryHandler @Inject()(val commodityRepository: CommodityReposito
             }
         }
         i += 1
-        if (i % 100 == 0) {
+        if (i % 20 == 0) {
           logger.info(s"Entry was handled in ${System.currentTimeMillis() - start}")
           logger.info(s"Commodity amount ${commodityRepository.size}")
         }

@@ -18,7 +18,7 @@ public final class Dispatcher implements AutoCloseable {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Function<Class<? extends Actor>, Actor> actors;
     private final EventTransport eventTransport;
-    static ThreadLocal<Class<? extends Actor>> sender = new ThreadLocal<>();
+    static ThreadLocal<String> sender = new ThreadLocal<>();
     static ThreadLocal<Dispatcher> dispatcher = new ThreadLocal<>();
 
     static ClassValue<Map<Class, Method>> handlingMethods =
@@ -67,10 +67,9 @@ public final class Dispatcher implements AutoCloseable {
         this.eventTransport.listen((event) -> handle(event.senderClass, event.actorClass, event.payload));
     }
 
-
-    public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+    public void send(Class<? extends Actor> senderClass, String actorClass, Object payload) {
         try {
-            sender.set(senderClass);
+            sender.set(senderClass.getCanonicalName());
             dispatcher.set(this);
             eventTransport.send(senderClass, actorClass, payload);
         } catch (Exception ex) {
@@ -78,33 +77,44 @@ public final class Dispatcher implements AutoCloseable {
         }
     }
 
+    public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+        send(senderClass, actorClass.getCanonicalName(), payload);
+    }
+
     public void send(Class<? extends Actor> actorClass, Object payload) {
         send(NoopActor.class, actorClass, payload);
     }
 
-    public void handle(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+    public void handle(Class<? extends Actor> senderClass, String actor, Object payload) {
+        handle(senderClass.getCanonicalName(), actor, payload);
+    }
+
+    public void handle(String senderClass, String actor, Object payload) {
         try {
-            Optional<Method> when = handlingMethods.get(actorClass)
-                .entrySet()
-                .stream()
-                .filter((e) -> e.getKey().isInstance(payload))
-                .findAny()
-                .map((w) -> w.getValue());
-            if (!when.isPresent()) {
-                throw new IllegalArgumentException(
-                        actorClass.getCanonicalName() +
-                        " does not know how to process " +
-                        payload.getClass().getCanonicalName()
-                );
+            Class actorClass = Class.forName(actor);
+            if (Actor.class.isAssignableFrom(actorClass)) {
+                try {
+                    Optional<Method> when = handlingMethods.get(actorClass)
+                        .entrySet()
+                        .stream()
+                        .filter((e) -> e.getKey().isInstance(payload))
+                        .findAny()
+                        .map((w) -> w.getValue());
+                    if (!when.isPresent()) {
+                        throw new IllegalArgumentException(
+                            actor + " does not know how to process " + payload.getClass().getCanonicalName()
+                        );
+                    }
+                    if (when.get().getParameterTypes().length == 1) {
+                        when.get().invoke(actors.apply(actorClass), payload);
+                    } else {
+                        when.get().invoke(actors.apply(actorClass), payload, sender);
+                    }
+                } catch (IllegalAccessException|InvocationTargetException ex) {
+                    throw new ActorException("Actor handle failed", ex);
+                }
             }
-            if (when.get().getParameterTypes().length == 1) {
-                when.get().invoke(actors.apply(actorClass), payload);
-            } else {
-                when.get().invoke(actors.apply(actorClass), payload, sender);
-            }
-        } catch (IllegalAccessException|InvocationTargetException ex) {
-            throw new ActorException("Actor handle failed", ex);
-        }
+        } catch (ClassNotFoundException e) {/*ignore because this just means that the event isn't for us*/}
     }
 
     @Override

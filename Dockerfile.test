@@ -6,4 +6,4 @@ ADD . /tmp/build/bleshik/where-to-buy
 RUN mkdir -p ~/tmp/lambci/home/ && groupadd -r lambci && useradd -r -d /tmp/lambci/home/ -g lambci lambci
 RUN chown -R lambci:lambci /tmp
 USER lambci:lambci
-ENTRYPOINT PATH=$JAVA_HOME/bin:$PATH /tmp/build/bleshik/where-to-buy/backend/extractor/build-and-deploy.sh
+ENTRYPOINT PATH=$JAVA_HOME/bin:$PATH /tmp/build/bleshik/where-to-buy/backend/build-and-deploy.sh

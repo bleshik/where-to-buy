@@ -17,7 +17,7 @@ public class FilteringEventTransport implements EventTransport {
     }
 
     @Override
-    public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+    public void send(Class<? extends Actor> senderClass, String actorClass, Object payload) {
         if (accepts.stream().allMatch(a -> a.test(new EventTransport.Event(senderClass, actorClass, payload)))) {
             wrapped.send(senderClass, actorClass, payload);
         }

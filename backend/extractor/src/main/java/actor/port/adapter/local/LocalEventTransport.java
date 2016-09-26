@@ -16,7 +16,7 @@ public class LocalEventTransport implements EventTransport {
     private Consumer<Event> consumer;
 
     @Override
-    public void send(Class<? extends Actor> senderClass, Class<? extends Actor> actorClass, Object payload) {
+    public void send(Class<? extends Actor> senderClass, String actorClass, Object payload) {
         if (consumer != null) {
             consumer.accept(new Event(senderClass, actorClass, payload));
         }

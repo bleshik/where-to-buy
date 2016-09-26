@@ -67,3 +67,20 @@ libraryDependencies ++= {
     "org.specs2"          %%  "specs2-core"   % "2.3.11" % "test"
   )
 }
+
+enablePlugins(AwsLambdaPlugin)
+
+lambdaHandlers := Seq(
+  "ExtractedEntryHandler" -> "wh.application.ExtractedEntryHandlerHelper"
+)
+
+test in assembly := {}
+
+s3Bucket := Some("wh-prod")
+
+awsLambdaTimeout := Some(30)
+
+region := Some("eu-central-1")
+
+roleArn := Some("arn:aws:iam::034173546782:role/lambda")
+
